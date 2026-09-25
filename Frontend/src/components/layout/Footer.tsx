@@ -4,9 +4,9 @@ import { PUBLIC_ROUTES, STUDENT_ROUTES } from '@/constants/routes';
 
 const productLinks = [
   { to: PUBLIC_ROUTES.home, label: 'Home' },
-  { to: PUBLIC_ROUTES.features, label: 'How it works' },
-  { to: PUBLIC_ROUTES.about, label: "What it's about" },
-  { to: PUBLIC_ROUTES.faq, label: 'FAQ & Help' },
+  { to: PUBLIC_ROUTES.features, label: 'Features' },
+  { to: PUBLIC_ROUTES.about, label: 'About' },
+  { to: PUBLIC_ROUTES.faq, label: 'FAQ' },
 ];
 
 const appLinks = [

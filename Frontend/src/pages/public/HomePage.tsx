@@ -181,13 +181,13 @@ export function HomePage() {
       </section>
 
       {/* ── Feature cards ── */}
-      <section className="mx-auto mt-8 max-w-[1280px] px-4 sm:px-6">
+      <section className="mx-auto mt-6 max-w-[1280px] px-4 sm:px-6">
         <FeatureGrid />
       </section>
 
       {/* ── Stats strip ── */}
       <section className="mx-auto mt-14 max-w-[1280px] px-4 sm:px-6">
-        <div className="grid grid-cols-2 gap-4 rounded-[28px] bg-[#122a1f] px-6 py-10 sm:grid-cols-4 sm:px-10">
+        <div className="grid grid-cols-2 gap-4 rounded-[28px] bg-[#122a1f] px-6 py-8 sm:grid-cols-4">
           {stats.map(({ value, label }) => (
             <div key={label} className="text-center">
               <p className="text-3xl font-bold text-white sm:text-4xl">{value}</p>
@@ -198,14 +198,14 @@ export function HomePage() {
       </section>
 
       {/* ── How it works ── */}
-      <section className="mx-auto mt-14 max-w-[1280px] px-4 sm:px-6">
+      <section className="mx-auto mt-12 max-w-[1280px] px-4 sm:px-6">
         <div className="text-center">
           <p className="text-sm font-semibold uppercase tracking-wide text-[#1a8f57]">How it works</p>
           <h2 className="mt-2 text-2xl font-bold text-[#1d3d2d] sm:text-3xl">
             Up and running in four steps
           </h2>
         </div>
-        <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {steps.map(({ step, title, description }) => (
             <div
               key={step}
@@ -220,7 +220,7 @@ export function HomePage() {
       </section>
 
       {/* ── Screenshot slideshow ── */}
-      <section className="mx-auto mt-14 max-w-[1280px]">
+      <section className="mx-auto mt-12 max-w-[1280px]">
         <div className="text-center">
           <p className="flex items-center justify-center gap-1.5 text-sm font-semibold uppercase tracking-wide text-[#1a8f57]">
             <Sparkles className="h-3.5 w-3.5" />
@@ -236,14 +236,14 @@ export function HomePage() {
       </section>
 
       {/* ── App feature highlights ── */}
-      <section className="mx-auto mt-14 max-w-[1280px] px-4 sm:px-6">
+      <section className="mx-auto mt-12 max-w-[1280px] px-4 sm:px-6">
         <div className="text-center">
           <p className="text-sm font-semibold uppercase tracking-wide text-[#1a8f57]">Everything included</p>
           <h2 className="mt-2 text-2xl font-bold text-[#1d3d2d] sm:text-3xl">
             10 features, zero cost
           </h2>
         </div>
-        <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           {appFeatureHighlights.map(({ icon: Icon, label, description }) => (
             <div
               key={label}
@@ -260,7 +260,7 @@ export function HomePage() {
       </section>
 
       {/* ── CTA ── */}
-      <section className="mx-auto mt-14 max-w-[1280px] px-4 sm:px-6">
+      <section className="mx-auto mt-12 max-w-[1280px] px-4 sm:px-6">
         <div className="flex flex-col items-center gap-4 rounded-[28px] bg-[#d7f0d1] px-6 py-10 text-center sm:py-12">
           <h2 className="text-2xl font-bold text-[#1d3d2d] sm:text-3xl">Ready to see where your money goes?</h2>
           <p className="max-w-md text-sm text-[#1d3d2d]/70">
@@ -276,8 +276,8 @@ export function HomePage() {
       </section>
 
       {/* ── Sitemap (required by SRS) ── */}
-      <section className="mx-auto mt-14 max-w-[1280px] px-4 pb-16 sm:px-6" aria-label="Site map">
-        <div className="rounded-[28px] border border-gray-200 bg-white p-8 sm:p-10">
+      <section className="mx-auto mt-12 max-w-[1280px] px-4 pb-16 sm:px-6" aria-label="Site map">
+        <div className="rounded-[28px] border border-gray-200 bg-white p-6 sm:p-8">
           <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Site Map</p>
           <h2 className="mt-1 text-lg font-bold text-[#1d3d2d]">Everything in Campus Coin</h2>
           <div className="mt-6 grid grid-cols-2 gap-8 sm:grid-cols-3 lg:grid-cols-5">
