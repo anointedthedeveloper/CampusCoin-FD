@@ -271,11 +271,11 @@ export function ProfilePage() {
               );
             })}
             <Link
-              to={PUBLIC_ROUTES.contact}
+              to={PUBLIC_ROUTES.faq}
               className="flex w-full items-center gap-3 py-3 text-left text-sm text-gray-700 transition-colors duration-200 hover:text-brand-700"
             >
               <HelpCircle className="h-4 w-4 text-gray-400" />
-              Help & Support
+              Help & FAQ
             </Link>
             <button
               type="button"

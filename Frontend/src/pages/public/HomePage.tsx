@@ -1,13 +1,120 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, Sparkles, Users } from 'lucide-react';
-import { PUBLIC_ROUTES } from '@/constants/routes';
+import {
+  ArrowRight,
+  BarChart3,
+  Bell,
+  Bot,
+  FileSpreadsheet,
+  LayoutDashboard,
+  Lightbulb,
+  PiggyBank,
+  Receipt,
+  Sparkles,
+  Tags,
+  Users,
+  Wallet,
+} from 'lucide-react';
+import { PUBLIC_ROUTES, STUDENT_ROUTES } from '@/constants/routes';
 import { ScreenshotSlideshow } from '@/components/common';
 import { FeatureGrid } from '@/components/home/FeatureGrid';
 import { assets } from '@/assets/images';
 
+const stats = [
+  { value: '100%', label: 'Free to use' },
+  { value: '0', label: 'Bank links required' },
+  { value: '7+', label: 'Expense categories' },
+  { value: '6mo', label: 'Trend history' },
+];
+
+const steps = [
+  {
+    step: '01',
+    title: 'Create your account',
+    description: 'Sign up in seconds — just your name, email, and a password. No bank details, no credit card.',
+  },
+  {
+    step: '02',
+    title: 'Log income & expenses',
+    description: 'Quick-add transactions with student-relevant categories like Food, Transport, Hostel, and Allowance.',
+  },
+  {
+    step: '03',
+    title: 'Set monthly budgets',
+    description: 'Cap spending per category and watch live progress bars update the moment you log a transaction.',
+  },
+  {
+    step: '04',
+    title: 'Review & improve',
+    description: 'Monthly reports, a spending heatmap, and personalized saving tips help you spend smarter each month.',
+  },
+];
+
+// Sitemap data — required by SRS to appear on the home page
+const sitemapSections = [
+  {
+    title: 'Public Pages',
+    links: [
+      { label: 'Home', to: PUBLIC_ROUTES.home },
+      { label: 'How it works', to: PUBLIC_ROUTES.features },
+      { label: "What it's about", to: PUBLIC_ROUTES.about },
+      { label: 'FAQ & Help', to: PUBLIC_ROUTES.faq },
+    ],
+  },
+  {
+    title: 'Account',
+    links: [
+      { label: 'Log in', to: PUBLIC_ROUTES.login },
+      { label: 'Create account', to: PUBLIC_ROUTES.register },
+      { label: 'Forgot password', to: PUBLIC_ROUTES.forgotPassword },
+    ],
+  },
+  {
+    title: 'App — Track',
+    links: [
+      { label: 'Dashboard', to: STUDENT_ROUTES.dashboard },
+      { label: 'Transactions', to: STUDENT_ROUTES.transactions },
+      { label: 'Add Income', to: `${STUDENT_ROUTES.newTransaction}?type=income` },
+      { label: 'Add Expense', to: `${STUDENT_ROUTES.newTransaction}?type=expense` },
+      { label: 'Import CSV', to: STUDENT_ROUTES.import },
+    ],
+  },
+  {
+    title: 'App — Plan & Review',
+    links: [
+      { label: 'Budgets', to: STUDENT_ROUTES.budgets },
+      { label: 'Reports', to: STUDENT_ROUTES.reports },
+      { label: 'Saving Tips', to: STUDENT_ROUTES.savingTips },
+      { label: 'AI Assistant', to: STUDENT_ROUTES.insights },
+      { label: 'Bookmarks', to: STUDENT_ROUTES.bookmarks },
+    ],
+  },
+  {
+    title: 'App — Account',
+    links: [
+      { label: 'Profile', to: STUDENT_ROUTES.profile },
+      { label: 'Categories', to: STUDENT_ROUTES.categories },
+      { label: 'Notifications', to: STUDENT_ROUTES.notifications },
+    ],
+  },
+];
+
+const appFeatureHighlights = [
+  { icon: LayoutDashboard, label: 'Dashboard', description: 'Balance, top category, budget vs actual at a glance.' },
+  { icon: Receipt, label: 'Transactions', description: 'Full history with search, filter, and delete.' },
+  { icon: Wallet, label: 'Budgets', description: 'Per-category monthly limits with live progress bars.' },
+  { icon: BarChart3, label: 'Reports', description: '6-month trend, heatmap, weekly breakdown, CSV export.' },
+  { icon: Lightbulb, label: 'Saving Tips', description: 'Personalized tips from your own spending habits.' },
+  { icon: Bot, label: 'AI Assistant', description: 'Chat-based help for budgets, spending, and logging.' },
+  { icon: Tags, label: 'Categories', description: 'Custom income and expense categories you control.' },
+  { icon: FileSpreadsheet, label: 'CSV Import', description: 'Bring in months of history from any spreadsheet.' },
+  { icon: Bell, label: 'Notifications', description: 'Budget alerts and system announcements in one place.' },
+  { icon: PiggyBank, label: 'Savings Goal', description: 'Set a target and track progress on your dashboard.' },
+];
+
 export function HomePage() {
   return (
     <div>
+      {/* ── Hero ── */}
       <section className="relative isolate -mt-24 min-h-svh overflow-hidden bg-[#f6fbf7] pt-24">
         <img
           src={assets.heroBackground}
@@ -73,10 +180,46 @@ export function HomePage() {
         />
       </section>
 
+      {/* ── Feature cards ── */}
       <section className="mx-auto mt-8 max-w-[1280px] px-4 sm:px-6">
         <FeatureGrid />
       </section>
 
+      {/* ── Stats strip ── */}
+      <section className="mx-auto mt-14 max-w-[1280px] px-4 sm:px-6">
+        <div className="grid grid-cols-2 gap-4 rounded-[28px] bg-[#122a1f] px-6 py-10 sm:grid-cols-4 sm:px-10">
+          {stats.map(({ value, label }) => (
+            <div key={label} className="text-center">
+              <p className="text-3xl font-bold text-white sm:text-4xl">{value}</p>
+              <p className="mt-1 text-sm text-white/50">{label}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── How it works ── */}
+      <section className="mx-auto mt-14 max-w-[1280px] px-4 sm:px-6">
+        <div className="text-center">
+          <p className="text-sm font-semibold uppercase tracking-wide text-[#1a8f57]">How it works</p>
+          <h2 className="mt-2 text-2xl font-bold text-[#1d3d2d] sm:text-3xl">
+            Up and running in four steps
+          </h2>
+        </div>
+        <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {steps.map(({ step, title, description }) => (
+            <div
+              key={step}
+              className="group rounded-[26px] bg-[#f6f4ee] p-6 transition-all duration-300 hover:-translate-y-1 hover:bg-white hover:shadow-lg"
+            >
+              <span className="text-3xl font-bold text-[#1c8f53]/20 group-hover:text-[#1c8f53]/40">{step}</span>
+              <h3 className="mt-3 font-semibold text-[#1d3d2d]">{title}</h3>
+              <p className="mt-1.5 text-sm leading-relaxed text-gray-600">{description}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Screenshot slideshow ── */}
       <section className="mx-auto mt-14 max-w-[1280px]">
         <div className="text-center">
           <p className="flex items-center justify-center gap-1.5 text-sm font-semibold uppercase tracking-wide text-[#1a8f57]">
@@ -89,6 +232,73 @@ export function HomePage() {
         </div>
         <div className="mt-6">
           <ScreenshotSlideshow />
+        </div>
+      </section>
+
+      {/* ── App feature highlights ── */}
+      <section className="mx-auto mt-14 max-w-[1280px] px-4 sm:px-6">
+        <div className="text-center">
+          <p className="text-sm font-semibold uppercase tracking-wide text-[#1a8f57]">Everything included</p>
+          <h2 className="mt-2 text-2xl font-bold text-[#1d3d2d] sm:text-3xl">
+            10 features, zero cost
+          </h2>
+        </div>
+        <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          {appFeatureHighlights.map(({ icon: Icon, label, description }) => (
+            <div
+              key={label}
+              className="group flex flex-col gap-2 rounded-[20px] bg-[#f6f4ee] p-4 transition-all duration-300 hover:-translate-y-1 hover:bg-white hover:shadow-md"
+            >
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#d7f0d1] text-[#1c8f53] transition-transform duration-300 group-hover:scale-110">
+                <Icon className="h-4 w-4" />
+              </span>
+              <p className="text-sm font-semibold text-[#1d3d2d]">{label}</p>
+              <p className="text-xs leading-relaxed text-gray-500">{description}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── CTA ── */}
+      <section className="mx-auto mt-14 max-w-[1280px] px-4 sm:px-6">
+        <div className="flex flex-col items-center gap-4 rounded-[28px] bg-[#d7f0d1] px-6 py-10 text-center sm:py-12">
+          <h2 className="text-2xl font-bold text-[#1d3d2d] sm:text-3xl">Ready to see where your money goes?</h2>
+          <p className="max-w-md text-sm text-[#1d3d2d]/70">
+            Free to use, no bank account required, and you&apos;re in control of every entry.
+          </p>
+          <Link
+            to={PUBLIC_ROUTES.register}
+            className="mt-2 rounded-xl bg-[#1c8f53] px-7 py-3.5 text-base font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#177e48] hover:shadow-lg hover:shadow-[#1c8f53]/20 active:translate-y-0"
+          >
+            Get Started Free
+          </Link>
+        </div>
+      </section>
+
+      {/* ── Sitemap (required by SRS) ── */}
+      <section className="mx-auto mt-14 max-w-[1280px] px-4 pb-16 sm:px-6" aria-label="Site map">
+        <div className="rounded-[28px] border border-gray-200 bg-white p-8 sm:p-10">
+          <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Site Map</p>
+          <h2 className="mt-1 text-lg font-bold text-[#1d3d2d]">Everything in Campus Coin</h2>
+          <div className="mt-6 grid grid-cols-2 gap-8 sm:grid-cols-3 lg:grid-cols-5">
+            {sitemapSections.map(({ title, links }) => (
+              <div key={title}>
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-400">{title}</h3>
+                <ul className="mt-3 space-y-2">
+                  {links.map(({ label, to }) => (
+                    <li key={label}>
+                      <Link
+                        to={to}
+                        className="text-sm text-gray-600 transition-colors duration-200 hover:text-[#1c8f53]"
+                      >
+                        {label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
     </div>

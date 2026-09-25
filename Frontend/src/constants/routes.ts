@@ -2,7 +2,7 @@ export const PUBLIC_ROUTES = {
   home: '/',
   about: '/about',
   features: '/features',
-  contact: '/contact',
+  faq: '/faq',
   login: '/login',
   adminLogin: '/adlg',
   register: '/register',

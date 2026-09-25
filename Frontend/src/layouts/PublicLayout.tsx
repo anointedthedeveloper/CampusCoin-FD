@@ -11,7 +11,7 @@ const navLinks = [
   { to: PUBLIC_ROUTES.home, label: 'Home', end: true },
   { to: PUBLIC_ROUTES.features, label: 'How it works?', end: false },
   { to: PUBLIC_ROUTES.about, label: "What it's about", end: false },
-  { to: PUBLIC_ROUTES.contact, label: 'Contact', end: false },
+  { to: PUBLIC_ROUTES.faq, label: 'FAQ & Help', end: false },
 ];
 
 export function PublicLayout() {

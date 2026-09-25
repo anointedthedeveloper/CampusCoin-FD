@@ -12,8 +12,8 @@ import { PageLoader } from '@/components/common';
 const AboutPage = lazy(() =>
   import('@/pages/public/AboutPage').then((page) => ({ default: page.AboutPage })),
 );
-const ContactPage = lazy(() =>
-  import('@/pages/public/ContactPage').then((page) => ({ default: page.ContactPage })),
+const FaqPage = lazy(() =>
+  import('@/pages/public/FaqPage').then((page) => ({ default: page.FaqPage })),
 );
 const FeaturesPage = lazy(() =>
   import('@/pages/public/FeaturesPage').then((page) => ({ default: page.FeaturesPage })),
@@ -134,7 +134,7 @@ export function AppRoutes() {
           <Route path={PUBLIC_ROUTES.home} element={<HomePage />} />
           <Route path={PUBLIC_ROUTES.about} element={<AboutPage />} />
           <Route path={PUBLIC_ROUTES.features} element={<FeaturesPage />} />
-          <Route path={PUBLIC_ROUTES.contact} element={<ContactPage />} />
+          <Route path={PUBLIC_ROUTES.faq} element={<FaqPage />} />
         </Route>
 
         {/* Auth flows */}

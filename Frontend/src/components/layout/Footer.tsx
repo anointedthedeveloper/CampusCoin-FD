@@ -6,7 +6,7 @@ const productLinks = [
   { to: PUBLIC_ROUTES.home, label: 'Home' },
   { to: PUBLIC_ROUTES.features, label: 'How it works' },
   { to: PUBLIC_ROUTES.about, label: "What it's about" },
-  { to: PUBLIC_ROUTES.contact, label: 'Contact us' },
+  { to: PUBLIC_ROUTES.faq, label: 'FAQ & Help' },
 ];
 
 const appLinks = [
