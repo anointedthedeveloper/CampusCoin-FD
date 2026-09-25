@@ -14,6 +14,7 @@ import {
   NotFoundPage,
 } from '@/pages/public';
 import {
+  AdminLoginPage,
   ForgotPasswordPage,
   LoginPage,
   RegisterPage,
@@ -60,6 +61,7 @@ export function AppRoutes() {
       {/* Auth flows */}
       <Route element={<AuthLayout />}>
         <Route path={PUBLIC_ROUTES.login} element={<LoginPage />} />
+        <Route path={PUBLIC_ROUTES.adminLogin} element={<AdminLoginPage />} />
         <Route path={PUBLIC_ROUTES.register} element={<RegisterPage />} />
         <Route path={PUBLIC_ROUTES.forgotPassword} element={<ForgotPasswordPage />} />
         <Route path={PUBLIC_ROUTES.resetPassword} element={<ResetPasswordPage />} />

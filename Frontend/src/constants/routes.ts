@@ -4,6 +4,7 @@ export const PUBLIC_ROUTES = {
   features: '/features',
   contact: '/contact',
   login: '/login',
+  adminLogin: '/adlg',
   register: '/register',
   forgotPassword: '/forgot-password',
   resetPassword: '/reset-password/:token',
