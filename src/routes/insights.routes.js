@@ -41,7 +41,7 @@ function formatBookmark(b) {
 }
 
 // GET /api/v1/insights?month=YYYY-MM
-router.get('/', async (req, res) => {
+router.get('/insights', async (req, res) => {
   try {
     const filter = { userId: req.user._id };
     if (req.query.month) filter.month = req.query.month;
