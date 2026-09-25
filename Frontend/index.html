@@ -16,6 +16,73 @@
   </head>
   <body>
     <div id="root"></div>
+    <button
+      id="tawk-chat-toggle"
+      type="button"
+      aria-label="Open chat support"
+      style="
+        position: fixed;
+        right: 20px;
+        bottom: 20px;
+        z-index: 9999;
+        width: 56px;
+        height: 56px;
+        border: 0;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #15803d 0%, #22c55e 100%);
+        color: #ffffff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 14px 28px rgba(21, 128, 61, 0.28);
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      "
+      onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 18px 32px rgba(21, 128, 61, 0.34)';"
+      onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 14px 28px rgba(21, 128, 61, 0.28)';"
+    >
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+        <path d="M7 18.5V16H5.5C3.57 16 2 14.43 2 12.5V7.5C2 5.57 3.57 4 5.5 4H18.5C20.43 4 22 5.57 22 7.5V12.5C22 14.43 20.43 16 18.5 16H11L7 18.5Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M8.5 9.5H15.5M8.5 12.5H13.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    </button>
     <script type="module" src="/src/main.tsx"></script>
+
+    <!--Start of Tawk.to Script-->
+    <script type="text/javascript">
+      var Tawk_API = Tawk_API || {}, Tawk_LoadStart = new Date();
+      (function () {
+        var s1 = document.createElement('script'), s0 = document.getElementsByTagName('script')[0];
+        s1.async = true;
+        s1.src = 'https://embed.tawk.to/6ab60daff74c113446a800dc/1k3biatf4';
+        s1.charset = 'UTF-8';
+        s1.setAttribute('crossorigin', '*');
+        s0.parentNode.insertBefore(s1, s0);
+      })();
+
+      window.Tawk_API = window.Tawk_API || {};
+      window.Tawk_API.onLoad = function () {
+        if (window.Tawk_API && typeof window.Tawk_API.hideWidget === 'function') {
+          window.Tawk_API.hideWidget();
+        }
+      };
+
+      window.addEventListener('DOMContentLoaded', function () {
+        const toggleButton = document.getElementById('tawk-chat-toggle');
+        if (!toggleButton) return;
+
+        toggleButton.addEventListener('click', function () {
+          if (window.Tawk_API && typeof window.Tawk_API.toggle === 'function') {
+            window.Tawk_API.toggle();
+            return;
+          }
+
+          if (window.Tawk_API && typeof window.Tawk_API.showWidget === 'function') {
+            window.Tawk_API.showWidget();
+          }
+        });
+      });
+    </script>
+    <!--End of Tawk.to Script-->
   </body>
 </html>

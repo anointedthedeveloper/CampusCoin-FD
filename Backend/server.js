@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 
-const connectDB = require('./src/config/db');
+const { connectDB, disconnectDB } = require('./src/config/db');
 
 // Route modules
 const authRoutes = require('./src/routes/auth.routes');
@@ -42,6 +42,22 @@ app.use((_req, res) => res.status(404).json({ message: 'Route not found' }));
 
 // ── Start ─────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 5000;
-connectDB().then(() => {
-  app.listen(PORT, () => console.log(`CampusCoin server running on port ${PORT}`));
+connectDB().then((isConnected) => {
+  const server = app.listen(PORT, () => {
+    if (isConnected) {
+      console.log(`CampusCoin server running on port ${PORT}`);
+    } else {
+      console.log(`CampusCoin server running on port ${PORT} without MongoDB connectivity. Connect MongoDB or set MONGO_URI to restore database-backed APIs.`);
+    }
+  });
+
+  const shutdown = () => {
+    server.close(async () => {
+      await disconnectDB();
+      process.exit(0);
+    });
+  };
+
+  process.once('SIGINT', shutdown);
+  process.once('SIGTERM', shutdown);
 });
