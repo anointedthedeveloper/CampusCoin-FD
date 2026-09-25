@@ -1,11 +1,12 @@
-import { useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Activity, FolderPlus, ListTree, Megaphone, Receipt, Sparkles, Users } from 'lucide-react';
-import { Avatar, Card, EmptyState } from '@/components/common';
+import { Avatar, Card, EmptyState, Spinner } from '@/components/common';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { ADMIN_ROUTES, buildPath } from '@/constants/routes';
 import { formatDate } from '@/utils/format';
 import { adminStatisticsService, adminUserService } from '@/services';
+import type { SystemStatistics, AdminUserSummary } from '@/types/admin';
 
 const quickActions = [
   { label: 'Add Category', icon: FolderPlus, to: ADMIN_ROUTES.categories },
@@ -14,11 +15,24 @@ const quickActions = [
 ];
 
 export function AdminDashboardPage() {
-  const statistics = useMemo(() => adminStatisticsService.getStatistics(), []);
-  const recentUsers = useMemo(
-    () => [...adminUserService.listUsers()].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5),
-    [],
-  );
+  const [statistics, setStatistics] = useState<SystemStatistics | null>(null);
+  const [recentUsers, setRecentUsers] = useState<AdminUserSummary[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      const [stats, users] = await Promise.all([
+        adminStatisticsService.getStatistics(),
+        adminUserService.listUsers(),
+      ]);
+      setStatistics(stats);
+      setRecentUsers([...users].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5));
+      setIsLoading(false);
+    }
+    void load();
+  }, []);
+
+  if (isLoading || !statistics) return <div className="flex justify-center py-20"><Spinner /></div>;
 
   const stats = [
     { label: 'Total Users', value: statistics.totalUsers.toLocaleString(), icon: Users, tone: 'brand' as const },

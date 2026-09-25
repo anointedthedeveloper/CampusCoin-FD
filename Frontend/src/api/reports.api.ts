@@ -3,9 +3,10 @@ import type { ApiSuccess } from '@/types/api';
 import type { MonthlyReport, ReportFilters } from '@/types/report';
 
 export const reportsApi = {
-  async getMonthlyReport(month: string, filters: ReportFilters = {}): Promise<MonthlyReport> {
+  async getMonthlyReport(params: { month?: string } & ReportFilters = {}): Promise<MonthlyReport> {
+    const { month, ...filters } = params;
     const { data } = await httpClient.get<ApiSuccess<MonthlyReport>>('/reports/monthly', {
-      params: { month, ...filters },
+      params: { month: month ?? new Date().toISOString().slice(0, 7), ...filters },
     });
     return data.data;
   },

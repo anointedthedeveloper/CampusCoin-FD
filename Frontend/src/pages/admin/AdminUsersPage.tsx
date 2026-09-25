@@ -1,30 +1,38 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Users } from 'lucide-react';
-import { Avatar, Badge, Card, EmptyState } from '@/components/common';
+import { Avatar, Badge, Card, EmptyState, Spinner } from '@/components/common';
 import { ADMIN_ROUTES, buildPath } from '@/constants/routes';
 import { adminUserService } from '@/services';
 import { formatDate } from '@/utils/format';
+import type { AdminUserSummary } from '@/types/admin';
 
 export function AdminUsersPage() {
   const [search, setSearch] = useState('');
+  const [users, setUsers] = useState<AdminUserSummary[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [refreshToken, setRefreshToken] = useState(0);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const users = useMemo(() => adminUserService.listUsers(), [refreshToken]);
+  useEffect(() => {
+    async function load() {
+      setIsLoading(true);
+      const data = await adminUserService.listUsers();
+      setUsers(data);
+      setIsLoading(false);
+    }
+    void load();
+  }, [refreshToken]);
 
-  const filtered = useMemo(() => {
-    if (!search.trim()) return users;
-    const query = search.trim().toLowerCase();
-    return users.filter(
-      (user) => user.fullName.toLowerCase().includes(query) || user.email.toLowerCase().includes(query),
-    );
-  }, [users, search]);
+  const filtered = search.trim()
+    ? users.filter((u) => u.fullName.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase()))
+    : users;
 
-  function toggleActive(id: string, isActive: boolean) {
-    adminUserService.setActive(id, !isActive);
-    setRefreshToken((token) => token + 1);
+  async function toggleActive(id: string, isActive: boolean) {
+    await adminUserService.setActive(id, !isActive);
+    setRefreshToken((t) => t + 1);
   }
+
+  if (isLoading) return <div className="flex justify-center py-20"><Spinner /></div>;
 
   return (
     <div className="space-y-6">
@@ -71,7 +79,7 @@ export function AdminUsersPage() {
                 <Badge tone={user.isActive ? 'success' : 'neutral'}>{user.isActive ? 'Active' : 'Suspended'}</Badge>
                 <button
                   type="button"
-                  onClick={() => toggleActive(user.id, user.isActive)}
+                  onClick={() => void toggleActive(user.id, user.isActive)}
                   className="shrink-0 rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-700 transition-colors duration-200 hover:bg-gray-50"
                 >
                   {user.isActive ? 'Suspend' : 'Activate'}

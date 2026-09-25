@@ -1,10 +1,11 @@
-import { useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { AlertTriangle, Bell, BellOff, Info, Megaphone, Sparkles } from 'lucide-react';
 import { Card, EmptyState, Spinner } from '@/components/common';
 import { useNotifications } from '@/hooks/useNotifications';
 import { adminAnnouncementService } from '@/services';
 import { formatDate } from '@/utils/format';
 import { cn } from '@/utils/cn';
+import type { Announcement } from '@/types/admin';
 import type { NotificationType } from '@/types/notification';
 
 const typeStyle: Record<NotificationType, { icon: typeof Bell; badgeClassName: string }> = {
@@ -16,7 +17,11 @@ const typeStyle: Record<NotificationType, { icon: typeof Bell; badgeClassName: s
 
 export function NotificationsPage() {
   const { notifications, unreadCount, isLoading, markAsRead, markAllAsRead } = useNotifications();
-  const announcements = useMemo(() => adminAnnouncementService.listPublishedFor('students'), []);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+
+  useEffect(() => {
+    void adminAnnouncementService.listPublishedFor('students').then(setAnnouncements);
+  }, []);
 
   const hasAny = notifications.length > 0 || announcements.length > 0;
 

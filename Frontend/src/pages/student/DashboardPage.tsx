@@ -31,7 +31,7 @@ import { insightsApi } from '@/api/insights.api';
 import { notificationsApi } from '@/api/notifications.api';
 import { cn } from '@/utils/cn';
 import type { Transaction } from '@/types/transaction';
-import type { Budget, BudgetSummary } from '@/types/budget';
+import type { BudgetSummary } from '@/types/budget';
 import type { Category } from '@/types/category';
 import type { AppNotification } from '@/types/notification';
 import type { MonthlyReport } from '@/types/report';
@@ -72,7 +72,7 @@ export function DashboardPage() {
         transactionService.list(user!.id),
         categoryService.list(user!.id),
         budgetService.summary(user!.id, month),
-        reportsApi.getMonthlyReport(month),
+        reportsApi.getMonthlyReport({ month }),
         notificationsApi.list(),
         insightsApi.listSavingTips(),
         insightsApi.listInsights({ month }),

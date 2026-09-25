@@ -1,21 +1,31 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, Calendar, GraduationCap, Mail, Receipt, Users } from 'lucide-react';
-import { Avatar, Badge, Card, EmptyState } from '@/components/common';
+import { Avatar, Badge, Card, EmptyState, Spinner } from '@/components/common';
 import { ADMIN_ROUTES } from '@/constants/routes';
-import { adminUserService, categoryService } from '@/services';
-import { DEFAULT_CURRENCY } from '@/constants/config';
-import { formatCurrency, formatDate } from '@/utils/format';
+import { adminUserService } from '@/services';
+import { formatDate } from '@/utils/format';
 import { cn } from '@/utils/cn';
+import type { AdminUserSummary } from '@/types/admin';
 
 export function AdminUserDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const [user, setUser] = useState<AdminUserSummary | undefined>(undefined);
+  const [isLoading, setIsLoading] = useState(true);
   const [refreshToken, setRefreshToken] = useState(0);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const user = useMemo(() => (id ? adminUserService.getUserById(id) : undefined), [id, refreshToken]);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const recentTransactions = useMemo(() => (id ? adminUserService.getRecentTransactions(id, 5) : []), [id, refreshToken]);
+  useEffect(() => {
+    if (!id) return;
+    async function load() {
+      setIsLoading(true);
+      const data = await adminUserService.getUserById(id!);
+      setUser(data);
+      setIsLoading(false);
+    }
+    void load();
+  }, [id, refreshToken]);
+
+  if (isLoading) return <div className="flex justify-center py-20"><Spinner /></div>;
 
   if (!user) {
     return (
@@ -33,10 +43,10 @@ export function AdminUserDetailPage() {
     );
   }
 
-  function toggleActive() {
+  async function toggleActive() {
     if (!user) return;
-    adminUserService.setActive(user.id, !user.isActive);
-    setRefreshToken((token) => token + 1);
+    await adminUserService.setActive(user.id, !user.isActive);
+    setRefreshToken((t) => t + 1);
   }
 
   return (
@@ -97,27 +107,9 @@ export function AdminUserDetailPage() {
 
       <Card className="p-5">
         <h2 className="font-semibold text-gray-900">Recent Transactions</h2>
-        {recentTransactions.length === 0 ? (
-          <p className="mt-3 text-sm text-gray-500">No transactions on record for this user.</p>
-        ) : (
-          <div className="mt-3 divide-y divide-gray-100">
-            {recentTransactions.map((txn) => {
-              const categoryName = categoryService.getById(user.id, txn.categoryId)?.name ?? 'Other';
-              return (
-                <div key={txn.id} className="flex items-center justify-between gap-3 py-3">
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">{txn.description || categoryName}</p>
-                    <p className="text-xs text-gray-500">{formatDate(txn.occurredAt)}</p>
-                  </div>
-                  <span className={cn('text-sm font-semibold', txn.type === 'income' ? 'text-brand-600' : 'text-gray-900')}>
-                    {txn.type === 'income' ? '+' : '-'}
-                    {formatCurrency(txn.amount, DEFAULT_CURRENCY)}
-                  </span>
-                </div>
-              );
-            })}
+        <div className="mt-3 divide-y divide-gray-100">
+            <p className="py-3 text-sm text-gray-500">No transactions on record for this user.</p>
           </div>
-        )}
       </Card>
     </div>
   );

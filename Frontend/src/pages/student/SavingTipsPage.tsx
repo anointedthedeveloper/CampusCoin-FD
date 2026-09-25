@@ -1,11 +1,12 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Bookmark, Lightbulb, PiggyBank, Sparkles, Utensils, X, type LucideIcon } from 'lucide-react';
-import { Card, EmptyState } from '@/components/common';
+import { Card, EmptyState, Spinner } from '@/components/common';
 import { tipsService } from '@/services';
 import { useAuth } from '@/hooks/useAuth';
 import { STUDENT_ROUTES } from '@/constants/routes';
 import { cn } from '@/utils/cn';
+import type { SavingTip } from '@/types/insight';
 
 const categoryStyle: Record<string, { icon: LucideIcon; badgeClassName: string }> = {
   Food: { icon: Utensils, badgeClassName: 'bg-red-100 text-red-600' },
@@ -18,22 +19,38 @@ const fallbackStyle = { icon: Lightbulb, badgeClassName: 'bg-gray-100 text-gray-
 
 export function SavingTipsPage() {
   const { user } = useAuth();
+  const [tips, setTips] = useState<SavingTip[]>([]);
+  const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
+  const [isLoading, setIsLoading] = useState(true);
   const [refreshToken, setRefreshToken] = useState(0);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const tips = useMemo(() => (user ? tipsService.list(user.id) : []), [user, refreshToken]);
+  useEffect(() => {
+    if (!user) return;
+    async function load() {
+      const [allTips, bookmarked] = await Promise.all([
+        tipsService.list(user!.id),
+        tipsService.listBookmarked(user!.id),
+      ]);
+      setTips(allTips);
+      setBookmarkedIds(new Set(bookmarked.map((t) => t.id)));
+      setIsLoading(false);
+    }
+    void load();
+  }, [user, refreshToken]);
 
   function handleDismiss(ruleId: string) {
     if (!user) return;
     tipsService.dismiss(user.id, ruleId);
-    setRefreshToken((token) => token + 1);
+    setRefreshToken((t) => t + 1);
   }
 
-  function handleToggleBookmark(ruleId: string) {
+  async function handleToggleBookmark(ruleId: string) {
     if (!user) return;
-    tipsService.toggleBookmark(user.id, ruleId);
-    setRefreshToken((token) => token + 1);
+    await tipsService.toggleBookmark(user.id, ruleId);
+    setRefreshToken((t) => t + 1);
   }
+
+  if (isLoading) return <div className="flex justify-center py-20"><Spinner /></div>;
 
   return (
     <div className="space-y-6">
@@ -64,7 +81,7 @@ export function SavingTipsPage() {
           {tips.map((tip) => {
             const style = (tip.category && categoryStyle[tip.category]) || fallbackStyle;
             const Icon = style.icon;
-            const bookmarked = user ? tipsService.isBookmarked(user.id, tip.id) : false;
+            const isBookmarked = bookmarkedIds.has(tip.id);
             return (
               <Card
                 key={tip.id}
@@ -81,15 +98,15 @@ export function SavingTipsPage() {
                   <div className="flex shrink-0 flex-col gap-1">
                     <button
                       type="button"
-                      onClick={() => handleToggleBookmark(tip.id)}
+                      onClick={() => void handleToggleBookmark(tip.id)}
                       className={cn(
                         'rounded-lg p-1.5 transition-colors duration-200',
-                        bookmarked ? 'text-brand-600 hover:bg-brand-50' : 'text-gray-300 hover:bg-gray-100 hover:text-gray-500',
+                        isBookmarked ? 'text-brand-600 hover:bg-brand-50' : 'text-gray-300 hover:bg-gray-100 hover:text-gray-500',
                       )}
-                      aria-label={bookmarked ? 'Remove bookmark' : 'Bookmark this tip'}
-                      aria-pressed={bookmarked}
+                      aria-label={isBookmarked ? 'Remove bookmark' : 'Bookmark this tip'}
+                      aria-pressed={isBookmarked}
                     >
-                      <Bookmark className={cn('h-4 w-4', bookmarked && 'fill-current')} />
+                      <Bookmark className={cn('h-4 w-4', isBookmarked && 'fill-current')} />
                     </button>
                     <button
                       type="button"

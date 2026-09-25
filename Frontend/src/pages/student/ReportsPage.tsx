@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ArrowDownRight, ArrowUpRight, ChevronLeft, ChevronRight, Download, Flame, PieChart, Wallet } from 'lucide-react';
-import { Card, EmptyState } from '@/components/common';
+import { Card, EmptyState, Spinner } from '@/components/common';
 import { CategoryDonutChart } from '@/components/dashboard/CategoryDonutChart';
 import { IncomeExpenseTrendChart } from '@/components/dashboard/IncomeExpenseTrendChart';
 import { StatCard } from '@/components/dashboard/StatCard';
@@ -9,6 +9,9 @@ import { formatCurrency, formatDate, formatMonthLabel } from '@/utils/format';
 import { categoryService, reportService } from '@/services';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/utils/cn';
+import type { Category } from '@/types/category';
+import type { MonthlyReport } from '@/types/report';
+import type { TrendPoint } from '@/services/report.service';
 
 function monthForOffset(offset: number): string {
   const date = new Date();
@@ -17,10 +20,7 @@ function monthForOffset(offset: number): string {
   return date.toISOString().slice(0, 7);
 }
 
-interface WeekBucket {
-  label: string;
-  amount: number;
-}
+interface WeekBucket { label: string; amount: number; }
 
 function groupIntoWeeks(dailySpend: { date: string; amount: number }[]): WeekBucket[] {
   const buckets = new Map<number, number>();
@@ -34,11 +34,7 @@ function groupIntoWeeks(dailySpend: { date: string; amount: number }[]): WeekBuc
     .map(([weekIndex, amount]) => ({ label: `Week ${weekIndex + 1}`, amount }));
 }
 
-interface HeatmapCell {
-  day: number | null;
-  amount: number;
-}
-
+interface HeatmapCell { day: number | null; amount: number; }
 const WEEKDAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
 function buildHeatmapCells(month: string, dailySpend: { date: string; amount: number }[]): HeatmapCell[] {
@@ -46,14 +42,9 @@ function buildHeatmapCells(month: string, dailySpend: { date: string; amount: nu
   const daysInMonth = new Date(year, monthNumber, 0).getDate();
   const firstWeekday = new Date(year, monthNumber - 1, 1).getDay();
   const amountByDay = new Map(dailySpend.map((item) => [Number(item.date.slice(8, 10)), item.amount]));
-
   const cells: HeatmapCell[] = [];
-  for (let i = 0; i < firstWeekday; i += 1) {
-    cells.push({ day: null, amount: 0 });
-  }
-  for (let day = 1; day <= daysInMonth; day += 1) {
-    cells.push({ day, amount: amountByDay.get(day) ?? 0 });
-  }
+  for (let i = 0; i < firstWeekday; i += 1) cells.push({ day: null, amount: 0 });
+  for (let day = 1; day <= daysInMonth; day += 1) cells.push({ day, amount: amountByDay.get(day) ?? 0 });
   return cells;
 }
 
@@ -83,25 +74,36 @@ export function ReportsPage() {
   const { user } = useAuth();
   const [monthOffset, setMonthOffset] = useState(0);
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [report, setReport] = useState<MonthlyReport | null>(null);
+  const [trend, setTrend] = useState<TrendPoint[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const month = monthForOffset(monthOffset);
-  const expenseCategories = useMemo(() => (user ? categoryService.list(user.id, 'expense') : []), [user]);
 
-  const report = useMemo(
-    () =>
-      user
-        ? reportService.getMonthlyReport(user.id, month, {
-            categoryId: categoryFilter === 'all' ? undefined : categoryFilter,
-          })
-        : null,
-    [user, month, categoryFilter],
-  );
-  const trend = useMemo(() => (user ? reportService.getSixMonthTrend(user.id, month) : []), [user, month]);
+  useEffect(() => {
+    if (!user) return;
+    setIsLoading(true);
+    async function load() {
+      const [cats, rep, trendData] = await Promise.all([
+        categoryService.list(user!.id, 'expense'),
+        reportService.getMonthlyReport(user!.id, month, { categoryId: categoryFilter === 'all' ? undefined : categoryFilter }),
+        reportService.getSixMonthTrend(user!.id, month),
+      ]);
+      setCategories(cats);
+      setReport(rep);
+      setTrend(trendData);
+      setIsLoading(false);
+    }
+    void load();
+  }, [user, month, categoryFilter]);
+
   const weeklySpend = useMemo(() => (report ? groupIntoWeeks(report.dailySpend) : []), [report]);
   const heatmapCells = useMemo(() => (report ? buildHeatmapCells(month, report.dailySpend) : []), [report, month]);
   const maxDailyAmount = useMemo(() => Math.max(0, ...(report?.dailySpend.map((item) => item.amount) ?? [])), [report]);
 
-  if (!user || !report) return null;
+  if (isLoading) return <div className="flex justify-center py-20"><Spinner /></div>;
+  if (!report) return null;
 
   const reportStats = [
     { label: 'Total Income', value: formatCurrency(report.totalIncome, DEFAULT_CURRENCY), icon: ArrowUpRight, tone: 'brand' as const },
@@ -170,18 +172,14 @@ export function ReportsPage() {
           className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
         >
           <option value="all">All expense categories</option>
-          {expenseCategories.map((category) => (
-            <option key={category.id} value={category.id}>
-              {category.name}
-            </option>
+          {categories.map((category) => (
+            <option key={category.id} value={category.id}>{category.name}</option>
           ))}
         </select>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        {reportStats.map((stat) => (
-          <StatCard key={stat.label} {...stat} />
-        ))}
+        {reportStats.map((stat) => <StatCard key={stat.label} {...stat} />)}
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -238,9 +236,7 @@ export function ReportsPage() {
         ) : (
           <>
             <div className="mt-4 grid grid-cols-7 gap-1.5 text-center text-[11px] font-medium text-gray-400">
-              {WEEKDAY_LABELS.map((label, index) => (
-                <span key={`${label}-${index}`}>{label}</span>
-              ))}
+              {WEEKDAY_LABELS.map((label, index) => <span key={`${label}-${index}`}>{label}</span>)}
             </div>
             <div className="mt-1 grid grid-cols-7 gap-1.5">
               {heatmapCells.map((cell, index) =>
@@ -250,10 +246,7 @@ export function ReportsPage() {
                   <div
                     key={cell.day}
                     title={cell.amount > 0 ? `${cell.day}: ${formatCurrency(cell.amount, DEFAULT_CURRENCY)}` : `${cell.day}: no spending`}
-                    className={cn(
-                      'flex aspect-square items-center justify-center rounded-md text-[11px] font-medium text-gray-600',
-                      heatmapIntensityClass(cell.amount, maxDailyAmount),
-                    )}
+                    className={cn('flex aspect-square items-center justify-center rounded-md text-[11px] font-medium text-gray-600', heatmapIntensityClass(cell.amount, maxDailyAmount))}
                   >
                     {cell.day}
                   </div>

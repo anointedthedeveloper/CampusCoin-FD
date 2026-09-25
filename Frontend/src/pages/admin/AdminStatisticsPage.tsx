@@ -1,17 +1,32 @@
-import { useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { Activity, ListTree, Receipt, Users } from 'lucide-react';
-import { Card, EmptyState } from '@/components/common';
+import { Card, EmptyState, Spinner } from '@/components/common';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { adminStatisticsService, adminUserService } from '@/services';
 import { DEFAULT_CURRENCY } from '@/constants/config';
 import { formatCurrency, formatDate } from '@/utils/format';
+import type { SystemStatistics, AdminUserSummary } from '@/types/admin';
 
 export function AdminStatisticsPage() {
-  const statistics = useMemo(() => adminStatisticsService.getStatistics(), []);
-  const topUsers = useMemo(
-    () => [...adminUserService.listUsers()].sort((a, b) => b.transactionCount - a.transactionCount).slice(0, 10),
-    [],
-  );
+  const [statistics, setStatistics] = useState<SystemStatistics | null>(null);
+  const [topUsers, setTopUsers] = useState<AdminUserSummary[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      const [stats, users] = await Promise.all([
+        adminStatisticsService.getStatistics(),
+        adminUserService.listUsers(),
+      ]);
+      setStatistics(stats);
+      setTopUsers([...users].sort((a, b) => b.transactionCount - a.transactionCount).slice(0, 10));
+      setIsLoading(false);
+    }
+    void load();
+  }, []);
+
+  if (isLoading || !statistics) return <div className="flex justify-center py-20"><Spinner /></div>;
+
   const maxTransactions = Math.max(...topUsers.map((u) => u.transactionCount), 1);
 
   const stats = [

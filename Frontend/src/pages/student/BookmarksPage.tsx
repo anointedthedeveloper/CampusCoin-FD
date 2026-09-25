@@ -1,11 +1,12 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Bookmark, Lightbulb, PiggyBank, Sparkles, Utensils, type LucideIcon } from 'lucide-react';
-import { Card, EmptyState } from '@/components/common';
+import { Card, EmptyState, Spinner } from '@/components/common';
 import { tipsService } from '@/services';
 import { useAuth } from '@/hooks/useAuth';
 import { STUDENT_ROUTES } from '@/constants/routes';
 import { cn } from '@/utils/cn';
+import type { SavingTip } from '@/types/insight';
 
 const categoryStyle: Record<string, { icon: LucideIcon; badgeClassName: string }> = {
   Food: { icon: Utensils, badgeClassName: 'bg-red-100 text-red-600' },
@@ -18,16 +19,22 @@ const fallbackStyle = { icon: Lightbulb, badgeClassName: 'bg-gray-100 text-gray-
 
 export function BookmarksPage() {
   const { user } = useAuth();
+  const [bookmarkedTips, setBookmarkedTips] = useState<SavingTip[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [refreshToken, setRefreshToken] = useState(0);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const bookmarkedTips = useMemo(() => (user ? tipsService.listBookmarked(user.id) : []), [user, refreshToken]);
-
-  function handleRemove(ruleId: string) {
+  useEffect(() => {
     if (!user) return;
-    tipsService.toggleBookmark(user.id, ruleId);
-    setRefreshToken((token) => token + 1);
+    void tipsService.listBookmarked(user.id).then((tips) => { setBookmarkedTips(tips); setIsLoading(false); });
+  }, [user, refreshToken]);
+
+  async function handleRemove(ruleId: string) {
+    if (!user) return;
+    await tipsService.toggleBookmark(user.id, ruleId);
+    setRefreshToken((t) => t + 1);
   }
+
+  if (isLoading) return <div className="flex justify-center py-20"><Spinner /></div>;
 
   return (
     <div className="space-y-6">

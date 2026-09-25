@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AlertCircle, CheckCircle2, FileSpreadsheet, Upload } from 'lucide-react';
 import { Button, Card } from '@/components/common';
@@ -8,7 +8,7 @@ import { categoryService, transactionService } from '@/services';
 import { useAuth } from '@/hooks/useAuth';
 import { formatCurrency, formatDate } from '@/utils/format';
 import { cn } from '@/utils/cn';
-import type { CategoryType } from '@/types/category';
+import type { Category, CategoryType } from '@/types/category';
 import type { CsvImportRow } from '@/types/transaction';
 
 function splitCsvLine(line: string): string[] {
@@ -64,7 +64,12 @@ export function ImportPage() {
   const [isImporting, setIsImporting] = useState(false);
   const [importedCount, setImportedCount] = useState<number | null>(null);
 
-  const categories = useMemo(() => (user ? categoryService.list(user.id, importType) : []), [user, importType]);
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  useEffect(() => {
+    if (!user) return;
+    void categoryService.list(user.id, importType).then(setCategories);
+  }, [user, importType]);
 
   function handleFile(file: File) {
     setParseError(null);
@@ -110,17 +115,13 @@ export function ImportPage() {
     setImportError(null);
     setIsImporting(true);
     try {
-      const created = transactionService.createMany(
-        user.id,
-        preview.rows.map((row) => ({
-          type: importType,
-          categoryId,
-          amount: row.amount,
-          description: row.description,
-          occurredAt: row.occurredAt,
-        })),
-        'csv-import',
-      );
+      const created = await transactionService.createMany(user.id, preview.rows.map((row) => ({
+        type: importType,
+        categoryId,
+        amount: row.amount,
+        description: row.description,
+        occurredAt: row.occurredAt,
+      })));
       setImportedCount(created.length);
       setPreview(null);
       setFileName(null);

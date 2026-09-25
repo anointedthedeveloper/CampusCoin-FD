@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { Plus, Trash2, X } from 'lucide-react';
 import { Button, Card } from '@/components/common';
 import {
@@ -63,10 +63,13 @@ export function AdminCategoriesPage() {
   const [type, setType] = useState<CategoryType>('expense');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [allTemplates, setAllTemplates] = useState<DefaultCategoryTemplate[]>([]);
   const [refreshToken, setRefreshToken] = useState(0);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const allTemplates = useMemo(() => adminCategoryService.list(), [refreshToken]);
+  useEffect(() => {
+    void adminCategoryService.list().then(setAllTemplates);
+  }, [refreshToken]);
+
   const expenseTemplates = allTemplates.filter((t) => t.type === 'expense');
   const incomeTemplates = allTemplates.filter((t) => t.type === 'income');
 

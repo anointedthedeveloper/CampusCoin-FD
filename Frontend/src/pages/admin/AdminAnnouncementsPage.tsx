@@ -1,11 +1,11 @@
-import { useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { Megaphone, Plus, Trash2, X } from 'lucide-react';
 import { Badge, Button, Card, EmptyState } from '@/components/common';
 import { adminAnnouncementService } from '@/services';
 import { formatDate } from '@/utils/format';
 import { ApiError } from '@/types/api';
 import { cn } from '@/utils/cn';
-import type { AnnouncementAudience } from '@/types/admin';
+import type { Announcement, AnnouncementAudience } from '@/types/admin';
 
 const audienceLabel: Record<AnnouncementAudience, string> = {
   all: 'Everyone',
@@ -20,15 +20,17 @@ export function AdminAnnouncementsPage() {
   const [audience, setAudience] = useState<AnnouncementAudience>('students');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [refreshToken, setRefreshToken] = useState(0);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const announcements = useMemo(() => adminAnnouncementService.list(), [refreshToken]);
+  useEffect(() => {
+    void adminAnnouncementService.list().then(setAnnouncements);
+  }, [refreshToken]);
 
-  function handleDelete(id: string) {
+  async function handleDelete(id: string) {
     if (!window.confirm('Delete this announcement? Students will no longer see it.')) return;
-    adminAnnouncementService.remove(id);
-    setRefreshToken((token) => token + 1);
+    await adminAnnouncementService.remove(id);
+    setRefreshToken((t) => t + 1);
   }
 
   async function handleSubmit(event: FormEvent) {

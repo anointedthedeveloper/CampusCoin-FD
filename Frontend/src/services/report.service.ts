@@ -8,11 +8,10 @@ export interface TrendPoint {
 }
 
 export const reportService = {
-  async getMonthlyReport(_userId?: string, month?: string, _filters: ReportFilters = {}): Promise<MonthlyReport> {
-    return reportsApi.getMonthlyReport({ month: month ?? new Date().toISOString().slice(0, 7) });
+  async getMonthlyReport(_userId?: string, month?: string, filters: ReportFilters = {}): Promise<MonthlyReport> {
+    return reportsApi.getMonthlyReport({ month: month ?? new Date().toISOString().slice(0, 7), ...filters });
   },
 
-  // Six-month trend requires 6 separate report calls — fetch them in parallel.
   async getSixMonthTrend(_userId?: string, endMonth?: string): Promise<TrendPoint[]> {
     const end = endMonth ?? new Date().toISOString().slice(0, 7);
     const months: string[] = [];
@@ -21,9 +20,7 @@ export const reportService = {
       const d = new Date(cursor.getFullYear(), cursor.getMonth() - i, 1);
       months.push(d.toISOString().slice(0, 7));
     }
-
     const reports = await Promise.all(months.map((m) => reportsApi.getMonthlyReport({ month: m }).catch(() => null)));
-
     return months.map((m, i) => ({
       month: m,
       income: reports[i]?.totalIncome ?? 0,
