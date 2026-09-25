@@ -2,10 +2,12 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/webp" href="/logo.webp" />
-    <link rel="alternate icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Campus Coin - NextGen BudgetBee. A student-first budgeting and expense-tracking platform." />
+    <meta
+      name="description"
+      content="Campus Coin - NextGen BudgetBee. A student-first budgeting and expense-tracking platform."
+    />
     <title>Campus Coin | NextGen BudgetBee</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -24,18 +26,24 @@
         height: 56px;
         align-items: center;
         justify-content: center;
-        border: 0;
+        border: 2px solid #ffffff;
         border-radius: 50%;
-        background: linear-gradient(135deg, #15803d 0%, #22c55e 100%);
-        color: #ffffff;
-        box-shadow: 0 14px 28px rgba(21, 128, 61, 0.28);
+        background: #ffffff;
+        color: #168c50;
+        box-shadow:
+          0 0 0 1px rgba(21, 128, 61, 0.12),
+          0 14px 28px rgba(21, 128, 61, 0.22);
         cursor: pointer;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        transition:
+          transform 0.2s ease,
+          box-shadow 0.2s ease;
       }
 
       #tawk-chat-toggle:hover {
         transform: translateY(-2px);
-        box-shadow: 0 18px 32px rgba(21, 128, 61, 0.34);
+        box-shadow:
+          0 0 0 1px rgba(21, 128, 61, 0.12),
+          0 18px 32px rgba(21, 128, 61, 0.3);
       }
 
       #tawk-chat-toggle:focus-visible {
@@ -43,29 +51,116 @@
         outline-offset: 3px;
       }
 
+      #initial-page-loader {
+        position: fixed;
+        inset: 0;
+        z-index: 10000;
+        display: grid;
+        place-content: center;
+        justify-items: center;
+        gap: 16px;
+        background: #e5f1e8;
+        color: #176c42;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        text-align: center;
+      }
+
+      #initial-page-loader .loader-mark {
+        width: 54px;
+        height: 54px;
+        border: 3px solid #b8ddc4;
+        border-top-color: #168c50;
+        border-radius: 50%;
+        animation: initial-loader-spin 0.8s linear infinite;
+      }
+
+      #initial-page-loader .loader-name {
+        margin: 0;
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+      }
+
+      #initial-page-loader .loader-message {
+        margin: -12px 0 0;
+        color: #5c7568;
+        font-size: 14px;
+      }
+
+      @keyframes initial-loader-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
       @media (prefers-reduced-motion: reduce) {
-        #tawk-chat-toggle {
+        #tawk-chat-toggle,
+        #initial-page-loader .loader-mark {
           transition: none;
+          animation: none;
         }
       }
     </style>
   </head>
   <body>
+    <div id="initial-page-loader" role="status" aria-live="polite" aria-label="Loading Campus Coin">
+      <span class="loader-mark" aria-hidden="true"></span>
+      <p class="loader-name">CAMPUS COIN</p>
+      <p class="loader-message">Getting your campus wallet ready</p>
+    </div>
     <div id="root"></div>
-    <button
-      id="tawk-chat-toggle"
-      type="button"
-      aria-label="Open chat support"
-    >
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-        <path d="M7 18.5V16H5.5C3.57 16 2 14.43 2 12.5V7.5C2 5.57 3.57 4 5.5 4H18.5C20.43 4 22 5.57 22 7.5V12.5C22 14.43 20.43 16 18.5 16H11L7 18.5Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M8.5 9.5H15.5M8.5 12.5H13.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    <button id="tawk-chat-toggle" type="button" aria-label="Open chat support">
+      <svg
+        width="22"
+        height="22"
+        viewBox="0 0 24 24"
+        fill="none"
+        aria-hidden="true"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M7 18.5V16H5.5C3.57 16 2 14.43 2 12.5V7.5C2 5.57 3.57 4 5.5 4H18.5C20.43 4 22 5.57 22 7.5V12.5C22 14.43 20.43 16 18.5 16H11L7 18.5Z"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+        <path
+          d="M8.5 9.5H15.5M8.5 12.5H13.5"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+        />
       </svg>
     </button>
     <script type="module" src="/src/main.tsx"></script>
 
     <!--Start of Tawk.to Script-->
     <script type="text/javascript">
+      var campusCoinPageTitle = document.title;
+      var restoreCampusCoinTitle = function () {
+        if (document.title !== campusCoinPageTitle) {
+          document.title = campusCoinPageTitle;
+        }
+      };
+
+      var pageTitleObserver = new MutationObserver(function () {
+        if (document.visibilityState === 'visible') {
+          restoreCampusCoinTitle();
+        }
+      });
+      pageTitleObserver.observe(document.querySelector('title'), {
+        childList: true,
+        characterData: true,
+        subtree: true,
+      });
+      window.addEventListener('focus', restoreCampusCoinTitle);
+      document.addEventListener('visibilitychange', function () {
+        if (document.visibilityState === 'visible') {
+          restoreCampusCoinTitle();
+        }
+      });
+
       window.Tawk_API = window.Tawk_API || {};
       window.Tawk_API.onLoad = function () {
         if (typeof window.Tawk_API.hideWidget === 'function') {

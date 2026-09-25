@@ -14,6 +14,7 @@ import {
   TrendingDown,
 } from 'lucide-react';
 import { PUBLIC_ROUTES } from '@/constants/routes';
+import { assets } from '@/assets/images';
 
 const groups = [
   {
@@ -23,7 +24,7 @@ const groups = [
     description:
       'Quick-add forms for income and expenses, built around how student money actually moves — no bank linking, no waiting for a sync.',
     accent: 'text-[#1c8f53]',
-    image: '/screenshots/dashboard.png',
+    image: assets.screenshots.dashboard,
     imageAlt: 'Campus Coin dashboard showing stat cards, spending breakdown, and recent transactions',
     reverse: false,
     items: [
@@ -51,7 +52,7 @@ const groups = [
     description:
       'Budgets are set per category and period, with a clear read on how much room is left before you overspend.',
     accent: 'text-blue-600',
-    image: '/screenshots/budgets.png',
+    image: assets.screenshots.budgets,
     imageAlt: 'Campus Coin budgets page showing category limits and progress bars',
     reverse: true,
     items: [
@@ -79,7 +80,7 @@ const groups = [
     description:
       'A dashboard and monthly reports turn raw transactions into a picture you can act on, with charts that hold up for colorblind readers too.',
     accent: 'text-amber-600',
-    image: '/screenshots/reports.png',
+    image: assets.screenshots.reports,
     imageAlt: 'Campus Coin reports page showing income vs expense trend and category charts',
     reverse: false,
     items: [
@@ -107,7 +108,7 @@ const groups = [
     description:
       'Saving tips and AI assistance are generated from your own transaction history — always reviewable, never automatic.',
     accent: 'text-purple-600',
-    image: '/screenshots/ai-assistant.png',
+    image: assets.screenshots.aiAssistant,
     imageAlt: 'Campus Coin AI assistant page with saving tips and chat',
     reverse: true,
     items: [

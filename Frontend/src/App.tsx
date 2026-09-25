@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
@@ -6,6 +7,10 @@ import { ScrollToTop } from '@/components/common';
 import { AppRoutes } from '@/routes';
 
 function App() {
+  useEffect(() => {
+    document.getElementById('initial-page-loader')?.remove();
+  }, []);
+
   return (
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <ScrollToTop />

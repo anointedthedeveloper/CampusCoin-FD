@@ -1,4 +1,5 @@
 import { cn } from '@/utils/cn';
+import { assets } from '@/assets/images';
 
 interface LogoProps {
   className?: string;
@@ -18,7 +19,7 @@ export function Logo({
   return (
     <span className={cn('flex items-center gap-2.5 transition-transform duration-200 hover:scale-[1.03]', className)}>
       <img
-        src="/logo.png"
+        src={assets.logo}
         alt="Campus Coin logo"
         className={cn('h-11 w-11 shrink-0 object-contain sm:h-14 sm:w-14', iconClassName)}
       />

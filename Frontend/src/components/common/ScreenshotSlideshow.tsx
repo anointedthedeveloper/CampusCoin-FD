@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/utils/cn';
+import { assets } from '@/assets/images';
 
 interface Slide {
   src: string;
@@ -11,25 +12,25 @@ interface Slide {
 
 const slides: Slide[] = [
   {
-    src: '/screenshots/dashboard.png',
+    src: assets.screenshots.dashboard,
     alt: 'Campus Coin dashboard with balance, spending breakdown, and recent transactions',
     title: 'One dashboard, the full picture',
     description: 'Balance, budgets, and spending breakdown at a glance the moment you log in.',
   },
   {
-    src: '/screenshots/budgets.png',
+    src: assets.screenshots.budgets,
     alt: 'Campus Coin budgets page with category limits and progress bars',
     title: 'Budgets that track themselves',
     description: 'Set a limit per category and watch the progress bar update as you spend.',
   },
   {
-    src: '/screenshots/reports.png',
+    src: assets.screenshots.reports,
     alt: 'Campus Coin reports page with income vs expense trend chart',
     title: 'Reports that actually explain something',
     description: 'See the trend between what came in and what went out, month over month.',
   },
   {
-    src: '/screenshots/ai-assistant.png',
+    src: assets.screenshots.aiAssistant,
     alt: 'Campus Coin AI assistant page with saving tips and chat',
     title: 'Saving tips from your own habits',
     description: 'Plain-language suggestions generated from your transactions, not a generic template.',

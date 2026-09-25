@@ -4,6 +4,7 @@ import { PUBLIC_ROUTES } from '@/constants/routes';
 import { APP_TAGLINE } from '@/constants/config';
 import { Logo } from '@/components/common';
 import { useMediaQuery } from '@/hooks/useMinHeight';
+import { assets } from '@/assets/images';
 
 // Below the lg breakpoint (1024px wide), the full multi-line hero only has
 // room to render without clipping once the viewport is tall enough; below
@@ -35,7 +36,7 @@ function HeroBackground() {
   return (
     <>
       <img
-        src="/auth-hero.webp"
+        src={assets.authHero}
         alt=""
         className="absolute inset-0 h-full w-full animate-slow-zoom object-cover object-center"
         aria-hidden="true"
