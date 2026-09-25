@@ -3,13 +3,11 @@ import { ShieldCheck } from 'lucide-react';
 export function HeroVisual() {
   return (
     <div className="relative mx-auto w-full max-w-[380px] pb-6 pt-2 sm:max-w-[440px] sm:pb-8 lg:max-w-none">
-      <div className="absolute -inset-3 -z-10 rounded-[3rem] bg-gradient-to-br from-[#bfe8b8] via-[#a9d9a4] to-[#7cc278] sm:-inset-5" />
-
-      <div className="animate-fade-in-up overflow-hidden rounded-tl-[3.5rem] rounded-tr-2xl rounded-bl-2xl rounded-br-[3.5rem] shadow-xl shadow-[#16603e]/10 [animation-delay:150ms]">
+      <div className="animate-fade-in-up [animation-delay:150ms]">
         <img
-          src="/hero-illustration.png"
+          src="/hero-illustration.webp"
           alt="A student checking their Campus Coin balance and spending trend on a laptop"
-          className="h-[280px] w-full object-cover sm:h-[340px] lg:h-[420px]"
+          className="h-[280px] w-full object-contain sm:h-[340px] lg:h-[420px]"
         />
       </div>
 
