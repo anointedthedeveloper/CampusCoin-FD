@@ -24,6 +24,11 @@ app.use(express.json());
 // ── Health check ──────────────────────────────────────────────────────
 app.get('/', (_req, res) => res.json({ message: 'CampusCoin API is running' }));
 
+app.use(async (_req, res, next) => {
+  if (await connectDB()) return next();
+  return res.status(503).json({ message: 'Database is unavailable. Please try again shortly.' });
+});
+
 // ── Routes ────────────────────────────────────────────────────────────
 const API = '/api/v1';
 app.use(`${API}/auth`, authRoutes);
@@ -42,7 +47,8 @@ app.use((_req, res) => res.status(404).json({ message: 'Route not found' }));
 
 // ── Start ─────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 5000;
-connectDB().then((isConnected) => {
+if (require.main === module) {
+  connectDB().then((isConnected) => {
   const server = app.listen(PORT, () => {
     if (isConnected) {
       console.log(`CampusCoin server running on port ${PORT}`);
@@ -60,4 +66,7 @@ connectDB().then((isConnected) => {
 
   process.once('SIGINT', shutdown);
   process.once('SIGTERM', shutdown);
-});
+  });
+}
+
+module.exports = app;
