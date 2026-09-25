@@ -1,0 +1,88 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-gray-50 text-gray-900 antialiased;
+  }
+
+  ::selection {
+    @apply bg-brand-200 text-brand-900;
+  }
+}
+
+@property --auth-glow-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@layer components {
+  /* A thin animated "current" that travels around the auth card's edge — a
+     conic-gradient ring, masked down to just the border band, whose start
+     angle is animated directly (not a `transform: rotate()` on the box —
+     for a tall, non-square card that would swing the ring's corners far
+     outside the card instead of tracing its outline). The card and its
+     contents never move. */
+  .auth-glow-border {
+    position: relative;
+  }
+
+  .auth-glow-border::before {
+    content: '';
+    position: absolute;
+    inset: -2.5px;
+    z-index: -1;
+    border-radius: inherit;
+    padding: 2.5px;
+    background: conic-gradient(
+      from var(--auth-glow-angle, 0deg),
+      transparent 0%,
+      transparent 38%,
+      rgba(134, 239, 172, 0.9) 50%,
+      rgba(21, 128, 61, 1) 60%,
+      rgba(74, 222, 128, 1) 65%,
+      rgba(134, 239, 172, 0.9) 75%,
+      transparent 88%,
+      transparent 100%
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    filter: drop-shadow(0 0 4px rgba(34, 197, 94, 0.55));
+    pointer-events: none;
+  }
+
+  .auth-glow-cw::before {
+    animation: auth-glow-spin-cw 6s linear infinite;
+  }
+
+  .auth-glow-ccw::before {
+    animation: auth-glow-spin-ccw 6s linear infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .auth-glow-cw::before,
+    .auth-glow-ccw::before {
+      animation: none;
+    }
+  }
+}
+
+@keyframes auth-glow-spin-cw {
+  to {
+    --auth-glow-angle: 360deg;
+  }
+}
+
+@keyframes auth-glow-spin-ccw {
+  to {
+    --auth-glow-angle: -360deg;
+  }
+}
