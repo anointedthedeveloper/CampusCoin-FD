@@ -1,5 +1,6 @@
 import { createContext, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { authService, profileService, tokenService } from '@/services';
+import { preloadGoogleIdentity } from '@/lib/googleIdentity';
 import type { LoginCredentials, RegisterPayload } from '@/types/auth';
 import type { User } from '@/types/user';
 
@@ -9,7 +10,7 @@ interface AuthContextValue {
   isLoading: boolean;
   login: (credentials: LoginCredentials) => Promise<User>;
   register: (payload: RegisterPayload) => Promise<void>;
-  loginWithGoogle: () => Promise<void>;
+  loginWithGoogle: () => Promise<User>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -39,6 +40,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refreshUser().finally(() => setIsLoading(false));
   }, [refreshUser]);
 
+  // Warm up Google's sign-in script ahead of any click, so the account
+  // chooser popup isn't delayed (or blocked) waiting on it to load.
+  useEffect(() => {
+    preloadGoogleIdentity();
+  }, []);
+
   const login = useCallback(async (credentials: LoginCredentials) => {
     const result = await authService.login(credentials);
     setUser(result.user);
@@ -53,6 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loginWithGoogle = useCallback(async () => {
     const result = await authService.loginWithGoogle();
     setUser(result.user);
+    return result.user;
   }, []);
 
   const logout = useCallback(async () => {

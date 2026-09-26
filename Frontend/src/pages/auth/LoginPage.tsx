@@ -34,10 +34,20 @@ export function LoginPage() {
     setError(null);
     setIsGoogleLoading(true);
     try {
-      await loginWithGoogle();
-      navigate(redirectFrom ?? STUDENT_ROUTES.dashboard, { replace: true });
+      const loggedInUser = await loginWithGoogle();
+
+      if (loggedInUser.role === 'admin') {
+        navigate(redirectFrom ?? ADMIN_ROUTES.dashboard, { replace: true });
+        return;
+      }
+
+      const onboardingStatus = loggedInUser.onboarding?.status ?? 'not_started';
+      const needsOnboarding = onboardingStatus === 'not_started' || onboardingStatus === 'in_progress';
+      navigate(redirectFrom ?? (needsOnboarding ? STUDENT_ROUTES.onboarding : STUDENT_ROUTES.dashboard), {
+        replace: true,
+      });
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Google sign-in failed. Please try again.');
+      setError(err instanceof ApiError || err instanceof Error ? err.message : 'Google sign-in failed. Please try again.');
     } finally {
       setIsGoogleLoading(false);
     }
