@@ -1,7 +1,22 @@
 const router = require('express').Router();
+const multer = require('multer');
 const Transaction = require('../models/Transaction');
 const Category = require('../models/Category');
 const { protect } = require('../middleware/auth');
+const { checkBudgetAfterTransaction } = require('../services/budgetAlert.service');
+
+// Store CSV uploads in memory (we only need the text content, not a file on disk)
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB cap
+  fileFilter: (_req, file, cb) => {
+    if (file.mimetype === 'text/csv' || file.originalname.endsWith('.csv')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only CSV files are accepted'));
+    }
+  },
+});
 
 router.use(protect);
 
@@ -100,6 +115,14 @@ router.post('/', async (req, res) => {
       source: 'manual',
     });
 
+    if (tx.type === 'expense') {
+      await checkBudgetAfterTransaction(
+        req.user._id,
+        tx.categoryId,
+        tx.occurredAt
+      );
+    }
+
     res.status(201).json({ data: formatTx(tx) });
   } catch (err) {
     console.error(err);
@@ -144,13 +167,21 @@ router.delete('/:id', async (req, res) => {
 });
 
 // POST /api/v1/transactions/import/preview
-// Expects multipart/form-data with a CSV file field named "file"
-router.post('/import/preview', async (req, res) => {
+// Accepts multipart/form-data with a CSV file in the "file" field (sent by
+// the frontend) OR a JSON body { csv: "<csv string>" } for backwards compat.
+router.post('/import/preview', upload.single('file'), async (req, res) => {
   try {
-    // Minimal CSV parsing — reads raw text body sent as application/json { csv: "..." }
-    // or plain text. For a full multipart solution add multer; keeping it simple for now.
-    const raw = req.body.csv || '';
-    if (!raw) return res.status(400).json({ message: 'No CSV data provided. Send { csv: "<csv string>" }' });
+    // Prefer the uploaded file buffer; fall back to a raw csv string in body
+    let raw = '';
+    if (req.file) {
+      raw = req.file.buffer.toString('utf-8');
+    } else if (req.body.csv) {
+      raw = req.body.csv;
+    }
+
+    if (!raw.trim()) {
+      return res.status(400).json({ message: 'No CSV data provided. Upload a CSV file.' });
+    }
 
     const lines = raw.trim().split('\n').filter(Boolean);
     const dataLines = lines[0]?.toLowerCase().includes('date') ? lines.slice(1) : lines;
@@ -168,6 +199,10 @@ router.post('/import/preview', async (req, res) => {
 
     res.json({ data: { rows, totalRows: rows.length + invalidRows, invalidRows } });
   } catch (err) {
+    // multer file-filter errors come through here
+    if (err.message === 'Only CSV files are accepted') {
+      return res.status(400).json({ message: err.message });
+    }
     console.error(err);
     res.status(500).json({ message: 'Server error' });
   }
