@@ -40,6 +40,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refreshUser().finally(() => setIsLoading(false));
   }, [refreshUser]);
 
+  // httpClient dispatches this when a request's access token was expired AND
+  // the refresh token could no longer renew it (expired/revoked) — the only
+  // point that actually knows the session died, since it lives outside
+  // React. ProtectedRoute redirects to /login as soon as user becomes null.
+  useEffect(() => {
+    const handleSessionExpired = () => setUser(null);
+    window.addEventListener('auth:session-expired', handleSessionExpired);
+    return () => window.removeEventListener('auth:session-expired', handleSessionExpired);
+  }, []);
+
   // Warm up Google's sign-in script ahead of any click, so the account
   // chooser popup isn't delayed (or blocked) waiting on it to load.
   useEffect(() => {
