@@ -65,7 +65,7 @@ function ContactForm() {
   if (isSubmitted) {
     return (
       <div className="flex flex-col items-center gap-3 rounded-[28px] bg-[#f6f4ee] px-6 py-14 text-center dark:bg-surface-elevated dark:shadow-black/20">
-        <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[#d7f0d1] text-[#1c8f53] dark:bg-white/10 dark:text-[var(--primary-accent)]">
+        <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[#d7f0d1] text-[#1c8f53] dark:bg-white/10 dark:text-primary-accent">
           <CheckCircle2 className="h-7 w-7" />
         </span>
         <h3 className="text-xl font-bold text-[#1d3d2d] dark:text-text-primary">Message sent</h3>
@@ -80,7 +80,7 @@ function ContactForm() {
             setEmail('');
             setMessage('');
           }}
-          className="mt-2 text-sm font-semibold text-[#1c8f53] hover:text-[#177e48] dark:text-[var(--primary-accent)] dark:hover:text-[var(--primary)]"
+          className="mt-2 text-sm font-semibold text-[#1c8f53] hover:text-[#177e48] dark:text-primary-accent dark:hover:text-primary"
         >
           Send another message
         </button>
@@ -122,7 +122,7 @@ function ContactForm() {
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           required
-          className="w-full resize-none rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#1c8f53] focus:outline-none focus:ring-2 focus:ring-[#1c8f53]/20 dark:border-border dark:bg-surface dark:text-text-primary dark:placeholder:text-text-muted dark:focus:border-[var(--primary-accent)] dark:focus:ring-[var(--primary-accent)]/25"
+          className="w-full resize-none rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#1c8f53] focus:outline-none focus:ring-2 focus:ring-[#1c8f53]/20 dark:border-border dark:bg-surface dark:text-text-primary dark:placeholder:text-text-muted dark:focus:border-primary-accent dark:focus:ring-primary-accent/25"
         />
       </div>
 
@@ -142,7 +142,7 @@ export function ContactPage() {
   return (
     <div>
       <section className="mx-auto max-w-[1280px] px-4 pb-4 pt-10 sm:px-6 lg:pt-14">
-        <p className="text-sm font-semibold uppercase tracking-wide text-[#1a8f57] dark:text-[var(--primary-accent)]">Contact</p>
+        <p className="text-sm font-semibold uppercase tracking-wide text-[#1a8f57] dark:text-primary-accent">Contact</p>
         <h1 className="mt-3 max-w-2xl text-4xl font-bold leading-[1.05] tracking-[-0.02em] text-[#1d3d2d] dark:text-text-primary sm:text-5xl">
           Questions, feedback, or something broken?
         </h1>
@@ -159,7 +159,7 @@ export function ContactPage() {
           </div>
 
           <div>
-            <div className="flex items-center gap-2 text-[#1a8f57] dark:text-[var(--primary-accent)]">
+            <div className="flex items-center gap-2 text-[#1a8f57] dark:text-primary-accent">
               <MessageCircle className="h-5 w-5" />
               <h2 className="text-lg font-bold text-[#1d3d2d] dark:text-text-primary">Frequently asked</h2>
             </div>

@@ -5,6 +5,7 @@ export * from './Spinner';
 export * from './PageLoader';
 export * from './CoinLoader';
 export * from './ThemeToggle';
+export * from './Ripple';
 export * from './Badge';
 export * from './EmptyState';
 export * from './Logo';

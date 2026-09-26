@@ -35,7 +35,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           {icon && (
             <span
               className={cn(
-                'pointer-events-none absolute inset-y-0 left-0 flex items-center text-gray-400 transition-colors duration-150 group-focus-within:text-brand-500 dark:text-text-muted dark:group-focus-within:text-[var(--primary-accent)]',
+                'pointer-events-none absolute inset-y-0 left-0 flex items-center text-gray-400 transition-colors duration-150 group-focus-within:text-brand-500 dark:text-text-muted dark:group-focus-within:text-primary-accent',
                 compact ? 'pl-3' : 'pl-3.5',
               )}
             >
@@ -63,7 +63,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
               // focus
               error
                 ? 'focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20'
-                : 'focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/25 dark:focus:border-[var(--primary-accent)] dark:focus:ring-[var(--primary-accent)]/25',
+                : 'focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/25 dark:focus:border-primary-accent dark:focus:ring-primary-accent/25',
               // disabled
               'disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400 disabled:border-gray-200',
               'dark:disabled:bg-white/5 dark:disabled:text-text-muted dark:disabled:border-border',

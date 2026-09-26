@@ -102,7 +102,7 @@ export function AdminLoginPage() {
         Not an admin?{' '}
         <Link
           to="/login"
-          className="font-semibold text-brand-600 hover:text-brand-700 dark:text-[var(--primary-accent)] dark:hover:text-[var(--primary)]"
+          className="font-semibold text-brand-600 hover:text-brand-700 dark:text-primary-accent dark:hover:text-primary"
         >
           Student Login
         </Link>

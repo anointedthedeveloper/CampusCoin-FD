@@ -77,7 +77,7 @@ export function ResetPasswordPage() {
       <p className="mt-6 text-center text-sm text-gray-600 dark:text-text-secondary">
         <Link
           to={PUBLIC_ROUTES.login}
-          className="font-semibold text-brand-600 hover:text-brand-700 dark:text-[var(--primary-accent)] dark:hover:text-[var(--primary)]"
+          className="font-semibold text-brand-600 hover:text-brand-700 dark:text-primary-accent dark:hover:text-primary"
         >
           Back to Login
         </Link>

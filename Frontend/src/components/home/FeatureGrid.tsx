@@ -5,7 +5,7 @@ const features = [
     icon: Clock,
     title: 'Track Spending',
     description: 'See where your money goes with a clear category breakdown.',
-    badgeClassName: 'bg-brand-700 text-white dark:bg-[var(--primary)]',
+    badgeClassName: 'bg-brand-700 text-white dark:bg-primary',
   },
   {
     icon: Wallet,
@@ -42,7 +42,7 @@ export function FeatureGrid() {
             >
               <Icon className="h-5 w-5" />
             </span>
-            <ArrowUpRight className="h-4 w-4 -translate-x-1 translate-y-1 text-gray-300 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:translate-y-0 group-hover:text-[#1c8f53] group-hover:opacity-100 dark:text-white/20 dark:group-hover:text-[var(--primary-accent)]" />
+            <ArrowUpRight className="h-4 w-4 -translate-x-1 translate-y-1 text-gray-300 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:translate-y-0 group-hover:text-[#1c8f53] group-hover:opacity-100 dark:text-white/20 dark:group-hover:text-primary-accent" />
           </div>
           <h3 className="mt-4 font-semibold text-[#1d3d2d] dark:text-text-primary">{title}</h3>
           <p className="mt-1 text-sm leading-relaxed text-gray-600 dark:text-text-secondary">{description}</p>

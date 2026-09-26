@@ -135,7 +135,7 @@ export function FeaturesPage() {
   return (
     <div>
       <section className="mx-auto max-w-[1280px] px-4 pb-4 pt-10 sm:px-6 lg:pt-14">
-        <p className="text-sm font-semibold uppercase tracking-wide text-[#1a8f57] dark:text-[var(--primary-accent)]">Features</p>
+        <p className="text-sm font-semibold uppercase tracking-wide text-[#1a8f57] dark:text-primary-accent">Features</p>
         <h1 className="mt-3 max-w-2xl text-4xl font-bold leading-[1.05] tracking-[-0.02em] text-[#1d3d2d] dark:text-text-primary sm:text-5xl">
           Everything you need to manage student money, nothing you don&apos;t
         </h1>
@@ -160,7 +160,7 @@ export function FeaturesPage() {
               <ul className="mt-6 space-y-5">
                 {items.map(({ icon: Icon, title: itemTitle, description: itemDescription }) => (
                   <li key={itemTitle} className="group flex gap-4">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f6f4ee] text-[#1c8f53] transition-transform duration-300 group-hover:scale-110 group-hover:bg-[#d7f0d1] dark:bg-white/10 dark:text-[var(--primary-accent)] dark:group-hover:bg-white/15">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f6f4ee] text-[#1c8f53] transition-transform duration-300 group-hover:scale-110 group-hover:bg-[#d7f0d1] dark:bg-white/10 dark:text-primary-accent dark:group-hover:bg-white/15">
                       <Icon className="h-4.5 w-4.5" />
                     </span>
                     <div>
@@ -192,7 +192,7 @@ export function FeaturesPage() {
           </p>
           <Link
             to={PUBLIC_ROUTES.register}
-            className="mt-2 rounded-xl bg-[#1c8f53] px-7 py-3.5 text-base font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#177e48] hover:shadow-lg hover:shadow-[#1c8f53]/20 active:translate-y-0 dark:bg-[var(--primary)] dark:hover:bg-[var(--primary-accent)]"
+            className="mt-2 rounded-xl bg-[#1c8f53] px-7 py-3.5 text-base font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#177e48] hover:shadow-lg hover:shadow-[#1c8f53]/20 active:translate-y-0 dark:bg-primary dark:hover:bg-primary-accent"
           >
             Get Started Free
           </Link>

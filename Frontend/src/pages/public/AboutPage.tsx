@@ -8,7 +8,7 @@ const values = [
     title: 'Built for irregular money',
     description:
       'Allowance, gig work, scholarships, the occasional gift — Campus Coin treats every income source as normal, not an edge case.',
-    badgeClassName: 'bg-[#d7f0d1] text-[#1c8f53] dark:bg-white/10 dark:text-[var(--primary-accent)]',
+    badgeClassName: 'bg-[#d7f0d1] text-[#1c8f53] dark:bg-white/10 dark:text-primary-accent',
   },
   {
     icon: EyeOff,
@@ -55,7 +55,7 @@ export function AboutPage() {
   return (
     <div>
       <section className="mx-auto max-w-[1280px] px-4 pb-4 pt-10 sm:px-6 lg:pt-14">
-        <p className="text-sm font-semibold uppercase tracking-wide text-[#1a8f57] dark:text-[var(--primary-accent)]">About Campus Coin</p>
+        <p className="text-sm font-semibold uppercase tracking-wide text-[#1a8f57] dark:text-primary-accent">About Campus Coin</p>
         <h1 className="mt-3 max-w-2xl text-4xl font-bold leading-[1.05] tracking-[-0.02em] text-[#1d3d2d] dark:text-text-primary sm:text-5xl">
           Budgeting software built for how students actually spend money
         </h1>
@@ -114,7 +114,7 @@ export function AboutPage() {
 
       <section className="mx-auto max-w-[1280px] px-4 py-10 sm:px-6">
         <div className="rounded-[28px] bg-[#122a1f] px-6 py-12 text-white dark:bg-surface-elevated dark:shadow-lg dark:shadow-black/20 sm:px-12">
-          <div className="flex items-center gap-2 text-[#4ade80] dark:text-[var(--primary-accent)]">
+          <div className="flex items-center gap-2 text-[#4ade80] dark:text-primary-accent">
             <ListChecks className="h-5 w-5" />
             <span className="text-sm font-semibold uppercase tracking-wide">How it works</span>
           </div>
@@ -138,7 +138,7 @@ export function AboutPage() {
           </p>
           <Link
             to={PUBLIC_ROUTES.register}
-            className="mt-2 rounded-xl bg-[#1c8f53] px-7 py-3.5 text-base font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#177e48] hover:shadow-lg hover:shadow-[#1c8f53]/20 active:translate-y-0 dark:bg-[var(--primary)] dark:hover:bg-[var(--primary-accent)]"
+            className="mt-2 rounded-xl bg-[#1c8f53] px-7 py-3.5 text-base font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#177e48] hover:shadow-lg hover:shadow-[#1c8f53]/20 active:translate-y-0 dark:bg-primary dark:hover:bg-primary-accent"
           >
             Get Started Free
           </Link>
