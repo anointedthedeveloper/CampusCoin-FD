@@ -1,4 +1,5 @@
 import { authApi } from '@/api/auth.api';
+import { requestGoogleIdToken } from '@/lib/googleIdentity';
 import { tokenService } from './token.service';
 import type {
   AuthResponse,
@@ -21,10 +22,11 @@ export const authService = {
     return result;
   },
 
-  // Google OAuth is not wired on the backend yet — kept as a no-op stub
-  // so any page that calls loginWithGoogle doesn't break at compile time.
   async loginWithGoogle(): Promise<AuthResponse> {
-    throw new Error('Google sign-in is not supported yet.');
+    const idToken = await requestGoogleIdToken();
+    const result = await authApi.loginWithGoogle(idToken);
+    tokenService.setTokens(result.accessToken, result.refreshToken);
+    return result;
   },
 
   async logout(): Promise<void> {

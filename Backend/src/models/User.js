@@ -39,7 +39,12 @@ const userSchema = new mongoose.Schema(
   {
     fullName: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
-    passwordHash: { type: String, required: true },
+    // Absent for accounts created via Google sign-in that have never set a
+    // password (see matchPassword below and auth.routes.js's /google route).
+    passwordHash: { type: String },
+    // Google's stable per-account subject id ("sub" claim). Sparse so
+    // password-only accounts (no Google link) don't collide on null.
+    googleId: { type: String, unique: true, sparse: true },
     role: { type: String, enum: ['student', 'admin'], default: 'student' },
     school: { type: String, trim: true },
     academicYear: { type: String, trim: true },
@@ -56,8 +61,10 @@ const userSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-// Compare plain password against stored hash
+// Compare plain password against stored hash. Google-only accounts have no
+// passwordHash, so they simply never match a password login.
 userSchema.methods.matchPassword = async function (plain) {
+  if (!this.passwordHash) return false;
   return bcrypt.compare(plain, this.passwordHash);
 };
 

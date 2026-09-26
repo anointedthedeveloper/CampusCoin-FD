@@ -28,10 +28,15 @@ export function RegisterPage() {
     setError(null);
     setIsGoogleLoading(true);
     try {
-      await loginWithGoogle();
-      navigate(STUDENT_ROUTES.dashboard, { replace: true });
+      const signedUpUser = await loginWithGoogle();
+      // Same account may already exist (Google account linked to a prior
+      // password sign-up) — only send genuinely unconfigured accounts
+      // through onboarding, not one that's already completed or skipped it.
+      const onboardingStatus = signedUpUser.onboarding?.status ?? 'not_started';
+      const needsOnboarding = onboardingStatus === 'not_started' || onboardingStatus === 'in_progress';
+      navigate(needsOnboarding ? STUDENT_ROUTES.onboarding : STUDENT_ROUTES.dashboard, { replace: true });
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Google sign-in failed. Please try again.');
+      setError(err instanceof ApiError || err instanceof Error ? err.message : 'Google sign-in failed. Please try again.');
     } finally {
       setIsGoogleLoading(false);
     }

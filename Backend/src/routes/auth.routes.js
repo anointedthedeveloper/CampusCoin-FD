@@ -2,9 +2,12 @@ const router = require('express').Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User');
 const Category = require('../models/Category');
 const { protect } = require('../middleware/auth');
+
+const googleClient = process.env.GOOGLE_CLIENT_ID ? new OAuth2Client(process.env.GOOGLE_CLIENT_ID) : null;
 
 const DEFAULT_CATEGORIES = [
   { name: 'Salary', type: 'income', icon: 'briefcase', color: '#22c55e' },
@@ -27,6 +30,10 @@ function signTokens(userId) {
   const accessToken = jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '15m' });
   const refreshToken = jwt.sign({ id: userId, type: 'refresh' }, process.env.JWT_SECRET, { expiresIn: '7d' });
   return { accessToken, refreshToken };
+}
+
+async function seedDefaultCategories(userId) {
+  await Category.insertMany(DEFAULT_CATEGORIES.map((c) => ({ ...c, userId, isDefault: true })));
 }
 
 // POST /api/v1/auth/register
@@ -54,12 +61,71 @@ router.post('/register', async (req, res) => {
     });
 
     // Seed default categories for the new user
-    await Category.insertMany(
-      DEFAULT_CATEGORIES.map((c) => ({ ...c, userId: user._id, isDefault: true })),
-    );
+    await seedDefaultCategories(user._id);
 
     const { accessToken, refreshToken } = signTokens(user._id);
     res.status(201).json({ data: { user: user.toPublic(), accessToken, refreshToken } });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// POST /api/v1/auth/google — sign in (or sign up) with a Google ID token
+// obtained client-side via Google Identity Services. Verifying the token
+// server-side (rather than trusting a client-supplied email) is what makes
+// this safe to use for login.
+router.post('/google', async (req, res) => {
+  try {
+    if (!googleClient) {
+      return res.status(503).json({ message: 'Google sign-in is not configured on this server.', code: 'GOOGLE_NOT_CONFIGURED' });
+    }
+
+    const { idToken } = req.body;
+    if (!idToken) return res.status(400).json({ message: 'idToken is required' });
+
+    let payload;
+    try {
+      const ticket = await googleClient.verifyIdToken({ idToken, audience: process.env.GOOGLE_CLIENT_ID });
+      payload = ticket.getPayload();
+    } catch {
+      return res.status(401).json({ message: 'Invalid or expired Google sign-in. Please try again.', code: 'INVALID_GOOGLE_TOKEN' });
+    }
+
+    if (!payload?.email) {
+      return res.status(400).json({ message: 'Google did not share an email address for this account.' });
+    }
+    const email = payload.email.toLowerCase().trim();
+
+    let user = await User.findOne({ googleId: payload.sub });
+    let isNewUser = false;
+
+    if (!user) {
+      // Link to an existing password account with the same email, if any.
+      user = await User.findOne({ email });
+      if (user) {
+        user.googleId = payload.sub;
+        if (!user.avatarUrl && payload.picture) user.avatarUrl = payload.picture;
+        await user.save();
+      }
+    }
+
+    if (!user) {
+      user = await User.create({
+        fullName: payload.name || email.split('@')[0],
+        email,
+        googleId: payload.sub,
+        avatarUrl: payload.picture,
+        role: 'student',
+      });
+      await seedDefaultCategories(user._id);
+      isNewUser = true;
+    }
+
+    if (!user.isActive) return res.status(403).json({ message: 'Account suspended', code: 'ACCOUNT_SUSPENDED' });
+
+    const { accessToken, refreshToken } = signTokens(user._id);
+    res.status(isNewUser ? 201 : 200).json({ data: { user: user.toPublic(), accessToken, refreshToken } });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });
