@@ -5,18 +5,21 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Semantic theme tokens — resolve to the CSS variables in src/styles/index.css,
-        // so components that consume them (bg-surface, text-text-secondary, etc.) switch
-        // automatically between the light and dark palettes without a `dark:` prefix.
-        background: 'var(--background)',
-        surface: 'var(--surface)',
-        'surface-elevated': 'var(--surface-elevated)',
+        // Semantic theme tokens — resolve to the channel-triplet CSS variables in
+        // src/styles/index.css via rgb(var(--x) / <alpha-value>), so components that
+        // consume them (bg-surface, text-text-secondary, etc.) switch automatically
+        // between the light and dark palettes without a `dark:` prefix, and still
+        // support opacity modifiers (bg-surface/80). `border` is plain var() — it
+        // already carries its own baked-in alpha and is never opacity-modified.
+        background: 'rgb(var(--background) / <alpha-value>)',
+        surface: 'rgb(var(--surface) / <alpha-value>)',
+        'surface-elevated': 'rgb(var(--surface-elevated) / <alpha-value>)',
         border: 'var(--border)',
-        'text-primary': 'var(--text-primary)',
-        'text-secondary': 'var(--text-secondary)',
-        'text-muted': 'var(--text-muted)',
-        primary: 'var(--primary)',
-        'primary-accent': 'var(--primary-accent)',
+        'text-primary': 'rgb(var(--text-primary) / <alpha-value>)',
+        'text-secondary': 'rgb(var(--text-secondary) / <alpha-value>)',
+        'text-muted': 'rgb(var(--text-muted) / <alpha-value>)',
+        primary: 'rgb(var(--primary) / <alpha-value>)',
+        'primary-accent': 'rgb(var(--primary-accent) / <alpha-value>)',
         // NextGen BudgetBee brand palette — bright green + gold, matching the logo artwork.
         brand: {
           50: '#f0fdf4',

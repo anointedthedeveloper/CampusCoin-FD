@@ -18,7 +18,7 @@ const categories = [
     key: 'getting-started',
     icon: BookOpen,
     label: 'Getting Started',
-    color: 'bg-[#d7f0d1] text-[#1c8f53] dark:bg-white/10 dark:text-[var(--primary-accent)]',
+    color: 'bg-[#d7f0d1] text-[#1c8f53] dark:bg-white/10 dark:text-primary-accent',
     faqs: [
       {
         question: 'What is Campus Coin?',
@@ -198,7 +198,7 @@ export function FaqPage() {
   return (
     <div>
       <section className="mx-auto max-w-[1280px] px-4 pb-4 pt-10 sm:px-6 lg:pt-14">
-        <div className="flex items-center gap-2 text-[#1a8f57] dark:text-[var(--primary-accent)]">
+        <div className="flex items-center gap-2 text-[#1a8f57] dark:text-primary-accent">
           <HelpCircle className="h-5 w-5" />
           <p className="text-sm font-semibold uppercase tracking-wide">Help & FAQ</p>
         </div>
@@ -255,7 +255,7 @@ export function FaqPage() {
 
       <section className="mx-auto max-w-[1280px] px-4 pb-16 pt-4 sm:px-6">
         <div className="flex flex-col items-center gap-4 rounded-[28px] bg-[#122a1f] px-6 py-10 text-center text-white dark:bg-surface-elevated dark:shadow-lg dark:shadow-black/20 sm:py-12">
-          <Lock className="h-8 w-8 text-[#4ade80] dark:text-[var(--primary-accent)]" />
+          <Lock className="h-8 w-8 text-[#4ade80] dark:text-primary-accent" />
           <h2 className="text-2xl font-bold sm:text-3xl">Still have questions?</h2>
           <p className="max-w-md text-sm text-white/60">
             Campus Coin is free, private, and requires no bank account. Jump in and explore — your
@@ -263,7 +263,7 @@ export function FaqPage() {
           </p>
           <Link
             to={PUBLIC_ROUTES.register}
-            className="mt-2 rounded-xl bg-[#1c8f53] px-7 py-3.5 text-base font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#177e48] hover:shadow-lg hover:shadow-[#1c8f53]/20 active:translate-y-0 dark:bg-[var(--primary)] dark:hover:bg-[var(--primary-accent)]"
+            className="mt-2 rounded-xl bg-[#1c8f53] px-7 py-3.5 text-base font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#177e48] hover:shadow-lg hover:shadow-[#1c8f53]/20 active:translate-y-0 dark:bg-primary dark:hover:bg-primary-accent"
           >
             Get Started Free
           </Link>

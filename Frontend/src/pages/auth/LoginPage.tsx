@@ -121,7 +121,7 @@ export function LoginPage() {
           </label>
           <Link
             to={PUBLIC_ROUTES.forgotPassword}
-            className="font-medium text-brand-600 hover:text-brand-700 dark:text-[var(--primary-accent)] dark:hover:text-[var(--primary)]"
+            className="font-medium text-brand-600 hover:text-brand-700 dark:text-primary-accent dark:hover:text-primary"
           >
             Forgot password?
           </Link>
@@ -147,7 +147,7 @@ export function LoginPage() {
         Don&apos;t have an account?{' '}
         <Link
           to={PUBLIC_ROUTES.register}
-          className="font-semibold text-brand-600 hover:text-brand-700 dark:text-[var(--primary-accent)] dark:hover:text-[var(--primary)]"
+          className="font-semibold text-brand-600 hover:text-brand-700 dark:text-primary-accent dark:hover:text-primary"
         >
           Create Account
         </Link>

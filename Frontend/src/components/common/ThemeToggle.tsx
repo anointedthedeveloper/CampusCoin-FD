@@ -17,7 +17,7 @@ export function ThemeToggle({ className }: { className?: string }) {
         'group relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full',
         'text-gray-700 transition-colors duration-300 hover:bg-black/5 active:scale-95',
         'dark:text-text-secondary dark:hover:bg-white/10',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary-accent)] focus-visible:ring-offset-1',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-accent focus-visible:ring-offset-1',
         className,
       )}
     >

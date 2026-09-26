@@ -158,7 +158,7 @@ export function RegisterPage() {
         Already have an account?{' '}
         <Link
           to={PUBLIC_ROUTES.login}
-          className="font-semibold text-brand-600 transition-colors hover:text-brand-700 dark:text-[var(--primary-accent)] dark:hover:text-[var(--primary)]"
+          className="font-semibold text-brand-600 transition-colors hover:text-brand-700 dark:text-primary-accent dark:hover:text-primary"
         >
           Login
         </Link>

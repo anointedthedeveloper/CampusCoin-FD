@@ -15,10 +15,11 @@ import {
   Wallet,
 } from 'lucide-react';
 import { PUBLIC_ROUTES, STUDENT_ROUTES } from '@/constants/routes';
-import { ScreenshotSlideshow } from '@/components/common';
+import { Ripple, ScreenshotSlideshow } from '@/components/common';
 import { FeatureGrid } from '@/components/home/FeatureGrid';
 import { assets } from '@/assets/images';
 import { useTheme } from '@/hooks/useTheme';
+import { useRipple } from '@/hooks/useRipple';
 import { cn } from '@/utils/cn';
 
 const stats = [
@@ -150,6 +151,9 @@ function HeroBackground() {
 }
 
 export function HomePage() {
+  const primaryRipple = useRipple();
+  const secondaryRipple = useRipple();
+
   return (
     <div>
       {/* ── Hero ── */}
@@ -158,15 +162,15 @@ export function HomePage() {
         <div className="relative z-20 mx-auto flex min-h-[calc(100svh-6rem)] max-w-[1280px] items-center px-4 py-6 sm:px-6 md:py-8">
           <div className="grid w-full items-center gap-6 md:grid-cols-[1.05fr_1fr] md:gap-10">
             <div className="max-w-[600px] py-3 md:py-6">
-              <span className="inline-flex animate-fade-in-up items-center gap-1.5 rounded-full bg-white/80 px-4 py-1.5 text-xs font-semibold text-[#1d3d2d] shadow-sm dark:bg-white/10 dark:text-text-primary dark:shadow-black/20">
-                <span className="text-[#1f7a43] dark:text-[var(--primary-accent)]">Smart money,</span>
+              <span className="inline-flex animate-fade-in-up items-center gap-1.5 rounded-full bg-white/80 px-4 py-1.5 text-xs font-semibold text-[#1d3d2d] shadow-sm transition-transform duration-200 hover:scale-105 dark:bg-white/10 dark:text-text-primary dark:shadow-black/20">
+                <span className="text-[#1f7a43] dark:text-primary-accent">Smart money,</span>
                 <span className="text-[#1d3d2d] dark:text-text-primary">Brighter Future</span>
               </span>
 
               <h1 className="mt-4 max-w-[560px] animate-fade-in-up text-[2.8rem] font-bold leading-[0.95] tracking-[-0.06em] text-[#1d3d2d] [animation-delay:100ms] dark:text-text-primary sm:mt-5 sm:text-[4.2rem] lg:text-[5.2rem]">
                 Take control of <br />
                 your money on <br />
-                <span className="text-[#1a8f57] dark:text-[var(--primary-accent)]">campus</span>
+                <span className="text-[#1a8f57] dark:text-primary-accent">campus</span>
               </h1>
 
               <p className="mt-4 max-w-[440px] animate-fade-in-up text-base leading-relaxed text-gray-700 [animation-delay:150ms] dark:text-text-secondary sm:mt-5 sm:text-lg">
@@ -177,21 +181,25 @@ export function HomePage() {
               <div className="mt-5 flex animate-fade-in-up flex-wrap gap-3 [animation-delay:200ms] sm:mt-8 sm:gap-4">
                 <Link
                   to={PUBLIC_ROUTES.register}
-                  className="group inline-flex items-center gap-2 rounded-xl bg-[#1c8f53] px-5 py-3 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#177e48] hover:shadow-lg hover:shadow-[#1c8f53]/20 active:translate-y-0 dark:bg-[var(--primary)] dark:hover:bg-[var(--primary-accent)] dark:hover:shadow-[var(--primary-accent)]/20 sm:px-7 sm:py-4 sm:text-base"
+                  onPointerDown={primaryRipple.onPointerDown}
+                  className="group relative isolate inline-flex items-center gap-2 overflow-hidden rounded-xl bg-[#1c8f53] px-5 py-3 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-[#177e48] hover:shadow-lg hover:shadow-[#1c8f53]/20 active:translate-y-0 active:scale-[0.98] dark:bg-primary dark:hover:bg-primary-accent dark:hover:shadow-primary-accent/20 sm:px-7 sm:py-4 sm:text-base"
                 >
                   Get Started Free
                   <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+                  <Ripple ripples={primaryRipple.ripples} className="bg-white/35" />
                 </Link>
                 <Link
                   to={PUBLIC_ROUTES.features}
-                  className="rounded-xl bg-white/90 px-5 py-3 text-sm font-semibold text-[#1d3d2d] shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-white hover:shadow-md active:translate-y-0 dark:bg-white/10 dark:text-text-primary dark:shadow-black/20 dark:hover:bg-white/15 sm:px-7 sm:py-4 sm:text-base"
+                  onPointerDown={secondaryRipple.onPointerDown}
+                  className="relative isolate overflow-hidden rounded-xl bg-white/90 px-5 py-3 text-sm font-semibold text-[#1d3d2d] shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-white hover:shadow-md active:translate-y-0 active:scale-[0.98] dark:bg-white/10 dark:text-text-primary dark:shadow-black/20 dark:hover:bg-white/15 sm:px-7 sm:py-4 sm:text-base"
                 >
                   See How It Works
+                  <Ripple ripples={secondaryRipple.ripples} className="bg-[#1c8f53]/15 dark:bg-white/20" />
                 </Link>
               </div>
 
-              <div className="mt-5 flex animate-fade-in-up items-center gap-3 [animation-delay:250ms] sm:mt-8">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#d7f0d1] text-[#1c8f53] dark:bg-white/10 dark:text-[var(--primary-accent)]">
+              <div className="group mt-5 flex animate-fade-in-up items-center gap-3 [animation-delay:250ms] sm:mt-8">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#d7f0d1] text-[#1c8f53] transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6 dark:bg-white/10 dark:text-primary-accent">
                   <Users className="h-4.5 w-4.5" />
                 </span>
                 <div>
@@ -229,7 +237,7 @@ export function HomePage() {
       {/* ── How it works ── */}
       <section className="mx-auto mt-12 max-w-[1280px] px-4 sm:px-6">
         <div className="text-center">
-          <p className="text-sm font-semibold uppercase tracking-wide text-[#1a8f57] dark:text-[var(--primary-accent)]">How it works</p>
+          <p className="text-sm font-semibold uppercase tracking-wide text-[#1a8f57] dark:text-primary-accent">How it works</p>
           <h2 className="mt-2 text-2xl font-bold text-[#1d3d2d] dark:text-text-primary sm:text-3xl">
             Up and running in four steps
           </h2>
@@ -240,7 +248,7 @@ export function HomePage() {
               key={step}
               className="group rounded-[26px] bg-[#f6f4ee] p-6 transition-all duration-300 hover:-translate-y-1 hover:bg-white hover:shadow-lg dark:bg-surface-elevated dark:hover:bg-white/[0.04] dark:hover:shadow-black/30"
             >
-              <span className="text-3xl font-bold text-[#1c8f53]/20 group-hover:text-[#1c8f53]/40 dark:text-[var(--primary-accent)]/25 dark:group-hover:text-[var(--primary-accent)]/50">{step}</span>
+              <span className="text-3xl font-bold text-[#1c8f53]/20 group-hover:text-[#1c8f53]/40 dark:text-primary-accent/25 dark:group-hover:text-primary-accent/50">{step}</span>
               <h3 className="mt-3 font-semibold text-[#1d3d2d] dark:text-text-primary">{title}</h3>
               <p className="mt-1.5 text-sm leading-relaxed text-gray-600 dark:text-text-secondary">{description}</p>
             </div>
@@ -251,7 +259,7 @@ export function HomePage() {
       {/* ── Screenshot slideshow ── */}
       <section className="mx-auto mt-12 max-w-[1280px]">
         <div className="text-center">
-          <p className="flex items-center justify-center gap-1.5 text-sm font-semibold uppercase tracking-wide text-[#1a8f57] dark:text-[var(--primary-accent)]">
+          <p className="flex items-center justify-center gap-1.5 text-sm font-semibold uppercase tracking-wide text-[#1a8f57] dark:text-primary-accent">
             <Sparkles className="h-3.5 w-3.5" />
             See it in action
           </p>
@@ -267,7 +275,7 @@ export function HomePage() {
       {/* ── App feature highlights ── */}
       <section className="mx-auto mt-12 max-w-[1280px] px-4 sm:px-6">
         <div className="text-center">
-          <p className="text-sm font-semibold uppercase tracking-wide text-[#1a8f57] dark:text-[var(--primary-accent)]">Everything included</p>
+          <p className="text-sm font-semibold uppercase tracking-wide text-[#1a8f57] dark:text-primary-accent">Everything included</p>
           <h2 className="mt-2 text-2xl font-bold text-[#1d3d2d] dark:text-text-primary sm:text-3xl">
             10 features, zero cost
           </h2>
@@ -278,7 +286,7 @@ export function HomePage() {
               key={label}
               className="group flex flex-col gap-2 rounded-[20px] bg-[#f6f4ee] p-4 transition-all duration-300 hover:-translate-y-1 hover:bg-white hover:shadow-md dark:bg-surface-elevated dark:hover:bg-white/[0.04] dark:hover:shadow-black/30"
             >
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#d7f0d1] text-[#1c8f53] transition-transform duration-300 group-hover:scale-110 dark:bg-white/10 dark:text-[var(--primary-accent)]">
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#d7f0d1] text-[#1c8f53] transition-transform duration-300 group-hover:scale-110 dark:bg-white/10 dark:text-primary-accent">
                 <Icon className="h-4 w-4" />
               </span>
               <p className="text-sm font-semibold text-[#1d3d2d] dark:text-text-primary">{label}</p>
@@ -297,7 +305,7 @@ export function HomePage() {
           </p>
           <Link
             to={PUBLIC_ROUTES.register}
-            className="mt-2 rounded-xl bg-[#1c8f53] px-7 py-3.5 text-base font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#177e48] hover:shadow-lg hover:shadow-[#1c8f53]/20 active:translate-y-0 dark:bg-[var(--primary)] dark:hover:bg-[var(--primary-accent)]"
+            className="mt-2 rounded-xl bg-[#1c8f53] px-7 py-3.5 text-base font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#177e48] hover:shadow-lg hover:shadow-[#1c8f53]/20 active:translate-y-0 dark:bg-primary dark:hover:bg-primary-accent"
           >
             Get Started Free
           </Link>
@@ -318,7 +326,7 @@ export function HomePage() {
                     <li key={label}>
                       <Link
                         to={to}
-                        className="text-sm text-gray-600 transition-colors duration-200 hover:text-[#1c8f53] dark:text-text-secondary dark:hover:text-[var(--primary-accent)]"
+                        className="text-sm text-gray-600 transition-colors duration-200 hover:text-[#1c8f53] dark:text-text-secondary dark:hover:text-primary-accent"
                       >
                         {label}
                       </Link>

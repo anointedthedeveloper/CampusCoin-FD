@@ -3,28 +3,34 @@
 @tailwind utilities;
 
 @layer base {
+  /*
+   * Channel triplets (not hex) so Tailwind can apply opacity modifiers —
+   * see tailwind.config.js, which wraps each of these as
+   * `rgb(var(--x) / <alpha-value>)`. `--border` is the one exception: it
+   * keeps a baked-in alpha since it's only ever used unmodified.
+   */
   :root {
-    --background: #f7faf7;
-    --surface: #ffffff;
-    --surface-elevated: #ffffff;
+    --background: 247 250 247; /* #f7faf7 */
+    --surface: 255 255 255; /* #ffffff */
+    --surface-elevated: 255 255 255; /* #ffffff */
     --border: rgba(15, 40, 30, 0.08);
-    --text-primary: #16241d;
-    --text-secondary: #4b5f55;
-    --text-muted: #6b7d74;
-    --primary: #1c8f53;
-    --primary-accent: #16a34a;
+    --text-primary: 22 36 29; /* #16241d */
+    --text-secondary: 75 95 85; /* #4b5f55 */
+    --text-muted: 107 125 116; /* #6b7d74 */
+    --primary: 28 143 83; /* #1c8f53 */
+    --primary-accent: 22 163 74; /* #16a34a */
   }
 
   :root.dark {
-    --background: #071c14;
-    --surface: #0d2a1e;
-    --surface-elevated: #123526;
+    --background: 7 28 20; /* #071c14 */
+    --surface: 13 42 30; /* #0d2a1e */
+    --surface-elevated: 18 53 38; /* #123526 */
     --border: rgba(255, 255, 255, 0.08);
-    --text-primary: #f1f7f3;
-    --text-secondary: #a8bbb1;
-    --text-muted: #789087;
-    --primary: #16a05a;
-    --primary-accent: #25c76a;
+    --text-primary: 241 247 243; /* #f1f7f3 */
+    --text-secondary: 168 187 177; /* #a8bbb1 */
+    --text-muted: 120 144 135; /* #789087 */
+    --primary: 22 160 90; /* #16a05a */
+    --primary-accent: 37 199 106; /* #25c76a */
   }
 
   html {
@@ -193,7 +199,7 @@
 }
 
 .coin-rain-coin--green {
-  background: radial-gradient(circle at 32% 28%, #7cedac 0%, var(--primary-accent) 45%, var(--primary) 100%);
+  background: radial-gradient(circle at 32% 28%, #7cedac 0%, rgb(var(--primary-accent)) 45%, rgb(var(--primary)) 100%);
 }
 
 .coin-rain-coin--gold {
@@ -204,5 +210,26 @@
   .coin-rain-coin {
     animation: none;
     opacity: 1;
+  }
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 0.45;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+.animate-ripple {
+  animation: ripple 650ms ease-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-ripple {
+    display: none;
   }
 }

@@ -106,8 +106,8 @@ export function ScreenshotSlideshow() {
               className={cn(
                 'h-2 rounded-full transition-all duration-300',
                 index === active
-                  ? 'w-6 bg-[#1c8f53] dark:bg-[var(--primary-accent)]'
-                  : 'w-2 bg-[#1c8f53]/25 hover:bg-[#1c8f53]/40 dark:bg-[var(--primary-accent)]/25 dark:hover:bg-[var(--primary-accent)]/45',
+                  ? 'w-6 bg-[#1c8f53] dark:bg-primary-accent'
+                  : 'w-2 bg-[#1c8f53]/25 hover:bg-[#1c8f53]/40 dark:bg-primary-accent/25 dark:hover:bg-primary-accent/45',
               )}
             />
           ))}

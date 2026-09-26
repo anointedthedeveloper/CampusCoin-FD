@@ -75,7 +75,7 @@ export function PublicLayout() {
                       {isActive && (
                         <motion.span
                           layoutId="public-nav-pill"
-                          className="absolute inset-0 -z-10 rounded-full bg-[#1c8f53] dark:bg-[var(--primary)]"
+                          className="absolute inset-0 -z-10 rounded-full bg-[#1c8f53] dark:bg-primary"
                           transition={{ type: 'spring', stiffness: 250, damping: 25 }}
                         />
                       )}
@@ -96,7 +96,7 @@ export function PublicLayout() {
               <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
                 <Link
                   to={PUBLIC_ROUTES.register}
-                  className="group inline-flex items-center gap-1.5 rounded-full bg-[#1c8f53] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-[#177e48] dark:bg-[var(--primary)] dark:hover:bg-[var(--primary-accent)]"
+                  className="group inline-flex items-center gap-1.5 rounded-full bg-[#1c8f53] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-[#177e48] dark:bg-primary dark:hover:bg-primary-accent"
                 >
                   Get Started
                   <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
@@ -156,7 +156,7 @@ export function PublicLayout() {
                 </Link>
                 <Link
                   to={PUBLIC_ROUTES.register}
-                  className="rounded-full bg-[#1c8f53] px-4 py-2.5 text-center text-sm font-semibold text-white transition-colors duration-200 hover:bg-[#177e48] dark:bg-[var(--primary)] dark:hover:bg-[var(--primary-accent)]"
+                  className="rounded-full bg-[#1c8f53] px-4 py-2.5 text-center text-sm font-semibold text-white transition-colors duration-200 hover:bg-[#177e48] dark:bg-primary dark:hover:bg-primary-accent"
                 >
                   Get Started
                 </Link>

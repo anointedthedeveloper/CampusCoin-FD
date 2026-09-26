@@ -51,7 +51,7 @@ export function AuthLayout() {
             <Link
               to={PUBLIC_ROUTES.home}
               className={cn(
-                'hidden items-center justify-center gap-1.5 text-sm font-medium text-gray-500 transition-colors duration-200 hover:text-brand-700 dark:text-text-muted dark:hover:text-[var(--primary-accent)] lg:flex',
+                'hidden items-center justify-center gap-1.5 text-sm font-medium text-gray-500 transition-colors duration-200 hover:text-brand-700 dark:text-text-muted dark:hover:text-primary-accent lg:flex',
                 isShort ? 'mt-2' : 'mt-6',
               )}
             >

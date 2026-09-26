@@ -40,7 +40,7 @@ export function ForgotPasswordPage() {
         </p>
         <Link
           to={PUBLIC_ROUTES.login}
-          className="mt-6 inline-block text-sm font-semibold text-brand-600 hover:text-brand-700 dark:text-[var(--primary-accent)] dark:hover:text-[var(--primary)]"
+          className="mt-6 inline-block text-sm font-semibold text-brand-600 hover:text-brand-700 dark:text-primary-accent dark:hover:text-primary"
         >
           Back to Login
         </Link>
@@ -79,7 +79,7 @@ export function ForgotPasswordPage() {
         Remembered your password?{' '}
         <Link
           to={PUBLIC_ROUTES.login}
-          className="font-semibold text-brand-600 hover:text-brand-700 dark:text-[var(--primary-accent)] dark:hover:text-[var(--primary)]"
+          className="font-semibold text-brand-600 hover:text-brand-700 dark:text-primary-accent dark:hover:text-primary"
         >
           Log In
         </Link>
