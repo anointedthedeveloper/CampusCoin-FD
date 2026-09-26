@@ -230,11 +230,20 @@
       });
 
       window.Tawk_API = window.Tawk_API || {};
-      window.Tawk_API.onLoad = function () {
+      var hideTawkWidget = function () {
         if (typeof window.Tawk_API.hideWidget === 'function') {
           window.Tawk_API.hideWidget();
         }
       };
+      // Tawk's own launcher (and its default "1 new message" greeting/trigger
+      // bubble) is hidden in favor of our own toggle button. onLoad covers
+      // the initial render; onChatMessageVisitor re-hides it in case a
+      // proactive trigger (configured in the Tawk.to dashboard) pops it back
+      // open on its own after load. A guaranteed, permanent fix for that
+      // default greeting still needs "Automated Triggers" turned off in the
+      // Tawk.to dashboard — this is a best-effort client-side suppression.
+      window.Tawk_API.onLoad = hideTawkWidget;
+      window.Tawk_API.onChatMessageVisitor = hideTawkWidget;
 
       document.getElementById('tawk-chat-toggle')?.addEventListener('click', function () {
         if (typeof window.Tawk_API.toggle === 'function') {

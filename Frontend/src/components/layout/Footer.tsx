@@ -4,17 +4,25 @@ import { PUBLIC_ROUTES, STUDENT_ROUTES } from '@/constants/routes';
 
 const productLinks = [
   { to: PUBLIC_ROUTES.home, label: 'Home' },
-  { to: PUBLIC_ROUTES.features, label: 'Features' },
-  { to: PUBLIC_ROUTES.about, label: 'About' },
-  { to: PUBLIC_ROUTES.faq, label: 'FAQ' },
+  { to: PUBLIC_ROUTES.features, label: 'How it works' },
+  { to: PUBLIC_ROUTES.about, label: "What it's about" },
+  { to: PUBLIC_ROUTES.faq, label: 'FAQ & Help' },
 ];
 
-const appLinks = [
+const trackLinks = [
   { to: STUDENT_ROUTES.dashboard, label: 'Dashboard' },
   { to: STUDENT_ROUTES.transactions, label: 'Transactions' },
+  { to: `${STUDENT_ROUTES.newTransaction}?type=income`, label: 'Add Income' },
+  { to: `${STUDENT_ROUTES.newTransaction}?type=expense`, label: 'Add Expense' },
+  { to: STUDENT_ROUTES.import, label: 'Import CSV' },
+];
+
+const planLinks = [
   { to: STUDENT_ROUTES.budgets, label: 'Budgets' },
   { to: STUDENT_ROUTES.reports, label: 'Reports' },
   { to: STUDENT_ROUTES.savingTips, label: 'Saving Tips' },
+  { to: STUDENT_ROUTES.insights, label: 'AI Assistant' },
+  { to: STUDENT_ROUTES.bookmarks, label: 'Bookmarks' },
 ];
 
 const accountLinks = [
@@ -22,6 +30,15 @@ const accountLinks = [
   { to: PUBLIC_ROUTES.register, label: 'Create account' },
   { to: PUBLIC_ROUTES.forgotPassword, label: 'Forgot password' },
   { to: STUDENT_ROUTES.profile, label: 'Profile & settings' },
+  { to: STUDENT_ROUTES.categories, label: 'Categories' },
+  { to: STUDENT_ROUTES.notifications, label: 'Notifications' },
+];
+
+const footerColumns = [
+  { title: 'Product', links: productLinks },
+  { title: 'App — Track', links: trackLinks },
+  { title: 'App — Plan & Review', links: planLinks },
+  { title: 'Account', links: accountLinks },
 ];
 
 function FooterLink({ to, label }: { to: string; label: string }) {
@@ -39,9 +56,9 @@ function FooterLink({ to, label }: { to: string; label: string }) {
 
 export function Footer() {
   return (
-    <footer className="bg-[#122a1f] text-white dark:border-t dark:border-white/[0.06] dark:bg-surface">
+    <footer className="bg-[#122a1f] text-white dark:border-t dark:border-white/[0.06] dark:bg-surface" aria-label="Site map">
       <div className="mx-auto max-w-[1280px] px-4 py-14 sm:px-6">
-        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-[1.2fr_1fr_1fr_1fr]">
+        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-[1.1fr_1fr_1fr_1fr_1fr]">
           <div>
             <Link to={PUBLIC_ROUTES.home} className="inline-block">
               <Logo wordmarkClassName="text-white" />
@@ -52,32 +69,16 @@ export function Footer() {
             </p>
           </div>
 
-          <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-white/40">Product</h3>
-            <ul className="mt-4 space-y-3">
-              {productLinks.map((link) => (
-                <FooterLink key={link.to} {...link} />
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-white/40">App</h3>
-            <ul className="mt-4 space-y-3">
-              {appLinks.map((link) => (
-                <FooterLink key={link.to} {...link} />
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-white/40">Account</h3>
-            <ul className="mt-4 space-y-3">
-              {accountLinks.map((link) => (
-                <FooterLink key={link.to} {...link} />
-              ))}
-            </ul>
-          </div>
+          {footerColumns.map(({ title, links }) => (
+            <div key={title}>
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-white/40">{title}</h3>
+              <ul className="mt-4 space-y-3">
+                {links.map((link) => (
+                  <FooterLink key={link.to + link.label} {...link} />
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
 
         <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-white/10 pt-6 text-xs text-white/40 sm:flex-row">

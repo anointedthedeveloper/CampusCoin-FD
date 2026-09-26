@@ -72,11 +72,17 @@ router.post('/login', async (req, res) => {
     const { email, password } = req.body;
     if (!email || !password) return res.status(400).json({ message: 'Email and password are required' });
 
+    // Same status/message whether the email doesn't exist or the password is
+    // wrong — distinguishing the two would let a caller enumerate registered
+    // emails.
+    const invalidCredentials = () =>
+      res.status(401).json({ message: 'Your email or password is incorrect.', code: 'INVALID_CREDENTIALS' });
+
     const user = await User.findOne({ email: email.toLowerCase().trim() });
-    if (!user) return res.status(404).json({ message: 'No account found with this email. Create one instead.', code: 'ACCOUNT_NOT_FOUND' });
+    if (!user) return invalidCredentials();
 
     const match = await user.matchPassword(password);
-    if (!match) return res.status(401).json({ message: 'Incorrect password. Please try again.', code: 'INVALID_PASSWORD' });
+    if (!match) return invalidCredentials();
 
     if (!user.isActive) return res.status(403).json({ message: 'Account suspended', code: 'ACCOUNT_SUSPENDED' });
 

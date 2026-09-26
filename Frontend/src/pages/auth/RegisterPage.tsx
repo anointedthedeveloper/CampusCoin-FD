@@ -49,7 +49,9 @@ export function RegisterPage() {
     setIsSubmitting(true);
     try {
       await register({ fullName, email, password });
-      navigate(STUDENT_ROUTES.dashboard, { replace: true });
+      // Every new account starts unconfigured — send them through the
+      // one-time money-profile setup instead of straight to an empty dashboard.
+      navigate(STUDENT_ROUTES.onboarding, { replace: true });
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Something went wrong. Please try again.');
     } finally {
