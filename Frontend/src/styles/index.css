@@ -3,17 +3,65 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --background: #f7faf7;
+    --surface: #ffffff;
+    --surface-elevated: #ffffff;
+    --border: rgba(15, 40, 30, 0.08);
+    --text-primary: #16241d;
+    --text-secondary: #4b5f55;
+    --text-muted: #6b7d74;
+    --primary: #1c8f53;
+    --primary-accent: #16a34a;
+  }
+
+  :root.dark {
+    --background: #071c14;
+    --surface: #0d2a1e;
+    --surface-elevated: #123526;
+    --border: rgba(255, 255, 255, 0.08);
+    --text-primary: #f1f7f3;
+    --text-secondary: #a8bbb1;
+    --text-muted: #789087;
+    --primary: #16a05a;
+    --primary-accent: #25c76a;
+  }
+
   html {
     font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
     scroll-behavior: smooth;
   }
 
   body {
-    @apply bg-gray-50 text-gray-900 antialiased;
+    @apply bg-background text-text-primary antialiased transition-colors duration-300;
   }
 
   ::selection {
     @apply bg-brand-200 text-brand-900;
+  }
+
+  :root.dark ::selection {
+    background-color: rgba(37, 199, 106, 0.3);
+    color: #f1f7f3;
+  }
+
+  /* Theme switches should feel instant on structure, soft on color. */
+  *,
+  *::before,
+  *::after {
+    transition-property: background-color, border-color, color, box-shadow, fill, stroke;
+    transition-duration: 200ms;
+    transition-timing-function: ease-out;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      transition-duration: 0ms !important;
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+    }
   }
 }
 
@@ -106,5 +154,55 @@
 @media (prefers-reduced-motion: reduce) {
   .animate-hero-phone-bob {
     animation: none;
+  }
+}
+
+/* Campus Coin loader — a handful of coins falling past the wordmark. Each
+   coin's position/size/speed/spin comes in as inline custom properties from
+   the CoinLoader component, so no two runs look identical. */
+@keyframes coin-fall {
+  0% {
+    transform: translateY(-24px) rotate(0deg);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(172px) rotate(var(--coin-rotate, 200deg));
+    opacity: 0;
+  }
+}
+
+.coin-rain-coin {
+  position: absolute;
+  top: 0;
+  left: var(--coin-left, 50%);
+  width: var(--coin-size, 14px);
+  height: var(--coin-size, 14px);
+  border-radius: 50%;
+  animation: coin-fall var(--coin-duration, 2.4s) linear infinite;
+  animation-delay: var(--coin-delay, 0s);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.35),
+    0 2px 5px rgba(0, 0, 0, 0.18);
+  will-change: transform, opacity;
+}
+
+.coin-rain-coin--green {
+  background: radial-gradient(circle at 32% 28%, #7cedac 0%, var(--primary-accent) 45%, var(--primary) 100%);
+}
+
+.coin-rain-coin--gold {
+  background: radial-gradient(circle at 32% 28%, #fde68a 0%, #f6ad2b 48%, #b45309 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .coin-rain-coin {
+    animation: none;
+    opacity: 1;
   }
 }

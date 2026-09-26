@@ -97,7 +97,7 @@ export function LoginPage() {
             <button
               type="button"
               onClick={() => setShowPassword((v) => !v)}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-gray-400 hover:text-gray-600 dark:text-text-muted dark:hover:text-text-secondary"
               aria-label={showPassword ? 'Hide password' : 'Show password'}
             >
               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -110,21 +110,24 @@ export function LoginPage() {
         />
 
         <div className="flex items-center justify-between text-sm">
-          <label className="flex items-center gap-2 text-gray-600">
+          <label className="flex items-center gap-2 text-gray-600 dark:text-text-secondary">
             <input
               type="checkbox"
               checked={rememberMe}
               onChange={(e) => setRememberMe(e.target.checked)}
-              className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
+              className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500 dark:border-white/20 dark:bg-surface"
             />
             Remember me
           </label>
-          <Link to={PUBLIC_ROUTES.forgotPassword} className="font-medium text-brand-600 hover:text-brand-700">
+          <Link
+            to={PUBLIC_ROUTES.forgotPassword}
+            className="font-medium text-brand-600 hover:text-brand-700 dark:text-[var(--primary-accent)] dark:hover:text-[var(--primary)]"
+          >
             Forgot password?
           </Link>
         </div>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
 
         <Button type="submit" variant="primary" className="w-full" isLoading={isSubmitting} loadingText="Signing in…">
           Sign In
@@ -133,16 +136,19 @@ export function LoginPage() {
       </form>
 
       <div className={cn('flex items-center gap-3', compact ? 'my-2.5' : 'my-6')}>
-        <div className="h-px flex-1 bg-gray-200" />
-        <span className="text-xs text-gray-400">OR</span>
-        <div className="h-px flex-1 bg-gray-200" />
+        <div className="h-px flex-1 bg-gray-200 dark:bg-white/10" />
+        <span className="text-xs text-gray-400 dark:text-text-muted">OR</span>
+        <div className="h-px flex-1 bg-gray-200 dark:bg-white/10" />
       </div>
 
       <GoogleButton onClick={() => void handleGoogleLogin()} isLoading={isGoogleLoading} />
 
-      <p className={cn('text-center text-sm text-gray-600', compact ? 'mt-2.5' : 'mt-6')}>
+      <p className={cn('text-center text-sm text-gray-600 dark:text-text-secondary', compact ? 'mt-2.5' : 'mt-6')}>
         Don&apos;t have an account?{' '}
-        <Link to={PUBLIC_ROUTES.register} className="font-semibold text-brand-600 hover:text-brand-700">
+        <Link
+          to={PUBLIC_ROUTES.register}
+          className="font-semibold text-brand-600 hover:text-brand-700 dark:text-[var(--primary-accent)] dark:hover:text-[var(--primary)]"
+        >
           Create Account
         </Link>
       </p>

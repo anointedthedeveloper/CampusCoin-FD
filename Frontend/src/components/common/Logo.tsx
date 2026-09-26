@@ -5,6 +5,7 @@ interface LogoProps {
   className?: string;
   iconClassName?: string;
   wordmarkClassName?: string;
+  taglineClassName?: string;
   showWordmark?: boolean;
   showTagline?: boolean;
 }
@@ -13,6 +14,7 @@ export function Logo({
   className,
   iconClassName,
   wordmarkClassName,
+  taglineClassName,
   showWordmark = true,
   showTagline = false,
 }: LogoProps) {
@@ -29,7 +31,12 @@ export function Logo({
             CAMPUS COIN
           </span>
           {showTagline && (
-            <span className="mt-1 hidden text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-400 sm:block">
+            <span
+              className={cn(
+                'mt-1 hidden text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-400 sm:block',
+                taglineClassName,
+              )}
+            >
               Your Campus &middot; Your Wallet
             </span>
           )}

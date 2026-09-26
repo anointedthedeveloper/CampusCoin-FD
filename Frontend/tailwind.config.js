@@ -1,9 +1,22 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
       colors: {
+        // Semantic theme tokens — resolve to the CSS variables in src/styles/index.css,
+        // so components that consume them (bg-surface, text-text-secondary, etc.) switch
+        // automatically between the light and dark palettes without a `dark:` prefix.
+        background: 'var(--background)',
+        surface: 'var(--surface)',
+        'surface-elevated': 'var(--surface-elevated)',
+        border: 'var(--border)',
+        'text-primary': 'var(--text-primary)',
+        'text-secondary': 'var(--text-secondary)',
+        'text-muted': 'var(--text-muted)',
+        primary: 'var(--primary)',
+        'primary-accent': 'var(--primary-accent)',
         // NextGen BudgetBee brand palette — bright green + gold, matching the logo artwork.
         brand: {
           50: '#f0fdf4',

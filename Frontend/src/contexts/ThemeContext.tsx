@@ -10,16 +10,22 @@ interface ThemeContextValue {
 // eslint-disable-next-line react-refresh/only-export-components
 export const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
-const THEME_STORAGE_KEY = 'campus-coin.theme';
+// Keep this in sync with the inline anti-flash script in index.html.
+export const THEME_STORAGE_KEY = 'campus-coin.theme';
+
+function getInitialTheme(): Theme {
+  try {
+    const stored = localStorage.getItem(THEME_STORAGE_KEY);
+    if (stored === 'light' || stored === 'dark') return stored;
+  } catch {
+    // ignore storage access failures (e.g. private browsing)
+  }
+  // No saved preference yet — fall back to the system setting.
+  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(() => {
-    try {
-      return (localStorage.getItem(THEME_STORAGE_KEY) as Theme | null) ?? 'light';
-    } catch {
-      return 'light';
-    }
-  });
+  const [theme, setTheme] = useState<Theme>(getInitialTheme);
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');

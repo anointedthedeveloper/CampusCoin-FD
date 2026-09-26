@@ -15,6 +15,20 @@
       href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap"
       rel="stylesheet"
     />
+    <script>
+      // Apply the saved (or system) theme before first paint, so the boot
+      // loader and first frame never flash the wrong mode. Keep the storage
+      // key in sync with THEME_STORAGE_KEY in src/contexts/ThemeContext.tsx.
+      (function () {
+        try {
+          var stored = localStorage.getItem('campus-coin.theme');
+          var isDark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          document.documentElement.classList.toggle('dark', isDark);
+        } catch (_) {
+          // ignore storage access failures (e.g. private browsing)
+        }
+      })();
+    </script>
     <style>
       #tawk-chat-toggle {
         position: fixed;
@@ -51,6 +65,15 @@
         outline-offset: 3px;
       }
 
+      html.dark #tawk-chat-toggle {
+        border-color: #123526;
+        background: #123526;
+        color: #25c76a;
+        box-shadow:
+          0 0 0 1px rgba(255, 255, 255, 0.08),
+          0 14px 28px rgba(0, 0, 0, 0.35);
+      }
+
       #initial-page-loader {
         position: fixed;
         inset: 0;
@@ -58,20 +81,42 @@
         display: grid;
         place-content: center;
         justify-items: center;
-        gap: 16px;
+        gap: 4px;
         background: #e5f1e8;
         color: #176c42;
         font-family: 'Plus Jakarta Sans', sans-serif;
         text-align: center;
       }
 
-      #initial-page-loader .loader-mark {
-        width: 54px;
-        height: 54px;
-        border: 3px solid #b8ddc4;
-        border-top-color: #168c50;
+      html.dark #initial-page-loader {
+        background: #071c14;
+        color: #f1f7f3;
+      }
+
+      #initial-page-loader .loader-coins {
+        position: relative;
+        width: 160px;
+        height: 128px;
+        overflow: hidden;
+      }
+
+      #initial-page-loader .loader-coin {
+        position: absolute;
+        top: 0;
+        left: var(--x);
+        width: var(--s);
+        height: var(--s);
         border-radius: 50%;
-        animation: initial-loader-spin 0.8s linear infinite;
+        background: radial-gradient(circle at 32% 28%, #7cedac 0%, #25c76a 45%, #16a05a 100%);
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 255, 255, 0.35),
+          0 2px 5px rgba(0, 0, 0, 0.18);
+        animation: initial-loader-fall var(--d) linear infinite;
+        animation-delay: var(--t);
+      }
+
+      #initial-page-loader .loader-coin.is-gold {
+        background: radial-gradient(circle at 32% 28%, #fde68a 0%, #f6ad2b 48%, #b45309 100%);
       }
 
       #initial-page-loader .loader-name {
@@ -82,20 +127,35 @@
       }
 
       #initial-page-loader .loader-message {
-        margin: -12px 0 0;
+        margin: 0;
         color: #5c7568;
         font-size: 14px;
       }
 
-      @keyframes initial-loader-spin {
-        to {
-          transform: rotate(360deg);
+      html.dark #initial-page-loader .loader-message {
+        color: #a8bbb1;
+      }
+
+      @keyframes initial-loader-fall {
+        0% {
+          transform: translateY(-24px) rotate(0deg);
+          opacity: 0;
+        }
+        12% {
+          opacity: 1;
+        }
+        85% {
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(172px) rotate(220deg);
+          opacity: 0;
         }
       }
 
       @media (prefers-reduced-motion: reduce) {
         #tawk-chat-toggle,
-        #initial-page-loader .loader-mark {
+        #initial-page-loader .loader-coin {
           transition: none;
           animation: none;
         }
@@ -104,7 +164,15 @@
   </head>
   <body>
     <div id="initial-page-loader" role="status" aria-live="polite" aria-label="Loading Campus Coin">
-      <span class="loader-mark" aria-hidden="true"></span>
+      <div class="loader-coins" aria-hidden="true">
+        <span class="loader-coin" style="--x: 6%; --s: 14px; --d: 2.1s; --t: 0s"></span>
+        <span class="loader-coin is-gold" style="--x: 22%; --s: 11px; --d: 2.6s; --t: -0.6s"></span>
+        <span class="loader-coin" style="--x: 38%; --s: 16px; --d: 1.9s; --t: -1.3s"></span>
+        <span class="loader-coin" style="--x: 52%; --s: 12px; --d: 2.4s; --t: -2s"></span>
+        <span class="loader-coin is-gold" style="--x: 66%; --s: 15px; --d: 2s; --t: -0.3s"></span>
+        <span class="loader-coin" style="--x: 80%; --s: 13px; --d: 2.7s; --t: -1.7s"></span>
+        <span class="loader-coin" style="--x: 92%; --s: 10px; --d: 2.2s; --t: -2.4s"></span>
+      </div>
       <p class="loader-name">CAMPUS COIN</p>
       <p class="loader-message">Getting your campus wallet ready</p>
     </div>

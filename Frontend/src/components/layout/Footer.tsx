@@ -39,7 +39,7 @@ function FooterLink({ to, label }: { to: string; label: string }) {
 
 export function Footer() {
   return (
-    <footer className="bg-[#122a1f] text-white">
+    <footer className="bg-[#122a1f] text-white dark:border-t dark:border-white/[0.06] dark:bg-surface">
       <div className="mx-auto max-w-[1280px] px-4 py-14 sm:px-6">
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-[1.2fr_1fr_1fr_1fr]">
           <div>

@@ -3,6 +3,8 @@ export * from './Input';
 export * from './Card';
 export * from './Spinner';
 export * from './PageLoader';
+export * from './CoinLoader';
+export * from './ThemeToggle';
 export * from './Badge';
 export * from './EmptyState';
 export * from './Logo';

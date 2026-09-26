@@ -21,8 +21,8 @@ export function AuthPageHeader({ icon: Icon, title, subtitle, compact = false }:
         <Icon className={compact ? 'h-4 w-4' : 'h-5 w-5'} />
       </span>
       <div>
-        <h1 className={cn('font-bold text-gray-900', compact ? 'text-lg' : 'text-xl sm:text-2xl')}>{title}</h1>
-        <p className={cn('text-gray-500', compact ? 'mt-0.5 text-xs' : 'mt-1 text-sm')}>{subtitle}</p>
+        <h1 className={cn('font-bold text-gray-900 dark:text-text-primary', compact ? 'text-lg' : 'text-xl sm:text-2xl')}>{title}</h1>
+        <p className={cn('text-gray-500 dark:text-text-secondary', compact ? 'mt-0.5 text-xs' : 'mt-1 text-sm')}>{subtitle}</p>
       </div>
     </div>
   );

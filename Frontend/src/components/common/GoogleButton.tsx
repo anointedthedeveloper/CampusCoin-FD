@@ -41,7 +41,8 @@ export function GoogleButton({
       disabled={isLoading}
       className={cn(
         'flex w-full items-center justify-center gap-2.5 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700',
-        'transition-all duration-200 hover:-translate-y-0.5 hover:border-gray-400 hover:shadow-sm active:translate-y-0',
+        'dark:border-white/15 dark:bg-white/5 dark:text-text-primary',
+        'transition-all duration-200 hover:-translate-y-0.5 hover:border-gray-400 hover:shadow-sm active:translate-y-0 dark:hover:border-white/25 dark:hover:bg-white/10 dark:hover:shadow-black/20',
         'disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-none',
         className,
       )}
