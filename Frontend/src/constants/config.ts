@@ -1,7 +1,7 @@
 export const APP_NAME = 'Campus Coin';
 export const APP_TAGLINE = 'NextGen BudgetBee';
 
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api/v1';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'https://campuscoin-backend.vercel.app/api/v1';
 
 export const FEATURE_FLAGS = {
   aiCategorization: import.meta.env.VITE_FEATURE_AI_CATEGORIZATION === 'true',
