@@ -1,5 +1,29 @@
 export type UserRole = 'student' | 'admin';
 
+export type OnboardingStatus = 'not_started' | 'in_progress' | 'completed' | 'skipped';
+export type IncomeFrequency = 'weekly' | 'monthly' | 'occasionally';
+
+export interface OnboardingProfile {
+  status: OnboardingStatus;
+  currentStep: number;
+  incomeSources: string[];
+  incomeFrequency?: IncomeFrequency;
+  spendingCategories: string[];
+  goals: string[];
+  completedAt?: string;
+}
+
+export interface OnboardingUpdate {
+  status?: OnboardingStatus;
+  currentStep?: number;
+  incomeSources?: string[];
+  incomeFrequency?: IncomeFrequency;
+  spendingCategories?: string[];
+  goals?: string[];
+  monthlyAllowanceBaseline?: number;
+  savingsGoalAmount?: number;
+}
+
 export interface User {
   id: string;
   fullName: string;
@@ -10,6 +34,7 @@ export interface User {
   monthlyAllowanceBaseline?: number;
   savingsGoalAmount?: number;
   avatarUrl?: string;
+  onboarding?: OnboardingProfile;
   createdAt: string;
   updatedAt: string;
 }

@@ -41,6 +41,10 @@ const ResetPasswordPage = lazy(() =>
   import('@/pages/auth/ResetPasswordPage').then((page) => ({ default: page.ResetPasswordPage })),
 );
 
+const OnboardingPage = lazy(() =>
+  import('@/pages/onboarding').then((page) => ({ default: page.OnboardingPage })),
+);
+
 const BookmarksPage = lazy(() =>
   import('@/pages/student/BookmarksPage').then((page) => ({ default: page.BookmarksPage })),
 );
@@ -148,6 +152,9 @@ export function AppRoutes() {
 
         {/* Student application (requires authentication) */}
         <Route element={<ProtectedRoute />}>
+          {/* Standalone, one-time setup flow — deliberately outside StudentLayout (no sidebar) */}
+          <Route path={STUDENT_ROUTES.onboarding} element={<OnboardingPage />} />
+
           <Route element={<StudentLayout />}>
             <Route path={STUDENT_ROUTES.dashboard} element={<DashboardPage />} />
             <Route path={STUDENT_ROUTES.transactions} element={<TransactionsListPage />} />

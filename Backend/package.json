@@ -7,6 +7,7 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "vercel-build": "node --check server.js && node --check api/index.js",
+    "migrate:onboarding": "node scripts/backfill-onboarding.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

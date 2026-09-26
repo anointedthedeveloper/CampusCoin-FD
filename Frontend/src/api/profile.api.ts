@@ -1,6 +1,6 @@
 import { httpClient } from './httpClient';
 import type { ApiSuccess } from '@/types/api';
-import type { User, UserProfileUpdate, UserSettings } from '@/types/user';
+import type { OnboardingUpdate, User, UserProfileUpdate, UserSettings } from '@/types/user';
 
 export const profileApi = {
   async getProfile(): Promise<User> {
@@ -10,6 +10,11 @@ export const profileApi = {
 
   async updateProfile(payload: UserProfileUpdate): Promise<User> {
     const { data } = await httpClient.patch<ApiSuccess<User>>('/profile', payload);
+    return data.data;
+  },
+
+  async updateOnboarding(payload: OnboardingUpdate): Promise<User> {
+    const { data } = await httpClient.patch<ApiSuccess<User>>('/profile/onboarding', payload);
     return data.data;
   },
 

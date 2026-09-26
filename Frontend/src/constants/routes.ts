@@ -12,6 +12,7 @@ export const PUBLIC_ROUTES = {
 
 export const STUDENT_ROUTES = {
   dashboard: '/dashboard',
+  onboarding: '/onboarding',
   transactions: '/transactions',
   newTransaction: '/transactions/new',
   transactionDetail: '/transactions/:id',

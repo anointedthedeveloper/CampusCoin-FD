@@ -118,8 +118,8 @@ export function BudgetsPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Budget</h1>
-          <p className="mt-1 text-sm text-gray-500">Set and track your spending limits.</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-text-primary">Budget</h1>
+          <p className="mt-1 text-sm text-gray-500 dark:text-text-secondary">Set and track your spending limits.</p>
         </div>
         <Button
           variant="primary"
@@ -132,29 +132,29 @@ export function BudgetsPage() {
       </div>
 
       <div className="flex items-center justify-center gap-4">
-        <button onClick={() => { setMonthOffset((v) => v - 1); closeForm(); }} aria-label="Previous month" className="rounded-lg p-1.5 text-gray-500 transition-colors duration-200 hover:bg-gray-100 hover:text-gray-900">
+        <button onClick={() => { setMonthOffset((v) => v - 1); closeForm(); }} aria-label="Previous month" className="rounded-lg p-1.5 text-gray-500 transition-colors duration-200 hover:bg-gray-100 hover:text-gray-900 dark:text-text-secondary dark:hover:bg-white/10 dark:hover:text-text-primary">
           <ChevronLeft className="h-4 w-4" />
         </button>
-        <span className="text-sm font-semibold text-gray-900">{displayMonth}</span>
-        <button onClick={() => { setMonthOffset((v) => v + 1); closeForm(); }} aria-label="Next month" className="rounded-lg p-1.5 text-gray-500 transition-colors duration-200 hover:bg-gray-100 hover:text-gray-900">
+        <span className="text-sm font-semibold text-gray-900 dark:text-text-primary">{displayMonth}</span>
+        <button onClick={() => { setMonthOffset((v) => v + 1); closeForm(); }} aria-label="Next month" className="rounded-lg p-1.5 text-gray-500 transition-colors duration-200 hover:bg-gray-100 hover:text-gray-900 dark:text-text-secondary dark:hover:bg-white/10 dark:hover:text-text-primary">
           <ChevronRight className="h-4 w-4" />
         </button>
       </div>
 
-      {notice && <p className="text-center text-sm text-brand-700">{notice}</p>}
+      {notice && <p className="text-center text-sm text-brand-700 dark:text-primary-accent">{notice}</p>}
 
       {isFormOpen && (
         <Card className="animate-fade-in-up p-5">
           <form onSubmit={handleSubmit} className="flex flex-col gap-4 sm:flex-row sm:items-end">
             <div className="flex-1">
-              <label htmlFor="budget-category" className="text-sm font-medium text-gray-700">Category</label>
+              <label htmlFor="budget-category" className="text-sm font-medium text-gray-700 dark:text-text-secondary">Category</label>
               <select
                 id="budget-category"
                 required
                 disabled={Boolean(editingBudget)}
                 value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:bg-gray-50 disabled:text-gray-500"
+                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:bg-gray-50 disabled:text-gray-500 dark:border-border dark:bg-surface dark:text-text-primary dark:focus:border-primary-accent dark:focus:ring-primary-accent dark:disabled:bg-white/5 dark:disabled:text-text-muted"
               >
                 <option value="" disabled>Select a category</option>
                 {(editingBudget ? expenseCategories : availableCategories).map((category) => (
@@ -163,9 +163,9 @@ export function BudgetsPage() {
               </select>
             </div>
             <div className="flex-1">
-              <label htmlFor="budget-limit" className="text-sm font-medium text-gray-700">Monthly limit</label>
+              <label htmlFor="budget-limit" className="text-sm font-medium text-gray-700 dark:text-text-secondary">Monthly limit</label>
               <div className="relative mt-1">
-                <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-gray-400">₦</span>
+                <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-gray-400 dark:text-text-muted">₦</span>
                 <input
                   id="budget-limit"
                   type="number"
@@ -175,7 +175,7 @@ export function BudgetsPage() {
                   placeholder="e.g. 15000"
                   value={limitAmount}
                   onChange={(e) => setLimitAmount(e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 py-2 pl-7 pr-3 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                  className="w-full rounded-lg border border-gray-300 py-2 pl-7 pr-3 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-border dark:bg-surface dark:text-text-primary dark:focus:border-primary-accent dark:focus:ring-primary-accent"
                 />
               </div>
             </div>
@@ -183,7 +183,7 @@ export function BudgetsPage() {
               {editingBudget ? 'Save Changes' : 'Save Budget'}
             </Button>
           </form>
-          {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+          {error && <p className="mt-3 text-sm text-red-600 dark:text-red-400">{error}</p>}
         </Card>
       )}
 
@@ -197,17 +197,17 @@ export function BudgetsPage() {
         </Card>
       ) : (
         <Card className="p-5">
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-gray-100 dark:divide-white/10">
             {budgets.map((budget) => (
               <div key={budget.id} className="group flex items-center gap-2">
                 <div className="flex-1">
                   <BudgetProgressRow budget={budget} categoryName={categoryNameFor(budget.categoryId)} />
                 </div>
                 <div className="flex shrink-0 gap-1 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-                  <button type="button" onClick={() => openEditForm(budget)} className="rounded-lg p-1.5 text-gray-300 hover:bg-gray-100 hover:text-gray-700" aria-label={`Edit ${categoryNameFor(budget.categoryId)} budget`}>
+                  <button type="button" onClick={() => openEditForm(budget)} className="rounded-lg p-1.5 text-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:text-text-muted dark:hover:bg-white/10 dark:hover:text-text-primary" aria-label={`Edit ${categoryNameFor(budget.categoryId)} budget`}>
                     <Pencil className="h-4 w-4" />
                   </button>
-                  <button type="button" onClick={() => void handleDelete(budget)} className="rounded-lg p-1.5 text-gray-300 hover:bg-red-50 hover:text-red-600" aria-label={`Delete ${categoryNameFor(budget.categoryId)} budget`}>
+                  <button type="button" onClick={() => void handleDelete(budget)} className="rounded-lg p-1.5 text-gray-300 hover:bg-red-50 hover:text-red-600 dark:text-text-muted dark:hover:bg-red-500/10 dark:hover:text-red-400" aria-label={`Delete ${categoryNameFor(budget.categoryId)} budget`}>
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </div>

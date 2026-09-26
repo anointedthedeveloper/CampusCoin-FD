@@ -59,8 +59,20 @@ export function LoginPage() {
     setIsSubmitting(true);
     try {
       const loggedInUser = await login({ email, password });
-      const roleHome = loggedInUser.role === 'admin' ? ADMIN_ROUTES.dashboard : STUDENT_ROUTES.dashboard;
-      navigate(redirectFrom ?? roleHome, { replace: true });
+
+      if (loggedInUser.role === 'admin') {
+        navigate(redirectFrom ?? ADMIN_ROUTES.dashboard, { replace: true });
+        return;
+      }
+
+      // A student who hasn't finished (or explicitly skipped) the one-time
+      // money-profile setup resumes it here — unless they were headed
+      // somewhere specific, which always wins.
+      const onboardingStatus = loggedInUser.onboarding?.status ?? 'not_started';
+      const needsOnboarding = onboardingStatus === 'not_started' || onboardingStatus === 'in_progress';
+      navigate(redirectFrom ?? (needsOnboarding ? STUDENT_ROUTES.onboarding : STUDENT_ROUTES.dashboard), {
+        replace: true,
+      });
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Something went wrong. Please try again.');
     } finally {

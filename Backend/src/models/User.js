@@ -14,6 +14,27 @@ const settingsSchema = new mongoose.Schema(
   { _id: false },
 );
 
+// Tracks progress through the post-signup "money profile" setup so it can be
+// resumed after a refresh and never has to be forced on a user twice.
+// Income amount and savings target reuse the existing monthlyAllowanceBaseline
+// / savingsGoalAmount fields on the user rather than duplicating them here.
+const onboardingSchema = new mongoose.Schema(
+  {
+    status: {
+      type: String,
+      enum: ['not_started', 'in_progress', 'completed', 'skipped'],
+      default: 'not_started',
+    },
+    currentStep: { type: Number, default: 1, min: 1, max: 5 },
+    incomeSources: [{ type: String, trim: true }],
+    incomeFrequency: { type: String, enum: ['weekly', 'monthly', 'occasionally'] },
+    spendingCategories: [{ type: String, trim: true }],
+    goals: [{ type: String, trim: true }],
+    completedAt: { type: Date },
+  },
+  { _id: false },
+);
+
 const userSchema = new mongoose.Schema(
   {
     fullName: { type: String, required: true, trim: true },
@@ -27,6 +48,7 @@ const userSchema = new mongoose.Schema(
     avatarUrl: { type: String },
     isActive: { type: Boolean, default: true },
     settings: { type: settingsSchema, default: () => ({}) },
+    onboarding: { type: onboardingSchema, default: () => ({}) },
     // Used for password reset flow
     resetPasswordToken: { type: String },
     resetPasswordExpires: { type: Date },
@@ -52,6 +74,7 @@ userSchema.methods.toPublic = function () {
     savingsGoalAmount: this.savingsGoalAmount,
     avatarUrl: this.avatarUrl,
     isActive: this.isActive,
+    onboarding: this.onboarding,
     createdAt: this.createdAt,
     updatedAt: this.updatedAt,
   };
