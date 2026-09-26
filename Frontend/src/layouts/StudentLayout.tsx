@@ -41,10 +41,14 @@ const navItems = [
 // than skipped silently, so a mobile-only visitor still gets it the first
 // time they open the app on a wider screen.
 const TOUR_STEPS = [
-  { label: 'Add Transaction', title: 'Add your first transaction', text: 'Click here to log income or expenses — this is what powers your whole dashboard.' },
-  { label: 'Budgets', title: 'Set a spending limit', text: 'Click here to cap monthly spending per category and get warned before you go over.' },
-  { label: 'Categories', title: 'Manage your finance categories', text: 'Click here to customize the categories your transactions get sorted into.' },
-  { label: 'AI Assistant', title: 'Ask for help anytime', text: 'Click here to ask questions about your spending and get quick answers.' },
+  { label: 'Dashboard', title: 'Your money at a glance', text: 'Click here anytime to jump back to your overview — balance, income vs. expenses, budgets, and savings progress all in one place.' },
+  { label: 'Add Transaction', title: 'Add your first transaction', text: 'Click here to log income or expenses as they happen. This is what powers everything else — your balance, budgets, reports, and saving tips all come from this.' },
+  { label: 'Transactions', title: 'Review your full history', text: 'Click here to see every transaction you’ve logged, search through them, and filter by category when you need to find something specific.' },
+  { label: 'Budgets', title: 'Set a spending limit', text: 'Click here to cap how much you plan to spend per category each month, and get warned before you actually go over that limit.' },
+  { label: 'Reports', title: 'See where your money goes', text: 'Click here for a deeper breakdown of your spending over time — trends, category splits, and exportable monthly reports.' },
+  { label: 'Saving Tips', title: 'Pick up practical money habits', text: 'Click here for bite-sized tips on saving money as a student, tailored to how you spend.' },
+  { label: 'AI Assistant', title: 'Ask for help anytime', text: 'Click here to ask questions about your spending in plain language and get quick, personalized answers.' },
+  { label: 'Categories', title: 'Manage your finance categories', text: 'Click here to customize the categories your transactions get sorted into — rename, add, or remove them to match how you actually spend.' },
 ];
 
 export function StudentLayout() {
@@ -110,7 +114,12 @@ export function StudentLayout() {
 
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 flex w-60 shrink-0 -translate-x-full flex-col bg-brand-950 text-brand-100 transition-transform duration-300 ease-out dark:bg-surface lg:static lg:translate-x-0',
+          // Fixed + slide-in on mobile (a drawer over the content); on large
+          // screens it switches to sticky rather than static, so it stays
+          // pinned in the viewport as `main` scrolls instead of scrolling
+          // away with the page — `static` let it scroll off with the rest
+          // of the document on any page taller than one screen.
+          'fixed inset-y-0 left-0 z-50 flex w-60 shrink-0 -translate-x-full flex-col bg-brand-950 text-brand-100 transition-transform duration-300 ease-out dark:bg-surface lg:sticky lg:top-0 lg:h-screen lg:translate-x-0',
           isSidebarOpen && 'translate-x-0',
         )}
       >
@@ -180,7 +189,7 @@ export function StudentLayout() {
 
       {tourStep !== null && tourAnchorTop !== null && (
         <div
-          className="fixed left-[15.5rem] z-[60] hidden w-64 -translate-y-1/2 lg:block"
+          className="fixed left-[15.5rem] z-[60] hidden w-80 -translate-y-1/2 lg:block"
           style={{ top: tourAnchorTop + 20 }}
         >
           <div className="animate-fade-in-up rounded-xl bg-gray-900 p-4 text-white shadow-xl shadow-black/30 dark:bg-surface-elevated dark:ring-1 dark:ring-white/10">

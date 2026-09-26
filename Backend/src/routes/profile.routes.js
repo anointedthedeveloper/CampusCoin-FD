@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const User = require('../models/User');
 const Category = require('../models/Category');
+const Budget = require('../models/Budget');
 const { protect } = require('../middleware/auth');
 const { toTitleCaseName } = require('../utils/formatName');
 
@@ -35,6 +36,36 @@ async function ensureSpendingCategories(userId, spendingCategories) {
         { upsert: true },
       );
     }),
+  );
+}
+
+// The "monthly spending budget" collected in onboarding used to be discarded
+// after being typed in — never sent anywhere, so nothing on the dashboard
+// ever reflected it. This turns it into real Budget documents for the
+// current month, split evenly across whichever spending categories the user
+// picked, so "Budget vs. Actual" on the dashboard is populated immediately
+// instead of showing "No budgets set" right after finishing setup.
+async function ensureMonthlyBudget(userId, monthlyBudget, spendingCategoryValues) {
+  if (!monthlyBudget || monthlyBudget <= 0) return;
+  const names = (spendingCategoryValues || [])
+    .map((value) => SPENDING_CATEGORY_TO_CATEGORY[value]?.name)
+    .filter(Boolean);
+  if (names.length === 0) return;
+
+  const categories = await Category.find({ userId, type: 'expense', name: { $in: names } });
+  if (categories.length === 0) return;
+
+  const month = new Date().toISOString().slice(0, 7);
+  const perCategoryLimit = Math.round((monthlyBudget / categories.length) * 100) / 100;
+
+  await Promise.all(
+    categories.map((category) =>
+      Budget.findOneAndUpdate(
+        { userId, categoryId: category._id, month },
+        { $set: { limitAmount: perCategoryLimit } },
+        { upsert: true },
+      ),
+    ),
   );
 }
 
@@ -100,6 +131,13 @@ router.patch('/onboarding', async (req, res) => {
 
     if (req.body.spendingCategories !== undefined) {
       await ensureSpendingCategories(req.user._id, req.body.spendingCategories);
+    }
+
+    if (req.body.monthlyBudget !== undefined) {
+      const categoryValues = req.body.spendingCategories !== undefined
+        ? req.body.spendingCategories
+        : req.user.onboarding?.spendingCategories ?? [];
+      await ensureMonthlyBudget(req.user._id, Number(req.body.monthlyBudget), categoryValues);
     }
 
     const user = await User.findByIdAndUpdate(req.user._id, { $set: updates }, { new: true });
