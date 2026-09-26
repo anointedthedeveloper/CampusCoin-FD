@@ -64,12 +64,12 @@ function ContactForm() {
 
   if (isSubmitted) {
     return (
-      <div className="flex flex-col items-center gap-3 rounded-[28px] bg-[#f6f4ee] px-6 py-14 text-center">
-        <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[#d7f0d1] text-[#1c8f53]">
+      <div className="flex flex-col items-center gap-3 rounded-[28px] bg-[#f6f4ee] px-6 py-14 text-center dark:bg-surface-elevated dark:shadow-black/20">
+        <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[#d7f0d1] text-[#1c8f53] dark:bg-white/10 dark:text-[var(--primary-accent)]">
           <CheckCircle2 className="h-7 w-7" />
         </span>
-        <h3 className="text-xl font-bold text-[#1d3d2d]">Message sent</h3>
-        <p className="max-w-sm text-sm text-gray-600">
+        <h3 className="text-xl font-bold text-[#1d3d2d] dark:text-text-primary">Message sent</h3>
+        <p className="max-w-sm text-sm text-gray-600 dark:text-text-secondary">
           Thanks, {name.split(' ')[0]}. We&apos;ll get back to you at {email} soon.
         </p>
         <button
@@ -80,7 +80,7 @@ function ContactForm() {
             setEmail('');
             setMessage('');
           }}
-          className="mt-2 text-sm font-semibold text-[#1c8f53] hover:text-[#177e48]"
+          className="mt-2 text-sm font-semibold text-[#1c8f53] hover:text-[#177e48] dark:text-[var(--primary-accent)] dark:hover:text-[var(--primary)]"
         >
           Send another message
         </button>
@@ -89,7 +89,7 @@ function ContactForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 rounded-[28px] bg-white p-6 shadow-sm sm:p-8">
+    <form onSubmit={handleSubmit} className="space-y-4 rounded-[28px] bg-white p-6 shadow-sm dark:bg-surface-elevated dark:shadow-black/20 sm:p-8">
       <Input
         label="Full Name"
         name="name"
@@ -111,7 +111,7 @@ function ContactForm() {
         required
       />
       <div>
-        <label htmlFor="message" className="mb-1.5 block text-sm font-medium text-gray-700">
+        <label htmlFor="message" className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-text-secondary">
           Message
         </label>
         <textarea
@@ -122,11 +122,11 @@ function ContactForm() {
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           required
-          className="w-full resize-none rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#1c8f53] focus:outline-none focus:ring-2 focus:ring-[#1c8f53]/20"
+          className="w-full resize-none rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#1c8f53] focus:outline-none focus:ring-2 focus:ring-[#1c8f53]/20 dark:border-border dark:bg-surface dark:text-text-primary dark:placeholder:text-text-muted dark:focus:border-[var(--primary-accent)] dark:focus:ring-[var(--primary-accent)]/25"
         />
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
 
       <Button type="submit" variant="primary" className="w-full" isLoading={isSubmitting}>
         <span className="inline-flex items-center gap-2">
@@ -142,11 +142,11 @@ export function ContactPage() {
   return (
     <div>
       <section className="mx-auto max-w-[1280px] px-4 pb-4 pt-10 sm:px-6 lg:pt-14">
-        <p className="text-sm font-semibold uppercase tracking-wide text-[#1a8f57]">Contact</p>
-        <h1 className="mt-3 max-w-2xl text-4xl font-bold leading-[1.05] tracking-[-0.02em] text-[#1d3d2d] sm:text-5xl">
+        <p className="text-sm font-semibold uppercase tracking-wide text-[#1a8f57] dark:text-[var(--primary-accent)]">Contact</p>
+        <h1 className="mt-3 max-w-2xl text-4xl font-bold leading-[1.05] tracking-[-0.02em] text-[#1d3d2d] dark:text-text-primary sm:text-5xl">
           Questions, feedback, or something broken?
         </h1>
-        <p className="mt-5 max-w-2xl text-base leading-relaxed text-gray-600 sm:text-lg">
+        <p className="mt-5 max-w-2xl text-base leading-relaxed text-gray-600 dark:text-text-secondary sm:text-lg">
           Send us a message and we&apos;ll get back to you, or check the answers below first —
           they cover the most common questions.
         </p>
@@ -159,23 +159,23 @@ export function ContactPage() {
           </div>
 
           <div>
-            <div className="flex items-center gap-2 text-[#1a8f57]">
+            <div className="flex items-center gap-2 text-[#1a8f57] dark:text-[var(--primary-accent)]">
               <MessageCircle className="h-5 w-5" />
-              <h2 className="text-lg font-bold text-[#1d3d2d]">Frequently asked</h2>
+              <h2 className="text-lg font-bold text-[#1d3d2d] dark:text-text-primary">Frequently asked</h2>
             </div>
             <div className="mt-5 space-y-3">
               {faqs.map(({ question, answer }) => (
                 <details
                   key={question}
-                  className="group rounded-2xl bg-[#f6f4ee] p-5 transition-colors duration-200 open:bg-[#f2efe9]"
+                  className="group rounded-2xl bg-[#f6f4ee] p-5 transition-colors duration-200 open:bg-[#f2efe9] dark:bg-surface-elevated dark:open:bg-white/[0.04]"
                 >
-                  <summary className="flex cursor-pointer list-none items-center justify-between gap-3 font-semibold text-[#1d3d2d]">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-3 font-semibold text-[#1d3d2d] dark:text-text-primary">
                     {question}
-                    <span className="shrink-0 text-gray-400 transition-transform duration-200 group-open:rotate-45">
+                    <span className="shrink-0 text-gray-400 transition-transform duration-200 group-open:rotate-45 dark:text-text-muted">
                       +
                     </span>
                   </summary>
-                  <p className="mt-3 text-sm leading-relaxed text-gray-600">{answer}</p>
+                  <p className="mt-3 text-sm leading-relaxed text-gray-600 dark:text-text-secondary">{answer}</p>
                 </details>
               ))}
             </div>

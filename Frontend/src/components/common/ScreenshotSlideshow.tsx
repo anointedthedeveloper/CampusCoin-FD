@@ -55,7 +55,7 @@ export function ScreenshotSlideshow() {
 
   return (
     <div
-      className="relative overflow-hidden rounded-[28px] bg-[#f6f4ee] p-3 shadow-sm sm:p-4"
+      className="relative overflow-hidden rounded-[28px] bg-[#f6f4ee] p-3 shadow-sm dark:bg-surface-elevated dark:shadow-black/20 sm:p-4"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
@@ -76,7 +76,7 @@ export function ScreenshotSlideshow() {
           type="button"
           onClick={() => goTo(active - 1)}
           aria-label="Previous screenshot"
-          className="absolute left-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#1d3d2d] shadow-sm transition-all duration-200 hover:bg-white hover:shadow-md"
+          className="absolute left-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#1d3d2d] shadow-sm transition-all duration-200 hover:bg-white hover:shadow-md dark:bg-surface/90 dark:text-text-primary dark:hover:bg-surface"
         >
           <ChevronLeft className="h-4.5 w-4.5" />
         </button>
@@ -84,7 +84,7 @@ export function ScreenshotSlideshow() {
           type="button"
           onClick={() => goTo(active + 1)}
           aria-label="Next screenshot"
-          className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#1d3d2d] shadow-sm transition-all duration-200 hover:bg-white hover:shadow-md"
+          className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#1d3d2d] shadow-sm transition-all duration-200 hover:bg-white hover:shadow-md dark:bg-surface/90 dark:text-text-primary dark:hover:bg-surface"
         >
           <ChevronRight className="h-4.5 w-4.5" />
         </button>
@@ -92,8 +92,8 @@ export function ScreenshotSlideshow() {
 
       <div className="flex flex-col gap-3 px-2 pb-1 pt-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h3 className="font-semibold text-[#1d3d2d]">{slides[active].title}</h3>
-          <p className="mt-1 text-sm text-gray-600">{slides[active].description}</p>
+          <h3 className="font-semibold text-[#1d3d2d] dark:text-text-primary">{slides[active].title}</h3>
+          <p className="mt-1 text-sm text-gray-600 dark:text-text-secondary">{slides[active].description}</p>
         </div>
         <div className="flex shrink-0 gap-2">
           {slides.map((slide, index) => (
@@ -105,7 +105,9 @@ export function ScreenshotSlideshow() {
               aria-current={index === active}
               className={cn(
                 'h-2 rounded-full transition-all duration-300',
-                index === active ? 'w-6 bg-[#1c8f53]' : 'w-2 bg-[#1c8f53]/25 hover:bg-[#1c8f53]/40',
+                index === active
+                  ? 'w-6 bg-[#1c8f53] dark:bg-[var(--primary-accent)]'
+                  : 'w-2 bg-[#1c8f53]/25 hover:bg-[#1c8f53]/40 dark:bg-[var(--primary-accent)]/25 dark:hover:bg-[var(--primary-accent)]/45',
               )}
             />
           ))}

@@ -33,7 +33,7 @@ export function Avatar({ name, src, size = 'md', className }: AvatarProps) {
   return (
     <span
       className={cn(
-        'flex shrink-0 items-center justify-center rounded-full bg-brand-600 font-semibold text-white',
+        'flex shrink-0 items-center justify-center rounded-full bg-brand-600 font-semibold text-white dark:bg-[var(--primary)]',
         sizeStyles[size],
         className,
       )}

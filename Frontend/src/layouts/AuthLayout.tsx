@@ -21,7 +21,7 @@ export function AuthLayout() {
   const glowDirection = pathname === PUBLIC_ROUTES.register ? 'auth-glow-cw' : 'auth-glow-ccw';
 
   return (
-    <div className="flex h-[100dvh] flex-col overflow-hidden bg-brand-50/60 lg:flex-row">
+    <div className="flex h-[100dvh] flex-col overflow-hidden bg-brand-50/60 dark:bg-background lg:flex-row">
       <div
         className={cn(
           'relative w-full shrink-0 lg:h-full lg:max-h-none lg:w-[55%] xl:w-[58%]',
@@ -41,7 +41,7 @@ export function AuthLayout() {
           <div className="w-full max-w-md animate-fade-in-up lg:max-w-lg">
             <div
               className={cn(
-                'auth-glow-border rounded-2xl border border-gray-100 bg-white shadow-lg shadow-gray-200/50 transition-shadow duration-300 hover:shadow-xl',
+                'auth-glow-border rounded-2xl border border-gray-100 bg-white shadow-lg shadow-gray-200/50 transition-shadow duration-300 hover:shadow-xl dark:border-white/10 dark:bg-surface-elevated dark:shadow-black/40',
                 glowDirection,
                 compact ? 'p-4' : 'p-6 sm:p-8',
               )}
@@ -51,7 +51,7 @@ export function AuthLayout() {
             <Link
               to={PUBLIC_ROUTES.home}
               className={cn(
-                'hidden items-center justify-center gap-1.5 text-sm font-medium text-gray-500 transition-colors duration-200 hover:text-brand-700 lg:flex',
+                'hidden items-center justify-center gap-1.5 text-sm font-medium text-gray-500 transition-colors duration-200 hover:text-brand-700 dark:text-text-muted dark:hover:text-[var(--primary-accent)] lg:flex',
                 isShort ? 'mt-2' : 'mt-6',
               )}
             >

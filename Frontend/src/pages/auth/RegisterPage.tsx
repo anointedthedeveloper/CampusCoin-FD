@@ -106,7 +106,7 @@ export function RegisterPage() {
             <button
               type="button"
               onClick={() => setShowPassword((v) => !v)}
-              className="rounded p-0.5 text-gray-400 transition-colors hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+              className="rounded p-0.5 text-gray-400 transition-colors hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:text-text-muted dark:hover:text-text-secondary"
               aria-label={showPassword ? 'Hide password' : 'Show password'}
             >
               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -132,11 +132,11 @@ export function RegisterPage() {
         />
 
         {error && (
-          <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3.5 py-3">
-            <svg className="mt-0.5 h-4 w-4 shrink-0 text-red-500" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+          <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3.5 py-3 dark:border-red-500/30 dark:bg-red-950/30">
+            <svg className="mt-0.5 h-4 w-4 shrink-0 text-red-500 dark:text-red-400" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
               <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1Zm-.75 3.75a.75.75 0 0 1 1.5 0v3.5a.75.75 0 0 1-1.5 0v-3.5ZM8 11.5a.875.875 0 1 1 0-1.75.875.875 0 0 1 0 1.75Z" />
             </svg>
-            <p className="text-sm text-red-700">{error}</p>
+            <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
           </div>
         )}
 
@@ -147,16 +147,19 @@ export function RegisterPage() {
       </form>
 
       <div className={cn('flex items-center gap-3', compact ? 'my-3' : 'my-5')}>
-        <div className="h-px flex-1 bg-gray-200" />
-        <span className="text-xs font-medium uppercase tracking-wider text-gray-400">or</span>
-        <div className="h-px flex-1 bg-gray-200" />
+        <div className="h-px flex-1 bg-gray-200 dark:bg-white/10" />
+        <span className="text-xs font-medium uppercase tracking-wider text-gray-400 dark:text-text-muted">or</span>
+        <div className="h-px flex-1 bg-gray-200 dark:bg-white/10" />
       </div>
 
       <GoogleButton onClick={() => void handleGoogleSignup()} isLoading={isGoogleLoading} label="Sign up with Google" />
 
-      <p className={cn('text-center text-sm text-gray-500', compact ? 'mt-3' : 'mt-5')}>
+      <p className={cn('text-center text-sm text-gray-500 dark:text-text-secondary', compact ? 'mt-3' : 'mt-5')}>
         Already have an account?{' '}
-        <Link to={PUBLIC_ROUTES.login} className="font-semibold text-brand-600 transition-colors hover:text-brand-700">
+        <Link
+          to={PUBLIC_ROUTES.login}
+          className="font-semibold text-brand-600 transition-colors hover:text-brand-700 dark:text-[var(--primary-accent)] dark:hover:text-[var(--primary)]"
+        >
           Login
         </Link>
       </p>

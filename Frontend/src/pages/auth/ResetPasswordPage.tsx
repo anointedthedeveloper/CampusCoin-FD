@@ -39,8 +39,8 @@ export function ResetPasswordPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900">Reset Password</h1>
-      <p className="mt-1 text-sm text-gray-500">Choose a new password for your account.</p>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-text-primary">Reset Password</h1>
+      <p className="mt-1 text-sm text-gray-500 dark:text-text-secondary">Choose a new password for your account.</p>
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
         <Input
@@ -67,15 +67,18 @@ export function ResetPasswordPage() {
           required
         />
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
 
         <Button type="submit" variant="primary" className="w-full" isLoading={isSubmitting}>
           Reset Password
         </Button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-gray-600">
-        <Link to={PUBLIC_ROUTES.login} className="font-semibold text-brand-600 hover:text-brand-700">
+      <p className="mt-6 text-center text-sm text-gray-600 dark:text-text-secondary">
+        <Link
+          to={PUBLIC_ROUTES.login}
+          className="font-semibold text-brand-600 hover:text-brand-700 dark:text-[var(--primary-accent)] dark:hover:text-[var(--primary)]"
+        >
           Back to Login
         </Link>
       </p>

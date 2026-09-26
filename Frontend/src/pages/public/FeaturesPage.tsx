@@ -135,11 +135,11 @@ export function FeaturesPage() {
   return (
     <div>
       <section className="mx-auto max-w-[1280px] px-4 pb-4 pt-10 sm:px-6 lg:pt-14">
-        <p className="text-sm font-semibold uppercase tracking-wide text-[#1a8f57]">Features</p>
-        <h1 className="mt-3 max-w-2xl text-4xl font-bold leading-[1.05] tracking-[-0.02em] text-[#1d3d2d] sm:text-5xl">
+        <p className="text-sm font-semibold uppercase tracking-wide text-[#1a8f57] dark:text-[var(--primary-accent)]">Features</p>
+        <h1 className="mt-3 max-w-2xl text-4xl font-bold leading-[1.05] tracking-[-0.02em] text-[#1d3d2d] dark:text-text-primary sm:text-5xl">
           Everything you need to manage student money, nothing you don&apos;t
         </h1>
-        <p className="mt-5 max-w-2xl text-base leading-relaxed text-gray-600 sm:text-lg">
+        <p className="mt-5 max-w-2xl text-base leading-relaxed text-gray-600 dark:text-text-secondary sm:text-lg">
           Four things Campus Coin actually does — track what moves, plan around it, understand the
           pattern, and get a little better each month.
         </p>
@@ -153,26 +153,26 @@ export function FeaturesPage() {
             }`}
           >
             <div>
-              <span className={`text-sm font-semibold uppercase tracking-wide ${accent}`}>{eyebrow}</span>
-              <h2 className="mt-2 text-2xl font-bold text-[#1d3d2d] sm:text-3xl">{title}</h2>
-              <p className="mt-3 text-sm leading-relaxed text-gray-600 sm:text-base">{description}</p>
+              <span className={`text-sm font-semibold uppercase tracking-wide ${accent} dark:brightness-125`}>{eyebrow}</span>
+              <h2 className="mt-2 text-2xl font-bold text-[#1d3d2d] dark:text-text-primary sm:text-3xl">{title}</h2>
+              <p className="mt-3 text-sm leading-relaxed text-gray-600 dark:text-text-secondary sm:text-base">{description}</p>
 
               <ul className="mt-6 space-y-5">
                 {items.map(({ icon: Icon, title: itemTitle, description: itemDescription }) => (
                   <li key={itemTitle} className="group flex gap-4">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f6f4ee] text-[#1c8f53] transition-transform duration-300 group-hover:scale-110 group-hover:bg-[#d7f0d1]">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f6f4ee] text-[#1c8f53] transition-transform duration-300 group-hover:scale-110 group-hover:bg-[#d7f0d1] dark:bg-white/10 dark:text-[var(--primary-accent)] dark:group-hover:bg-white/15">
                       <Icon className="h-4.5 w-4.5" />
                     </span>
                     <div>
-                      <h3 className="font-semibold text-[#1d3d2d]">{itemTitle}</h3>
-                      <p className="mt-1 text-sm leading-relaxed text-gray-600">{itemDescription}</p>
+                      <h3 className="font-semibold text-[#1d3d2d] dark:text-text-primary">{itemTitle}</h3>
+                      <p className="mt-1 text-sm leading-relaxed text-gray-600 dark:text-text-secondary">{itemDescription}</p>
                     </div>
                   </li>
                 ))}
               </ul>
             </div>
 
-            <div className="overflow-hidden rounded-[28px] bg-[#f6f4ee] p-3 shadow-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-md">
+            <div className="overflow-hidden rounded-[28px] bg-[#f6f4ee] p-3 shadow-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-md dark:bg-surface-elevated dark:shadow-black/20 dark:hover:shadow-black/30">
               <img
                 src={image}
                 alt={imageAlt}
@@ -185,14 +185,14 @@ export function FeaturesPage() {
       ))}
 
       <section className="mx-auto max-w-[1280px] px-4 pb-16 pt-4 sm:px-6">
-        <div className="flex flex-col items-center gap-4 rounded-[28px] bg-[#d7f0d1] px-6 py-10 text-center sm:py-12">
-          <h2 className="text-2xl font-bold text-[#1d3d2d] sm:text-3xl">See it on your own transactions</h2>
-          <p className="max-w-md text-sm text-[#1d3d2d]/70">
+        <div className="flex flex-col items-center gap-4 rounded-[28px] bg-[#d7f0d1] px-6 py-10 text-center dark:bg-surface-elevated dark:shadow-lg dark:shadow-black/20 sm:py-12">
+          <h2 className="text-2xl font-bold text-[#1d3d2d] dark:text-text-primary sm:text-3xl">See it on your own transactions</h2>
+          <p className="max-w-md text-sm text-[#1d3d2d]/70 dark:text-text-secondary">
             Free to use, no bank account required, and you&apos;re in control of every entry.
           </p>
           <Link
             to={PUBLIC_ROUTES.register}
-            className="mt-2 rounded-xl bg-[#1c8f53] px-7 py-3.5 text-base font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#177e48] hover:shadow-lg hover:shadow-[#1c8f53]/20 active:translate-y-0"
+            className="mt-2 rounded-xl bg-[#1c8f53] px-7 py-3.5 text-base font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#177e48] hover:shadow-lg hover:shadow-[#1c8f53]/20 active:translate-y-0 dark:bg-[var(--primary)] dark:hover:bg-[var(--primary-accent)]"
           >
             Get Started Free
           </Link>

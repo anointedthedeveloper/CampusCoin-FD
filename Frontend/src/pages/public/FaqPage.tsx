@@ -18,7 +18,7 @@ const categories = [
     key: 'getting-started',
     icon: BookOpen,
     label: 'Getting Started',
-    color: 'bg-[#d7f0d1] text-[#1c8f53]',
+    color: 'bg-[#d7f0d1] text-[#1c8f53] dark:bg-white/10 dark:text-[var(--primary-accent)]',
     faqs: [
       {
         question: 'What is Campus Coin?',
@@ -46,7 +46,7 @@ const categories = [
     key: 'transactions',
     icon: Receipt,
     label: 'Transactions',
-    color: 'bg-blue-100 text-blue-600',
+    color: 'bg-blue-100 text-blue-600 dark:bg-blue-400/15 dark:text-blue-400',
     faqs: [
       {
         question: 'What income types can I log?',
@@ -74,7 +74,7 @@ const categories = [
     key: 'budgets',
     icon: Wallet,
     label: 'Budgets & Alerts',
-    color: 'bg-amber-100 text-amber-600',
+    color: 'bg-amber-100 text-amber-600 dark:bg-amber-400/15 dark:text-amber-400',
     faqs: [
       {
         question: 'How do I set a budget?',
@@ -97,7 +97,7 @@ const categories = [
     key: 'reports',
     icon: PiggyBank,
     label: 'Reports & Insights',
-    color: 'bg-purple-100 text-purple-600',
+    color: 'bg-purple-100 text-purple-600 dark:bg-purple-400/15 dark:text-purple-400',
     faqs: [
       {
         question: 'What reports does Campus Coin generate?',
@@ -120,7 +120,7 @@ const categories = [
     key: 'ai',
     icon: Bot,
     label: 'AI Assistant',
-    color: 'bg-teal-100 text-teal-600',
+    color: 'bg-teal-100 text-teal-600 dark:bg-teal-400/15 dark:text-teal-400',
     faqs: [
       {
         question: 'What does the AI Assistant do?',
@@ -143,7 +143,7 @@ const categories = [
     key: 'import',
     icon: FileSpreadsheet,
     label: 'CSV Import',
-    color: 'bg-orange-100 text-orange-600',
+    color: 'bg-orange-100 text-orange-600 dark:bg-orange-400/15 dark:text-orange-400',
     faqs: [
       {
         question: 'How do I import transactions from a CSV?',
@@ -161,7 +161,7 @@ const categories = [
     key: 'privacy',
     icon: ShieldCheck,
     label: 'Privacy & Security',
-    color: 'bg-gray-100 text-gray-600',
+    color: 'bg-gray-100 text-gray-600 dark:bg-white/10 dark:text-text-secondary',
     faqs: [
       {
         question: 'Is my data private?',
@@ -184,12 +184,12 @@ const categories = [
 
 function FaqItem({ question, answer }: { question: string; answer: string }) {
   return (
-    <details className="group rounded-2xl bg-[#f6f4ee] p-5 transition-colors duration-200 open:bg-[#f2efe9]">
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 font-semibold text-[#1d3d2d]">
+    <details className="group rounded-2xl bg-[#f6f4ee] p-5 transition-colors duration-200 open:bg-[#f2efe9] dark:bg-surface-elevated dark:open:bg-white/[0.04]">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 font-semibold text-[#1d3d2d] dark:text-text-primary">
         {question}
-        <ChevronDown className="h-4 w-4 shrink-0 text-gray-400 transition-transform duration-200 group-open:rotate-180" />
+        <ChevronDown className="h-4 w-4 shrink-0 text-gray-400 transition-transform duration-200 group-open:rotate-180 dark:text-text-muted" />
       </summary>
-      <p className="mt-3 text-sm leading-relaxed text-gray-600">{answer}</p>
+      <p className="mt-3 text-sm leading-relaxed text-gray-600 dark:text-text-secondary">{answer}</p>
     </details>
   );
 }
@@ -198,14 +198,14 @@ export function FaqPage() {
   return (
     <div>
       <section className="mx-auto max-w-[1280px] px-4 pb-4 pt-10 sm:px-6 lg:pt-14">
-        <div className="flex items-center gap-2 text-[#1a8f57]">
+        <div className="flex items-center gap-2 text-[#1a8f57] dark:text-[var(--primary-accent)]">
           <HelpCircle className="h-5 w-5" />
           <p className="text-sm font-semibold uppercase tracking-wide">Help & FAQ</p>
         </div>
-        <h1 className="mt-3 max-w-2xl text-4xl font-bold leading-[1.05] tracking-[-0.02em] text-[#1d3d2d] sm:text-5xl">
+        <h1 className="mt-3 max-w-2xl text-4xl font-bold leading-[1.05] tracking-[-0.02em] text-[#1d3d2d] dark:text-text-primary sm:text-5xl">
           Frequently asked questions
         </h1>
-        <p className="mt-5 max-w-2xl text-base leading-relaxed text-gray-600 sm:text-lg">
+        <p className="mt-5 max-w-2xl text-base leading-relaxed text-gray-600 dark:text-text-secondary sm:text-lg">
           Everything you need to know about Campus Coin — from getting started to understanding your
           reports and saving tips.
         </p>
@@ -220,7 +220,7 @@ export function FaqPage() {
                 <li key={key}>
                   <a
                     href={`#${key}`}
-                    className="group flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-gray-600 transition-colors duration-200 hover:bg-[#f6f4ee] hover:text-[#1d3d2d]"
+                    className="group flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-gray-600 transition-colors duration-200 hover:bg-[#f6f4ee] hover:text-[#1d3d2d] dark:text-text-secondary dark:hover:bg-white/5 dark:hover:text-text-primary"
                   >
                     <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${color}`}>
                       <Icon className="h-3.5 w-3.5" />
@@ -240,7 +240,7 @@ export function FaqPage() {
                   <span className={`flex h-10 w-10 items-center justify-center rounded-full ${color}`}>
                     <Icon className="h-5 w-5" />
                   </span>
-                  <h2 className="text-xl font-bold text-[#1d3d2d]">{label}</h2>
+                  <h2 className="text-xl font-bold text-[#1d3d2d] dark:text-text-primary">{label}</h2>
                 </div>
                 <div className="space-y-3">
                   {faqs.map(({ question, answer }) => (
@@ -254,8 +254,8 @@ export function FaqPage() {
       </section>
 
       <section className="mx-auto max-w-[1280px] px-4 pb-16 pt-4 sm:px-6">
-        <div className="flex flex-col items-center gap-4 rounded-[28px] bg-[#122a1f] px-6 py-10 text-center text-white sm:py-12">
-          <Lock className="h-8 w-8 text-[#4ade80]" />
+        <div className="flex flex-col items-center gap-4 rounded-[28px] bg-[#122a1f] px-6 py-10 text-center text-white dark:bg-surface-elevated dark:shadow-lg dark:shadow-black/20 sm:py-12">
+          <Lock className="h-8 w-8 text-[#4ade80] dark:text-[var(--primary-accent)]" />
           <h2 className="text-2xl font-bold sm:text-3xl">Still have questions?</h2>
           <p className="max-w-md text-sm text-white/60">
             Campus Coin is free, private, and requires no bank account. Jump in and explore — your
@@ -263,7 +263,7 @@ export function FaqPage() {
           </p>
           <Link
             to={PUBLIC_ROUTES.register}
-            className="mt-2 rounded-xl bg-[#1c8f53] px-7 py-3.5 text-base font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#177e48] hover:shadow-lg hover:shadow-[#1c8f53]/20 active:translate-y-0"
+            className="mt-2 rounded-xl bg-[#1c8f53] px-7 py-3.5 text-base font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#177e48] hover:shadow-lg hover:shadow-[#1c8f53]/20 active:translate-y-0 dark:bg-[var(--primary)] dark:hover:bg-[var(--primary-accent)]"
           >
             Get Started Free
           </Link>

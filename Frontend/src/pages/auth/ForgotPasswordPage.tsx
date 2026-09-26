@@ -33,12 +33,15 @@ export function ForgotPasswordPage() {
   if (isSent) {
     return (
       <div className="text-center">
-        <h1 className="text-2xl font-bold text-gray-900">Check your inbox</h1>
-        <p className="mt-2 text-sm text-gray-500">
-          If an account exists for <span className="font-medium text-gray-700">{email}</span>, a reset link is
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-text-primary">Check your inbox</h1>
+        <p className="mt-2 text-sm text-gray-500 dark:text-text-secondary">
+          If an account exists for <span className="font-medium text-gray-700 dark:text-text-primary">{email}</span>, a reset link is
           on its way.
         </p>
-        <Link to={PUBLIC_ROUTES.login} className="mt-6 inline-block text-sm font-semibold text-brand-600 hover:text-brand-700">
+        <Link
+          to={PUBLIC_ROUTES.login}
+          className="mt-6 inline-block text-sm font-semibold text-brand-600 hover:text-brand-700 dark:text-[var(--primary-accent)] dark:hover:text-[var(--primary)]"
+        >
           Back to Login
         </Link>
       </div>
@@ -47,8 +50,8 @@ export function ForgotPasswordPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900">Forgot Password</h1>
-      <p className="mt-1 text-sm text-gray-500">
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-text-primary">Forgot Password</h1>
+      <p className="mt-1 text-sm text-gray-500 dark:text-text-secondary">
         Enter your email and we&apos;ll send you a link to reset your password.
       </p>
 
@@ -65,16 +68,19 @@ export function ForgotPasswordPage() {
           required
         />
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
 
         <Button type="submit" variant="primary" className="w-full" isLoading={isSubmitting}>
           Send Reset Link
         </Button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-gray-600">
+      <p className="mt-6 text-center text-sm text-gray-600 dark:text-text-secondary">
         Remembered your password?{' '}
-        <Link to={PUBLIC_ROUTES.login} className="font-semibold text-brand-600 hover:text-brand-700">
+        <Link
+          to={PUBLIC_ROUTES.login}
+          className="font-semibold text-brand-600 hover:text-brand-700 dark:text-[var(--primary-accent)] dark:hover:text-[var(--primary)]"
+        >
           Log In
         </Link>
       </p>

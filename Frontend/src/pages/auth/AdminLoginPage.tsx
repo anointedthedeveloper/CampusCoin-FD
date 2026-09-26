@@ -78,7 +78,7 @@ export function AdminLoginPage() {
             <button
               type="button"
               onClick={() => setShowPassword((v) => !v)}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-gray-400 hover:text-gray-600 dark:text-text-muted dark:hover:text-text-secondary"
               aria-label={showPassword ? 'Hide password' : 'Show password'}
             >
               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -90,7 +90,7 @@ export function AdminLoginPage() {
           required
         />
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
 
         <Button type="submit" variant="primary" className="w-full" isLoading={isSubmitting} loadingText="Signing in…">
           Sign In
@@ -98,9 +98,12 @@ export function AdminLoginPage() {
         </Button>
       </form>
 
-      <p className={cn('text-center text-sm text-gray-500', compact ? 'mt-2.5' : 'mt-6')}>
+      <p className={cn('text-center text-sm text-gray-500 dark:text-text-secondary', compact ? 'mt-2.5' : 'mt-6')}>
         Not an admin?{' '}
-        <Link to="/login" className="font-semibold text-brand-600 hover:text-brand-700">
+        <Link
+          to="/login"
+          className="font-semibold text-brand-600 hover:text-brand-700 dark:text-[var(--primary-accent)] dark:hover:text-[var(--primary)]"
+        >
           Student Login
         </Link>
       </p>
