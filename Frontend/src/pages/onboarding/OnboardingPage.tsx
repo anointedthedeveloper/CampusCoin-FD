@@ -41,17 +41,17 @@ function PreviewCard({ initial, title, description, children }: {
   children: React.ReactNode;
 }) {
   return (
-    <div className="animate-fade-in-up overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-xl shadow-brand-900/5 dark:border-white/10 dark:bg-surface-elevated dark:shadow-black/30">
-      <div className="flex items-center justify-between bg-brand-50 px-6 py-4 dark:bg-white/5">
-        <Logo iconClassName="h-6 w-6" wordmarkClassName="text-sm" showTagline={false} />
-        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-800 dark:bg-primary-accent/20 dark:text-primary-accent">
+    <div className="animate-fade-in-up flex h-full min-h-[560px] flex-col overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-xl shadow-brand-900/5 dark:border-white/10 dark:bg-surface-elevated dark:shadow-black/30">
+      <div className="flex items-center justify-between bg-brand-50 px-7 py-5 dark:bg-white/5">
+        <Logo iconClassName="h-7 w-7" wordmarkClassName="text-base" showTagline={false} />
+        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-100 text-sm font-bold text-brand-800 dark:bg-primary-accent/20 dark:text-primary-accent">
           {initial}
         </span>
       </div>
-      <div className="p-6">
-        <h2 className="text-lg font-bold text-brand-900 dark:text-text-primary">{title}</h2>
-        <p className="mt-1 text-sm text-gray-500 dark:text-text-secondary">{description}</p>
-        <div className="mt-5">{children}</div>
+      <div className="flex flex-1 flex-col p-8">
+        <h2 className="text-xl font-bold text-brand-900 dark:text-text-primary">{title}</h2>
+        <p className="mt-1.5 text-sm text-gray-500 dark:text-text-secondary">{description}</p>
+        <div className="mt-6 flex-1">{children}</div>
       </div>
     </div>
   );
@@ -59,9 +59,9 @@ function PreviewCard({ initial, title, description, children }: {
 
 function PreviewRow({ icon: Icon, label, amount }: { icon?: React.ElementType; label: string; amount?: string }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-xl bg-brand-50 px-4 py-3 dark:bg-white/5">
-      <span className="flex items-center gap-2.5 text-sm font-medium text-brand-900 dark:text-text-primary">
-        {Icon && <Icon className="h-4 w-4 shrink-0 text-brand-600 dark:text-primary-accent" />}
+    <div className="flex items-center justify-between gap-3 rounded-xl bg-brand-50 px-5 py-4 dark:bg-white/5">
+      <span className="flex items-center gap-3 text-sm font-medium text-brand-900 dark:text-text-primary">
+        {Icon && <Icon className="h-5 w-5 shrink-0 text-brand-600 dark:text-primary-accent" />}
         {label}
       </span>
       {amount && <span className="text-sm font-semibold text-brand-700 dark:text-primary-accent">{amount}</span>}
@@ -158,6 +158,7 @@ export function OnboardingPage() {
           goals,
           monthlyAllowanceBaseline: incomeAmount ? Number(incomeAmount) : undefined,
           savingsGoalAmount: savingsTarget ? Number(savingsTarget) : undefined,
+          monthlyBudget: monthlyBudget ? Number(monthlyBudget) : undefined,
           currentStep: 5,
           status: 'completed',
         }),
@@ -187,8 +188,8 @@ export function OnboardingPage() {
   const selectedGoalOptions = FINANCIAL_GOAL_OPTIONS.filter((o) => goals.includes(o.value));
 
   return (
-    <div className="min-h-screen bg-brand-50 px-4 py-8 dark:bg-background sm:px-8 lg:px-16">
-      <div className="mx-auto flex max-w-6xl items-center justify-between">
+    <div className="min-h-screen bg-brand-50 px-4 py-8 dark:bg-background sm:px-10 lg:px-20 xl:px-28">
+      <div className="mx-auto flex max-w-7xl items-center justify-between">
         <Link to="/">
           <Logo />
         </Link>
@@ -199,9 +200,9 @@ export function OnboardingPage() {
         )}
       </div>
 
-      <div className="mx-auto mt-10 max-w-6xl pb-10">
+      <div className="mx-auto mt-12 max-w-7xl pb-10">
         {isCreatingWallet ? (
-          <div className="mx-auto max-w-md rounded-3xl border border-gray-100 bg-white p-10 text-center shadow-lg shadow-brand-900/5 dark:border-white/10 dark:bg-surface-elevated dark:shadow-black/40">
+          <div className="mx-auto max-w-lg rounded-3xl border border-gray-100 bg-white p-12 text-center shadow-lg shadow-brand-900/5 dark:border-white/10 dark:bg-surface-elevated dark:shadow-black/40">
             <div className="animate-fade-in-up flex flex-col items-center">
               <span className="relative mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-brand-100 text-brand-700 dark:bg-white/10 dark:text-primary-accent">
                 <Wallet className="h-7 w-7 animate-pulse" />
@@ -214,7 +215,7 @@ export function OnboardingPage() {
             </div>
           </div>
         ) : step === 5 ? (
-          <div className="mx-auto max-w-md rounded-3xl border border-gray-100 bg-white p-10 text-center shadow-lg shadow-brand-900/5 dark:border-white/10 dark:bg-surface-elevated dark:shadow-black/40">
+          <div className="mx-auto max-w-lg rounded-3xl border border-gray-100 bg-white p-12 text-center shadow-lg shadow-brand-900/5 dark:border-white/10 dark:bg-surface-elevated dark:shadow-black/40">
             <div className="animate-fade-in-up">
               <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-brand-100 text-brand-700 dark:bg-white/10 dark:text-primary-accent">
                 <PartyPopper className="h-7 w-7" />
@@ -241,9 +242,9 @@ export function OnboardingPage() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:items-start">
+          <div className="grid grid-cols-1 gap-14 lg:grid-cols-2 lg:items-stretch">
             {/* Left column — the actual step content */}
-            <div className="animate-fade-in-up">
+            <div className="animate-fade-in-up flex flex-col justify-center">
               {step === 1 && (
                 <div>
                   <span className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-100 text-brand-700 dark:bg-white/10 dark:text-primary-accent">
@@ -270,12 +271,12 @@ export function OnboardingPage() {
 
               {step === 2 && (
                 <div>
-                  <h1 className="text-3xl font-extrabold text-brand-900 dark:text-text-primary">What money do you usually receive?</h1>
+                  <h1 className="text-4xl font-extrabold text-brand-900 dark:text-text-primary">What money do you usually receive?</h1>
                   <p className="mt-2 text-base text-gray-600 dark:text-text-secondary">
                     Select everything that applies — this just helps us tailor your dashboard.
                   </p>
 
-                  <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  <div className="mt-7 grid grid-cols-2 gap-4 sm:grid-cols-3">
                     {INCOME_SOURCE_OPTIONS.map((option) => (
                       <SelectableCard
                         key={option.value}
@@ -335,12 +336,12 @@ export function OnboardingPage() {
 
               {step === 3 && (
                 <div>
-                  <h1 className="text-3xl font-extrabold text-brand-900 dark:text-text-primary">What do you usually spend money on?</h1>
+                  <h1 className="text-4xl font-extrabold text-brand-900 dark:text-text-primary">What do you usually spend money on?</h1>
                   <p className="mt-2 text-base text-gray-600 dark:text-text-secondary">
                     Pick your usual categories — we&apos;ll put these front and center for you.
                   </p>
 
-                  <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  <div className="mt-7 grid grid-cols-2 gap-4 sm:grid-cols-3">
                     {SPENDING_CATEGORY_OPTIONS.map((option) => (
                       <SelectableCard
                         key={option.value}
@@ -368,14 +369,14 @@ export function OnboardingPage() {
 
               {step === 4 && (
                 <div>
-                  <h1 className="text-3xl font-extrabold text-brand-900 dark:text-text-primary">
+                  <h1 className="text-4xl font-extrabold text-brand-900 dark:text-text-primary">
                     What would you like Campus Coin to help you with?
                   </h1>
                   <p className="mt-2 text-base text-gray-600 dark:text-text-secondary">
                     Pick as many as apply — these shape the tips you&apos;ll see later.
                   </p>
 
-                  <div className="mt-6 grid grid-cols-2 gap-3">
+                  <div className="mt-7 grid grid-cols-2 gap-4">
                     {FINANCIAL_GOAL_OPTIONS.map((option) => (
                       <SelectableCard
                         key={option.value}
