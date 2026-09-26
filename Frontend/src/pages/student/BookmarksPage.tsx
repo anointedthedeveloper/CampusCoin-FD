@@ -39,7 +39,7 @@ export function BookmarksPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Bookmarks</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-text-primary">Bookmarks</h1>
         <p className="mt-1 text-sm text-gray-500">Saving tips you&apos;ve starred for later.</p>
       </div>
 
@@ -68,7 +68,7 @@ export function BookmarksPage() {
                   <Icon className="h-5 w-5" />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="font-semibold text-gray-900">{tip.title}</p>
+                  <p className="font-semibold text-gray-900 dark:text-text-primary">{tip.title}</p>
                   <p className="mt-1 text-sm text-gray-600">{tip.body}</p>
                 </div>
                 <button

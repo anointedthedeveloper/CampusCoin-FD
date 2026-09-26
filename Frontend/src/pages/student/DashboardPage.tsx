@@ -140,7 +140,7 @@ export function DashboardPage() {
               action={
                 <div className="flex flex-wrap items-center justify-center gap-3">
                   <Link
-                    to={STUDENT_ROUTES.onboarding}
+                    to={`${STUDENT_ROUTES.onboarding}?edit=1`}
                     className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-brand-700 hover:shadow-md dark:bg-primary dark:hover:bg-primary-accent"
                   >
                     <Wand2 className="h-4 w-4" />
@@ -225,7 +225,7 @@ export function DashboardPage() {
             Complete your profile to get more useful budgeting insights and recommendations.
           </p>
           <Link
-            to={STUDENT_ROUTES.onboarding}
+            to={`${STUDENT_ROUTES.onboarding}?edit=1`}
             className="shrink-0 text-sm font-semibold text-brand-700 hover:text-brand-800 dark:text-primary-accent dark:hover:text-primary"
           >
             Complete Setup →

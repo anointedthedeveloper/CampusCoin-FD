@@ -56,7 +56,7 @@ export function SavingTipsPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Saving Tips</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-text-primary">Saving Tips</h1>
           <p className="mt-1 text-sm text-gray-500">Personalized tips based on your actual spending this month.</p>
         </div>
         <Link
@@ -92,7 +92,7 @@ export function SavingTipsPage() {
                     <Icon className="h-5 w-5" />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="font-semibold text-gray-900">{tip.title}</p>
+                    <p className="font-semibold text-gray-900 dark:text-text-primary">{tip.title}</p>
                     <p className="mt-1 text-sm text-gray-600">{tip.body}</p>
                   </div>
                   <div className="flex shrink-0 flex-col gap-1">

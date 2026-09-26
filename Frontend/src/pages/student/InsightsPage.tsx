@@ -176,7 +176,7 @@ export function InsightsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">AI Assistant</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-text-primary">AI Assistant</h1>
         <p className="mt-1 text-sm text-gray-500">
           Ask about your spending, budgets, or describe a purchase — answers come from your real {formatMonthLabel(month)} data.
         </p>
@@ -194,7 +194,7 @@ export function InsightsPage() {
                 <Bot className="h-4 w-4" />
               </span>
               <div>
-                <p className="text-sm font-semibold text-gray-900">Campus Coin Assistant</p>
+                <p className="text-sm font-semibold text-gray-900 dark:text-text-primary">Campus Coin Assistant</p>
                 <p className="flex items-center gap-1 text-xs text-brand-600">
                   <span className="h-1.5 w-1.5 rounded-full bg-brand-500" /> Rule-based, not a live model
                 </p>
@@ -243,7 +243,7 @@ export function InsightsPage() {
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
                 placeholder="Type a message..."
-                className="flex-1 rounded-full border border-gray-300 px-4 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                className="flex-1 rounded-full border border-gray-300 px-4 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-border dark:bg-surface dark:text-text-primary dark:focus:border-primary-accent dark:focus:ring-primary-accent"
               />
               <button
                 type="submit"
@@ -256,7 +256,7 @@ export function InsightsPage() {
           </Card>
 
           <Card className="h-fit p-5">
-            <h2 className="text-sm font-semibold text-gray-900">Quick Questions</h2>
+            <h2 className="text-sm font-semibold text-gray-900 dark:text-text-primary">Quick Questions</h2>
             <div className="mt-3 space-y-2">
               {QUICK_QUESTIONS.map((question) => (
                 <button

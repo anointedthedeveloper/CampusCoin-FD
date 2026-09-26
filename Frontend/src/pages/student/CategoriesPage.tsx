@@ -19,16 +19,16 @@ function CategoryGrid({ categories, onDelete }: { categories: Category[]; onDele
       {categories.map((category) => {
         const { icon: Icon, badgeClassName } = iconFor(category);
         return (
-          <div key={category.id} className="group flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm">
+          <div key={category.id} className="group flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:border-border dark:bg-surface-elevated dark:shadow-black/20">
             <div className="flex min-w-0 items-center gap-3">
               <span className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-full', badgeClassName)}><Icon className="h-4 w-4" /></span>
               <div className="min-w-0">
-                <p className="truncate text-sm font-medium text-gray-900">{category.name}</p>
-                {category.isDefault && <p className="text-xs text-gray-400">Default</p>}
+                <p className="truncate text-sm font-medium text-gray-900 dark:text-text-primary">{category.name}</p>
+                {category.isDefault && <p className="text-xs text-gray-400 dark:text-text-muted">Default</p>}
               </div>
             </div>
             {!category.isDefault && (
-              <button type="button" onClick={() => onDelete(category)} className="shrink-0 rounded-lg p-1.5 text-gray-300 opacity-0 transition-all duration-200 hover:bg-red-50 hover:text-red-600 group-hover:opacity-100" aria-label={`Delete ${category.name}`}>
+              <button type="button" onClick={() => onDelete(category)} className="shrink-0 rounded-lg p-1.5 text-gray-300 opacity-0 transition-all duration-200 hover:bg-red-50 hover:text-red-600 group-hover:opacity-100 dark:text-text-muted dark:hover:bg-red-500/10 dark:hover:text-red-400" aria-label={`Delete ${category.name}`}>
                 <Trash2 className="h-4 w-4" />
               </button>
             )}
@@ -93,8 +93,8 @@ export function CategoriesPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Categories</h1>
-          <p className="mt-1 text-sm text-gray-500">Manage the categories used across your transactions.</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-text-primary">Categories</h1>
+          <p className="mt-1 text-sm text-gray-500 dark:text-text-secondary">Manage the categories used across your transactions.</p>
         </div>
         <Button variant="primary" onClick={() => { setIsFormOpen((o) => !o); setError(null); }}>
           {isFormOpen ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
@@ -102,25 +102,25 @@ export function CategoriesPage() {
         </Button>
       </div>
 
-      {notice && <p className="text-sm text-brand-700">{notice}</p>}
+      {notice && <p className="text-sm text-brand-700 dark:text-primary-accent">{notice}</p>}
 
       {isFormOpen && (
         <Card className="animate-fade-in-up p-5">
           <form onSubmit={handleSubmit} className="flex flex-col gap-4 sm:flex-row sm:items-end">
             <div className="flex-1">
-              <label htmlFor="category-name" className="text-sm font-medium text-gray-700">Category name</label>
-              <input id="category-name" type="text" required placeholder="e.g. Fitness" value={name} onChange={(e) => setName(e.target.value)} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" />
+              <label htmlFor="category-name" className="text-sm font-medium text-gray-700 dark:text-text-secondary">Category name</label>
+              <input id="category-name" type="text" required placeholder="e.g. Fitness" value={name} onChange={(e) => setName(e.target.value)} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-border dark:bg-surface dark:text-text-primary dark:focus:border-primary-accent dark:focus:ring-primary-accent" />
             </div>
             <div>
-              <span className="text-sm font-medium text-gray-700">Type</span>
-              <div className="mt-1 inline-flex rounded-lg bg-gray-100 p-1">
-                <button type="button" onClick={() => setType('expense')} className={cn('rounded-md px-4 py-1.5 text-sm font-semibold transition-colors duration-200', type === 'expense' ? 'bg-brand-600 text-white shadow-sm' : 'text-gray-600 hover:text-gray-900')}>Expense</button>
-                <button type="button" onClick={() => setType('income')} className={cn('rounded-md px-4 py-1.5 text-sm font-semibold transition-colors duration-200', type === 'income' ? 'bg-brand-600 text-white shadow-sm' : 'text-gray-600 hover:text-gray-900')}>Income</button>
+              <span className="text-sm font-medium text-gray-700 dark:text-text-secondary">Type</span>
+              <div className="mt-1 inline-flex rounded-lg bg-gray-100 p-1 dark:bg-white/10">
+                <button type="button" onClick={() => setType('expense')} className={cn('rounded-md px-4 py-1.5 text-sm font-semibold transition-colors duration-200', type === 'expense' ? 'bg-brand-600 text-white shadow-sm dark:bg-primary' : 'text-gray-600 hover:text-gray-900 dark:text-text-secondary dark:hover:text-text-primary')}>Expense</button>
+                <button type="button" onClick={() => setType('income')} className={cn('rounded-md px-4 py-1.5 text-sm font-semibold transition-colors duration-200', type === 'income' ? 'bg-brand-600 text-white shadow-sm dark:bg-primary' : 'text-gray-600 hover:text-gray-900 dark:text-text-secondary dark:hover:text-text-primary')}>Income</button>
               </div>
             </div>
             <Button type="submit" variant="primary" isLoading={isSubmitting}>Save Category</Button>
           </form>
-          {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+          {error && <p className="mt-3 text-sm text-red-600 dark:text-red-400">{error}</p>}
         </Card>
       )}
 
@@ -129,11 +129,11 @@ export function CategoriesPage() {
       ) : (
         <>
           <div className="space-y-3">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">Expense categories</h2>
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-text-secondary">Expense categories</h2>
             <CategoryGrid categories={expenseCategories} onDelete={(c) => void handleDelete(c)} />
           </div>
           <div className="space-y-3">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">Income categories</h2>
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-text-secondary">Income categories</h2>
             <CategoryGrid categories={incomeCategories} onDelete={(c) => void handleDelete(c)} />
           </div>
         </>
