@@ -12,8 +12,12 @@ async function connectDB() {
     const mongoUri = process.env.MONGO_URI;
 
     try {
-      if (!mongoUri || !mongoUri.startsWith('mongodb+srv://')) {
-        throw new Error('Set MONGO_URI to the MongoDB Atlas mongodb+srv connection string.');
+      // Accepts both mongodb+srv:// (Atlas, the production case) and plain
+      // mongodb:// (local/dev instances, CI, mongodb-memory-server in tests)
+      // — only the scheme is checked, so a stray typo doesn't silently hang
+      // on a 5s server-selection timeout instead of failing fast.
+      if (!mongoUri || !/^mongodb(\+srv)?:\/\//.test(mongoUri)) {
+        throw new Error('Set MONGO_URI to a valid mongodb:// or mongodb+srv:// connection string.');
       }
 
       const dnsServers = process.env.MONGODB_DNS_SERVERS
@@ -28,7 +32,7 @@ async function connectDB() {
       await mongoClient.connect();
       mongoose.connection.setClient(mongoClient);
       client = mongoClient;
-      console.log(`MongoDB Atlas connected: ${mongoose.connection.host}`);
+      console.log(`MongoDB connected: ${mongoose.connection.host}`);
       return true;
     } catch (err) {
       console.warn(`MongoDB connection failed. ${err.message}`);

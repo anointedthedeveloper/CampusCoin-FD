@@ -1,8 +1,10 @@
 const router = require('express').Router();
 const Notification = require('../models/Notification');
 const { protect } = require('../middleware/auth');
+const { validateIdParam } = require('../utils/objectId');
 
 router.use(protect);
+router.param('id', validateIdParam);
 
 function formatNotif(n) {
   return {

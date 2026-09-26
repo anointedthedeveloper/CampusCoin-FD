@@ -81,11 +81,9 @@ router.get('/', async (req, res) => {
       now.getMonth() + 1
     ).padStart(2, '0')}`;
 
-    const budgetMonth = new Date(`${month}-01T00:00:00.000Z`);
-
     const budgets = await Budget.find({
-      user: userId,
-      month: budgetMonth,
+      userId,
+      month,
     });
 
     const totalBudgeted = budgets.reduce(

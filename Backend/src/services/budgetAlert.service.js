@@ -1,23 +1,14 @@
 const Budget = require('../models/Budget');
 const Transaction = require('../models/Transaction');
 const Notification = require('../models/Notification');
+const Category = require('../models/Category');
 
 async function checkBudgetAfterTransaction(userId, categoryId, occurredAt) {
   try {
     const date = new Date(occurredAt);
+    const month = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 
-    const month = `${date.getFullYear()}-${String(
-      date.getMonth() + 1
-    ).padStart(2, '0')}`;
-
-    const budgetMonth = new Date(`${month}-01T00:00:00.000Z`);
-
-    const budget = await Budget.findOne({
-      user: userId,
-      category: categoryId,
-      month: budgetMonth,
-    });
-
+    const budget = await Budget.findOne({ userId, categoryId, month });
     // No budget exists for this category/month.
     if (!budget) return null;
 
@@ -30,68 +21,54 @@ async function checkBudgetAfterTransaction(userId, categoryId, occurredAt) {
           userId,
           categoryId,
           type: 'expense',
-          occurredAt: {
-            $gte: start,
-            $lt: end,
-          },
+          occurredAt: { $gte: start, $lt: end },
         },
       },
-      {
-        $group: {
-          _id: null,
-          totalSpent: { $sum: '$amount' },
-        },
-      },
+      { $group: { _id: null, totalSpent: { $sum: '$amount' } } },
     ]);
 
     const totalSpent = result[0]?.totalSpent || 0;
+    const percentage = budget.limitAmount > 0 ? (totalSpent / budget.limitAmount) * 100 : 0;
 
-    const percentage =
-      budget.limitAmount > 0
-        ? (totalSpent / budget.limitAmount) * 100
-        : 0;
+    let type = null;
+    if (percentage >= 100) type = 'budget-exceeded';
+    else if (percentage >= 80) type = 'budget-warning';
+    if (!type) return null;
 
-    // Budget exceeded
-    if (percentage >= 100) {
-      return Notification.create({
-        user: userId,
-        type: 'budget-exceeded',
-        title: 'Budget exceeded',
-        message: `You have exceeded your budget for this category.`,
-        severity: 'high',
-        meta: {
-          budgetId: budget._id,
-          categoryId,
-          month,
-          limitAmount: budget.limitAmount,
-          totalSpent,
-          percentage: Math.round(percentage),
-        },
-      });
-    }
+    // Avoid re-notifying on every subsequent transaction once a threshold has
+    // already been crossed for this budget/month.
+    const alreadyNotified = await Notification.findOne({
+      userId,
+      type,
+      'meta.budgetId': budget._id,
+      'meta.month': month,
+    });
+    if (alreadyNotified) return null;
 
-    // Budget approaching limit
-    if (percentage >= 80) {
-      return Notification.create({
-        user: userId,
-        type: 'budget-near',
-        title: 'Budget warning',
-        message: `You have used ${Math.round(
-          percentage
-        )}% of your budget for this category.`,
-        severity: 'medium',
-        meta: {
-          budgetId: budget._id,
-          categoryId,
-          month,
-          limitAmount: budget.limitAmount,
-          totalSpent,
-          percentage: Math.round(percentage),
-        },
-      });
-    }
+    const category = await Category.findById(categoryId);
+    const categoryName = category?.name || 'this category';
+    const roundedPct = Math.round(percentage);
 
-    return null;
+    const title = type === 'budget-exceeded' ? 'Budget exceeded' : 'Budget warning';
+    const message =
+      type === 'budget-exceeded'
+        ? `You have exceeded your ${categoryName} budget for ${month} (${roundedPct}% used).`
+        : `You have used ${roundedPct}% of your ${categoryName} budget for ${month}.`;
+
+    return Notification.create({
+      userId,
+      type,
+      title,
+      message,
+      meta: {
+        budgetId: budget._id,
+        categoryId,
+        month,
+        limitAmount: budget.limitAmount,
+        totalSpent,
+        percentage: roundedPct,
+      },
+    });
   } catch (err) {
     // Notification failure should not prevent the transaction itself
     // from succeeding.
