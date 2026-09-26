@@ -49,12 +49,12 @@ function buildHeatmapCells(month: string, dailySpend: { date: string; amount: nu
 }
 
 function heatmapIntensityClass(amount: number, maxAmount: number): string {
-  if (amount <= 0) return 'bg-gray-100';
+  if (amount <= 0) return 'bg-gray-100 dark:bg-white/5';
   const ratio = maxAmount > 0 ? amount / maxAmount : 0;
-  if (ratio >= 0.75) return 'bg-brand-700 text-white';
-  if (ratio >= 0.5) return 'bg-brand-500 text-white';
-  if (ratio >= 0.25) return 'bg-brand-300';
-  return 'bg-brand-100';
+  if (ratio >= 0.75) return 'bg-brand-700 text-white dark:bg-primary';
+  if (ratio >= 0.5) return 'bg-brand-500 text-white dark:bg-primary-accent dark:text-background';
+  if (ratio >= 0.25) return 'bg-brand-300 dark:bg-primary-accent/40';
+  return 'bg-brand-100 dark:bg-primary-accent/15';
 }
 
 function downloadCsv(filename: string, rows: (string | number)[][]) {
@@ -135,13 +135,13 @@ export function ReportsPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Reports</h1>
-          <p className="mt-1 text-sm text-gray-500">Your financial overview and insights.</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-text-primary">Reports</h1>
+          <p className="mt-1 text-sm text-gray-500 dark:text-text-secondary">Your financial overview and insights.</p>
         </div>
         <button
           type="button"
           onClick={handleExport}
-          className="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-300 hover:text-brand-700"
+          className="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-300 hover:text-brand-700 dark:border-white/15 dark:text-text-secondary dark:hover:border-primary-accent/50 dark:hover:text-primary-accent"
         >
           <Download className="h-4 w-4" />
           Export CSV
@@ -152,15 +152,15 @@ export function ReportsPage() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setMonthOffset((v) => v - 1)}
-            className="rounded-full p-1.5 text-gray-500 transition-colors duration-200 hover:bg-gray-100 hover:text-gray-900"
+            className="rounded-full p-1.5 text-gray-500 transition-colors duration-200 hover:bg-gray-100 hover:text-gray-900 dark:text-text-secondary dark:hover:bg-white/10 dark:hover:text-text-primary"
             aria-label="Previous month"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
-          <span className="text-sm font-semibold text-gray-900">{formatMonthLabel(month)}</span>
+          <span className="text-sm font-semibold text-gray-900 dark:text-text-primary">{formatMonthLabel(month)}</span>
           <button
             onClick={() => setMonthOffset((v) => v + 1)}
-            className="rounded-full p-1.5 text-gray-500 transition-colors duration-200 hover:bg-gray-100 hover:text-gray-900"
+            className="rounded-full p-1.5 text-gray-500 transition-colors duration-200 hover:bg-gray-100 hover:text-gray-900 dark:text-text-secondary dark:hover:bg-white/10 dark:hover:text-text-primary"
             aria-label="Next month"
           >
             <ChevronRight className="h-4 w-4" />
@@ -169,7 +169,7 @@ export function ReportsPage() {
         <select
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
-          className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+          className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-border dark:bg-surface dark:text-text-primary dark:focus:border-primary-accent dark:focus:ring-primary-accent"
         >
           <option value="all">All expense categories</option>
           {categories.map((category) => (
@@ -184,13 +184,13 @@ export function ReportsPage() {
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card className="p-5">
-          <h2 className="font-semibold text-gray-900">Income vs Expenses (6 months)</h2>
+          <h2 className="font-semibold text-gray-900 dark:text-text-primary">Income vs Expenses (6 months)</h2>
           <div className="mt-4">
             <IncomeExpenseTrendChart data={trend} />
           </div>
         </Card>
         <Card className="p-5">
-          <h2 className="font-semibold text-gray-900">Spending by Category</h2>
+          <h2 className="font-semibold text-gray-900 dark:text-text-primary">Spending by Category</h2>
           <div className="mt-6">
             {report.categoryBreakdown.length === 0 ? (
               <EmptyState icon={PieChart} title="No expenses this month" description="Once you log expenses, they'll be broken down here." />
@@ -202,9 +202,9 @@ export function ReportsPage() {
       </div>
 
       <Card className="p-5">
-        <h2 className="font-semibold text-gray-900">Weekly Spending</h2>
+        <h2 className="font-semibold text-gray-900 dark:text-text-primary">Weekly Spending</h2>
         {weeklySpend.length === 0 ? (
-          <p className="mt-3 text-sm text-gray-500">No expenses logged for {formatMonthLabel(month)} yet.</p>
+          <p className="mt-3 text-sm text-gray-500 dark:text-text-secondary">No expenses logged for {formatMonthLabel(month)} yet.</p>
         ) : (
           <div className="mt-4 space-y-3">
             {weeklySpend.map((week) => {
@@ -212,11 +212,11 @@ export function ReportsPage() {
               const widthPercent = maxAmount > 0 ? Math.round((week.amount / maxAmount) * 100) : 0;
               return (
                 <div key={week.label} className="flex items-center gap-3">
-                  <span className="w-16 shrink-0 text-xs font-medium text-gray-500">{week.label}</span>
-                  <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-gray-100">
-                    <div className={cn('h-full rounded-full bg-brand-500')} style={{ width: `${widthPercent}%` }} />
+                  <span className="w-16 shrink-0 text-xs font-medium text-gray-500 dark:text-text-secondary">{week.label}</span>
+                  <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-gray-100 dark:bg-white/10">
+                    <div className={cn('h-full rounded-full bg-brand-500 dark:bg-primary-accent')} style={{ width: `${widthPercent}%` }} />
                   </div>
-                  <span className="w-24 shrink-0 text-right text-sm font-semibold text-gray-900">
+                  <span className="w-24 shrink-0 text-right text-sm font-semibold text-gray-900 dark:text-text-primary">
                     {formatCurrency(week.amount, DEFAULT_CURRENCY)}
                   </span>
                 </div>
@@ -227,15 +227,15 @@ export function ReportsPage() {
       </Card>
 
       <Card className="p-5">
-        <div className="flex items-center gap-2 text-gray-500">
+        <div className="flex items-center gap-2 text-gray-500 dark:text-text-secondary">
           <Flame className="h-4 w-4" />
-          <h2 className="font-semibold text-gray-900">Spending Heatmap</h2>
+          <h2 className="font-semibold text-gray-900 dark:text-text-primary">Spending Heatmap</h2>
         </div>
         {maxDailyAmount === 0 ? (
-          <p className="mt-3 text-sm text-gray-500">No expenses logged for {formatMonthLabel(month)} yet.</p>
+          <p className="mt-3 text-sm text-gray-500 dark:text-text-secondary">No expenses logged for {formatMonthLabel(month)} yet.</p>
         ) : (
           <>
-            <div className="mt-4 grid grid-cols-7 gap-1.5 text-center text-[11px] font-medium text-gray-400">
+            <div className="mt-4 grid grid-cols-7 gap-1.5 text-center text-[11px] font-medium text-gray-400 dark:text-text-muted">
               {WEEKDAY_LABELS.map((label, index) => <span key={`${label}-${index}`}>{label}</span>)}
             </div>
             <div className="mt-1 grid grid-cols-7 gap-1.5">
@@ -246,20 +246,20 @@ export function ReportsPage() {
                   <div
                     key={cell.day}
                     title={cell.amount > 0 ? `${cell.day}: ${formatCurrency(cell.amount, DEFAULT_CURRENCY)}` : `${cell.day}: no spending`}
-                    className={cn('flex aspect-square items-center justify-center rounded-md text-[11px] font-medium text-gray-600', heatmapIntensityClass(cell.amount, maxDailyAmount))}
+                    className={cn('flex aspect-square items-center justify-center rounded-md text-[11px] font-medium text-gray-600 dark:text-text-secondary', heatmapIntensityClass(cell.amount, maxDailyAmount))}
                   >
                     {cell.day}
                   </div>
                 ),
               )}
             </div>
-            <div className="mt-4 flex items-center justify-end gap-1.5 text-xs text-gray-400">
+            <div className="mt-4 flex items-center justify-end gap-1.5 text-xs text-gray-400 dark:text-text-muted">
               Less
-              <span className="h-3 w-3 rounded bg-gray-100" />
-              <span className="h-3 w-3 rounded bg-brand-100" />
-              <span className="h-3 w-3 rounded bg-brand-300" />
-              <span className="h-3 w-3 rounded bg-brand-500" />
-              <span className="h-3 w-3 rounded bg-brand-700" />
+              <span className="h-3 w-3 rounded bg-gray-100 dark:bg-white/5" />
+              <span className="h-3 w-3 rounded bg-brand-100 dark:bg-primary-accent/15" />
+              <span className="h-3 w-3 rounded bg-brand-300 dark:bg-primary-accent/40" />
+              <span className="h-3 w-3 rounded bg-brand-500 dark:bg-primary-accent" />
+              <span className="h-3 w-3 rounded bg-brand-700 dark:bg-primary" />
               More
             </div>
           </>
@@ -268,15 +268,15 @@ export function ReportsPage() {
 
       {report.categoryBreakdown.length > 0 && (
         <Card className="p-0">
-          <div className="border-b border-gray-100 p-5">
-            <h2 className="font-semibold text-gray-900">Category Breakdown</h2>
+          <div className="border-b border-gray-100 p-5 dark:border-white/10">
+            <h2 className="font-semibold text-gray-900 dark:text-text-primary">Category Breakdown</h2>
           </div>
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-gray-100 dark:divide-white/10">
             {report.categoryBreakdown.map((item) => (
               <div key={item.categoryId} className="flex items-center justify-between gap-3 px-5 py-3 text-sm">
-                <span className="font-medium text-gray-900">{item.categoryName}</span>
-                <span className="text-gray-500">{item.percentage}%</span>
-                <span className="font-semibold text-gray-900">{formatCurrency(item.amount, DEFAULT_CURRENCY)}</span>
+                <span className="font-medium text-gray-900 dark:text-text-primary">{item.categoryName}</span>
+                <span className="text-gray-500 dark:text-text-secondary">{item.percentage}%</span>
+                <span className="font-semibold text-gray-900 dark:text-text-primary">{formatCurrency(item.amount, DEFAULT_CURRENCY)}</span>
               </div>
             ))}
           </div>
@@ -285,14 +285,14 @@ export function ReportsPage() {
 
       {report.dailySpend.length > 0 && (
         <Card className="p-0">
-          <div className="border-b border-gray-100 p-5">
-            <h2 className="font-semibold text-gray-900">Daily Spending</h2>
+          <div className="border-b border-gray-100 p-5 dark:border-white/10">
+            <h2 className="font-semibold text-gray-900 dark:text-text-primary">Daily Spending</h2>
           </div>
-          <div className="max-h-72 divide-y divide-gray-100 overflow-y-auto">
+          <div className="max-h-72 divide-y divide-gray-100 overflow-y-auto dark:divide-white/10">
             {[...report.dailySpend].reverse().map((item) => (
               <div key={item.date} className="flex items-center justify-between gap-3 px-5 py-2.5 text-sm">
-                <span className="text-gray-600">{formatDate(item.date)}</span>
-                <span className="font-semibold text-gray-900">{formatCurrency(item.amount, DEFAULT_CURRENCY)}</span>
+                <span className="text-gray-600 dark:text-text-secondary">{formatDate(item.date)}</span>
+                <span className="font-semibold text-gray-900 dark:text-text-primary">{formatCurrency(item.amount, DEFAULT_CURRENCY)}</span>
               </div>
             ))}
           </div>

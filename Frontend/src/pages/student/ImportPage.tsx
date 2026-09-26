@@ -134,20 +134,20 @@ export function ImportPage() {
     return (
       <div className="mx-auto max-w-xl">
         <Card className="flex flex-col items-center gap-3 p-10 text-center">
-          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-100 text-brand-700">
+          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-100 text-brand-700 dark:bg-white/10 dark:text-primary-accent">
             <CheckCircle2 className="h-7 w-7" />
           </span>
-          <h1 className="text-xl font-bold text-gray-900">
+          <h1 className="text-xl font-bold text-gray-900 dark:text-text-primary">
             {importedCount} transaction{importedCount === 1 ? '' : 's'} imported
           </h1>
-          <p className="max-w-sm text-sm text-gray-500">
+          <p className="max-w-sm text-sm text-gray-500 dark:text-text-secondary">
             Your transactions have been added. Head to your transaction list to review them.
           </p>
           <div className="mt-2 flex gap-3">
             <button
               type="button"
               onClick={() => setImportedCount(null)}
-              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-white/15 dark:text-text-secondary dark:hover:bg-white/5"
             >
               Import another file
             </button>
@@ -163,8 +163,8 @@ export function ImportPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Import Transactions</h1>
-        <p className="mt-1 text-sm text-gray-500">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-text-primary">Import Transactions</h1>
+        <p className="mt-1 text-sm text-gray-500 dark:text-text-secondary">
           Already tracking spend elsewhere? Bring in a CSV instead of retyping months of history.
         </p>
       </div>
@@ -173,13 +173,13 @@ export function ImportPage() {
         <Card
           onDragOver={(e) => e.preventDefault()}
           onDrop={handleDrop}
-          className="flex flex-col items-center gap-3 border-2 border-dashed border-gray-300 bg-gray-50/50 p-10 text-center shadow-none hover:border-brand-400"
+          className="flex flex-col items-center gap-3 border-2 border-dashed border-gray-300 bg-gray-50/50 p-10 text-center shadow-none hover:border-brand-400 dark:border-white/15 dark:bg-white/[0.02] dark:hover:border-primary-accent/50"
         >
-          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-100 text-brand-700">
+          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-100 text-brand-700 dark:bg-white/10 dark:text-primary-accent">
             <Upload className="h-5 w-5" />
           </span>
-          <p className="text-sm font-semibold text-gray-900">Drag and drop your CSV here</p>
-          <p className="text-xs text-gray-500">or</p>
+          <p className="text-sm font-semibold text-gray-900 dark:text-text-primary">Drag and drop your CSV here</p>
+          <p className="text-xs text-gray-500 dark:text-text-secondary">or</p>
           <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
             Choose File
           </Button>
@@ -193,18 +193,18 @@ export function ImportPage() {
               if (file) handleFile(file);
             }}
           />
-          <p className="mt-2 text-xs text-gray-400">
-            Expects columns: <code className="rounded bg-gray-100 px-1 py-0.5">date</code>,{' '}
-            <code className="rounded bg-gray-100 px-1 py-0.5">description</code>,{' '}
-            <code className="rounded bg-gray-100 px-1 py-0.5">amount</code>
+          <p className="mt-2 text-xs text-gray-400 dark:text-text-muted">
+            Expects columns: <code className="rounded bg-gray-100 px-1 py-0.5 dark:bg-white/10">date</code>,{' '}
+            <code className="rounded bg-gray-100 px-1 py-0.5 dark:bg-white/10">description</code>,{' '}
+            <code className="rounded bg-gray-100 px-1 py-0.5 dark:bg-white/10">amount</code>
           </p>
         </Card>
       )}
 
       {fileName && parseError && (
-        <Card className="flex items-start gap-3 border-red-200 bg-red-50 p-4 shadow-none">
-          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
-          <p className="text-sm text-red-700">{parseError}</p>
+        <Card className="flex items-start gap-3 border-red-200 bg-red-50 p-4 shadow-none dark:border-red-500/30 dark:bg-red-950/30">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-500 dark:text-red-400" />
+          <p className="text-sm text-red-700 dark:text-red-300">{parseError}</p>
         </Card>
       )}
 
@@ -212,30 +212,30 @@ export function ImportPage() {
         <Card className="p-5">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <FileSpreadsheet className="h-4 w-4 text-brand-600" />
-              <p className="text-sm font-semibold text-gray-900">{fileName}</p>
+              <FileSpreadsheet className="h-4 w-4 text-brand-600 dark:text-primary-accent" />
+              <p className="text-sm font-semibold text-gray-900 dark:text-text-primary">{fileName}</p>
             </div>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-500 dark:text-text-secondary">
               {preview.rows.length} of {preview.totalRows} rows ready
               {preview.invalidRows > 0 && ` · ${preview.invalidRows} skipped`}
             </p>
           </div>
 
-          <div className="mt-4 max-h-72 overflow-y-auto rounded-lg border border-gray-100">
+          <div className="mt-4 max-h-72 overflow-y-auto rounded-lg border border-gray-100 dark:border-border">
             <table className="w-full text-left text-sm">
-              <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-400">
+              <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-400 dark:bg-white/5 dark:text-text-muted">
                 <tr>
                   <th className="px-3 py-2 font-medium">Date</th>
                   <th className="px-3 py-2 font-medium">Description</th>
                   <th className="px-3 py-2 text-right font-medium">Amount</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-gray-100 dark:divide-white/10">
                 {preview.rows.map((row, index) => (
                   <tr key={index}>
-                    <td className="px-3 py-2 text-gray-600">{formatDate(row.occurredAt)}</td>
-                    <td className="px-3 py-2 text-gray-900">{row.description}</td>
-                    <td className="px-3 py-2 text-right font-medium text-gray-900">
+                    <td className="px-3 py-2 text-gray-600 dark:text-text-secondary">{formatDate(row.occurredAt)}</td>
+                    <td className="px-3 py-2 text-gray-900 dark:text-text-primary">{row.description}</td>
+                    <td className="px-3 py-2 text-right font-medium text-gray-900 dark:text-text-primary">
                       {formatCurrency(row.amount, DEFAULT_CURRENCY)}
                     </td>
                   </tr>
@@ -244,10 +244,10 @@ export function ImportPage() {
             </table>
           </div>
 
-          <div className="mt-4 flex flex-col gap-4 border-t border-gray-100 pt-4 sm:flex-row sm:items-end">
+          <div className="mt-4 flex flex-col gap-4 border-t border-gray-100 pt-4 sm:flex-row sm:items-end dark:border-white/10">
             <div className="flex-1">
-              <span className="text-sm font-medium text-gray-700">Import as</span>
-              <div className="mt-1 inline-flex rounded-lg bg-gray-100 p-1">
+              <span className="text-sm font-medium text-gray-700 dark:text-text-secondary">Import as</span>
+              <div className="mt-1 inline-flex rounded-lg bg-gray-100 p-1 dark:bg-white/10">
                 <button
                   type="button"
                   onClick={() => {
@@ -256,7 +256,7 @@ export function ImportPage() {
                   }}
                   className={cn(
                     'rounded-md px-4 py-1.5 text-sm font-semibold transition-colors duration-200',
-                    importType === 'income' ? 'bg-brand-600 text-white shadow-sm' : 'text-gray-600 hover:text-gray-900',
+                    importType === 'income' ? 'bg-brand-600 text-white shadow-sm dark:bg-primary' : 'text-gray-600 hover:text-gray-900 dark:text-text-secondary dark:hover:text-text-primary',
                   )}
                 >
                   Income
@@ -269,7 +269,7 @@ export function ImportPage() {
                   }}
                   className={cn(
                     'rounded-md px-4 py-1.5 text-sm font-semibold transition-colors duration-200',
-                    importType === 'expense' ? 'bg-brand-600 text-white shadow-sm' : 'text-gray-600 hover:text-gray-900',
+                    importType === 'expense' ? 'bg-brand-600 text-white shadow-sm dark:bg-primary' : 'text-gray-600 hover:text-gray-900 dark:text-text-secondary dark:hover:text-text-primary',
                   )}
                 >
                   Expense
@@ -277,7 +277,7 @@ export function ImportPage() {
               </div>
             </div>
             <div className="flex-1">
-              <label htmlFor="import-category" className="text-sm font-medium text-gray-700">
+              <label htmlFor="import-category" className="text-sm font-medium text-gray-700 dark:text-text-secondary">
                 Category for all rows
               </label>
               <select
@@ -285,7 +285,7 @@ export function ImportPage() {
                 required
                 value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-border dark:bg-surface dark:text-text-primary dark:focus:border-primary-accent dark:focus:ring-primary-accent"
               >
                 <option value="" disabled>
                   Select a category
@@ -298,7 +298,7 @@ export function ImportPage() {
               </select>
             </div>
           </div>
-          {importError && <p className="mt-2 text-sm text-red-600">{importError}</p>}
+          {importError && <p className="mt-2 text-sm text-red-600 dark:text-red-400">{importError}</p>}
 
           <div className="mt-4 flex justify-end gap-3">
             <button
@@ -308,7 +308,7 @@ export function ImportPage() {
                 setFileName(null);
                 setImportError(null);
               }}
-              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-white/15 dark:text-text-secondary dark:hover:bg-white/5"
             >
               Cancel
             </button>

@@ -1,6 +1,41 @@
 const router = require('express').Router();
 const User = require('../models/User');
+const Category = require('../models/Category');
 const { protect } = require('../middleware/auth');
+
+// Maps an onboarding spending-category value (from the frontend's
+// SPENDING_CATEGORY_OPTIONS) to a real expense Category so picking it during
+// setup actually customizes the categories the user sees and can budget
+// against — not just a preference stored on the user document. Matched by
+// name against DEFAULT_CATEGORIES (auth.routes.js) where one already exists,
+// so this never creates a duplicate of a category every account is seeded
+// with at registration.
+const SPENDING_CATEGORY_TO_CATEGORY = {
+  food: { name: 'Food & Drinks', icon: 'utensils', color: '#f97316' },
+  transportation: { name: 'Transport', icon: 'car', color: '#3b82f6' },
+  academics: { name: 'Education', icon: 'book', color: '#0ea5e9' },
+  'data-internet': { name: 'Data & Internet', icon: 'wifi', color: '#06b6d4' },
+  entertainment: { name: 'Entertainment', icon: 'music', color: '#d946ef' },
+  shopping: { name: 'Shopping', icon: 'shopping-bag', color: '#f43f5e' },
+  accommodation: { name: 'Housing', icon: 'home', color: '#6366f1' },
+  health: { name: 'Healthcare', icon: 'heart', color: '#ef4444' },
+  personal: { name: 'Personal', icon: 'user', color: '#a855f7' },
+  other: { name: 'Other', icon: 'more-horizontal', color: '#94a3b8' },
+};
+
+async function ensureSpendingCategories(userId, spendingCategories) {
+  await Promise.all(
+    spendingCategories.map((value) => {
+      const mapped = SPENDING_CATEGORY_TO_CATEGORY[value];
+      if (!mapped) return null;
+      return Category.findOneAndUpdate(
+        { userId, name: mapped.name, type: 'expense' },
+        { $setOnInsert: { userId, name: mapped.name, type: 'expense', icon: mapped.icon, color: mapped.color, isDefault: false } },
+        { upsert: true },
+      );
+    }),
+  );
+}
 
 // All profile routes require auth
 router.use(protect);
@@ -60,6 +95,10 @@ router.patch('/onboarding', async (req, res) => {
     // up automatically — no separate onboarding-only copy of this data.
     if (req.body.monthlyAllowanceBaseline !== undefined) updates.monthlyAllowanceBaseline = req.body.monthlyAllowanceBaseline;
     if (req.body.savingsGoalAmount !== undefined) updates.savingsGoalAmount = req.body.savingsGoalAmount;
+
+    if (req.body.spendingCategories !== undefined) {
+      await ensureSpendingCategories(req.user._id, req.body.spendingCategories);
+    }
 
     const user = await User.findByIdAndUpdate(req.user._id, { $set: updates }, { new: true });
     res.json({ data: user.toPublic() });

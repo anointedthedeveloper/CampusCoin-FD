@@ -43,6 +43,7 @@ export function OnboardingPage() {
   const [step, setStep] = useState(1);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isCreatingWallet, setIsCreatingWallet] = useState(false);
 
   const [incomeSources, setIncomeSources] = useState<string[]>([]);
   const [incomeAmount, setIncomeAmount] = useState('');
@@ -100,17 +101,27 @@ export function OnboardingPage() {
   }
 
   async function handleFinishGoals() {
+    setIsCreatingWallet(true);
+    // A real minimum wait (not just a spinner) so the "creating your wallet"
+    // moment reads as Campus Coin actually doing something on your behalf,
+    // rather than an instant flash that undersells a brand-new account.
+    const minimumDelay = new Promise((resolve) => setTimeout(resolve, 15000));
     try {
-      await persist({
-        goals,
-        monthlyAllowanceBaseline: incomeAmount ? Number(incomeAmount) : undefined,
-        savingsGoalAmount: savingsTarget ? Number(savingsTarget) : undefined,
-        currentStep: 5,
-        status: 'completed',
-      });
+      await Promise.all([
+        persist({
+          goals,
+          monthlyAllowanceBaseline: incomeAmount ? Number(incomeAmount) : undefined,
+          savingsGoalAmount: savingsTarget ? Number(savingsTarget) : undefined,
+          currentStep: 5,
+          status: 'completed',
+        }),
+        minimumDelay,
+      ]);
       setStep(5);
     } catch {
       // error state already set by persist()
+    } finally {
+      setIsCreatingWallet(false);
     }
   }
 
@@ -133,13 +144,26 @@ export function OnboardingPage() {
         </Link>
 
         <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-lg shadow-gray-200/50 dark:border-white/10 dark:bg-surface-elevated dark:shadow-black/40 sm:p-8">
-          {step <= TOTAL_ONBOARDING_STEPS && (
-            <div className="mb-6">
-              <OnboardingProgress step={step} total={TOTAL_ONBOARDING_STEPS} />
+          {isCreatingWallet ? (
+            <div className="animate-fade-in-up flex flex-col items-center py-6 text-center">
+              <span className="relative mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-brand-100 text-brand-700 dark:bg-white/10 dark:text-primary-accent">
+                <Wallet className="h-7 w-7 animate-pulse" />
+                <span className="absolute inset-0 animate-ping rounded-full bg-brand-400/30 dark:bg-primary-accent/30" />
+              </span>
+              <h1 className="mt-5 text-xl font-bold text-gray-900 dark:text-text-primary">Creating your wallet…</h1>
+              <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-gray-500 dark:text-text-secondary">
+                Setting up your budget, categories, and savings tracking. This only takes a moment.
+              </p>
             </div>
-          )}
+          ) : (
+            <>
+              {step <= TOTAL_ONBOARDING_STEPS && (
+                <div className="mb-6">
+                  <OnboardingProgress step={step} total={TOTAL_ONBOARDING_STEPS} />
+                </div>
+              )}
 
-          {step === 1 && (
+              {step === 1 && (
             <div className="animate-fade-in-up text-center">
               <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-brand-100 text-brand-700 dark:bg-white/10 dark:text-primary-accent">
                 <Coins className="h-6 w-6" />
@@ -345,6 +369,8 @@ export function OnboardingPage() {
                 Go to Dashboard
               </Button>
             </div>
+          )}
+            </>
           )}
         </div>
       </div>

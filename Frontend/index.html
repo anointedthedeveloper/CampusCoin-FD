@@ -257,7 +257,12 @@
       });
 
       var Tawk_LoadStart = new Date();
-      (function () {
+      // Deferred to idle time rather than injected immediately: Tawk's own
+      // init work is heavy enough to show up as a long task (poor INP) if it
+      // lands while someone's mid-keystroke on, say, the signup form. Nothing
+      // about the widget is time-critical on first paint, so idle (or a
+      // short timeout fallback) is a strictly better time to pay that cost.
+      var loadTawk = function () {
         var script = document.createElement('script');
         var firstScript = document.getElementsByTagName('script')[0];
         script.async = true;
@@ -265,7 +270,12 @@
         script.charset = 'UTF-8';
         script.setAttribute('crossorigin', '*');
         firstScript.parentNode.insertBefore(script, firstScript);
-      })();
+      };
+      if ('requestIdleCallback' in window) {
+        window.requestIdleCallback(loadTawk, { timeout: 4000 });
+      } else {
+        setTimeout(loadTawk, 2500);
+      }
     </script>
     <!--End of Tawk.to Script-->
   </body>
