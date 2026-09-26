@@ -423,6 +423,13 @@ test('admin: an admin can list users and deleting one cascades their data', asyn
 
 // ── GENERAL ERROR HANDLING ─────────────────────────────────────────────────
 
+test('google/config: is public and never leaks a client secret', async () => {
+  const res = await request.get('/api/v1/auth/google/config');
+  assert.equal(res.status, 200);
+  assert.ok('clientId' in res.body.data);
+  assert.equal(res.body.data.clientSecret, undefined);
+});
+
 test('unknown routes return a JSON 404', async () => {
   const res = await request.get('/api/v1/this-route-does-not-exist');
   assert.equal(res.status, 404);
