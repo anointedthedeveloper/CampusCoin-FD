@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState } from 'react';
 import { Bot, Check, Send, Sparkles, Zap } from 'lucide-react';
 import { Card, PageSpinner } from '@/components/common';
 import { transactionService, categoryService, budgetService, tipsService } from '@/services';

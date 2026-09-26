@@ -83,7 +83,7 @@ export function SavingTipsPage() {
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {tips.map((tip) => {
-            const style       = (tip.category && categoryStyle[tip.category]) ?? fallback;
+            const style       = (tip.category && categoryStyle[tip.category]) || fallback;
             const Icon        = style.icon;
             const isBookmarked = bookmarkedIds.has(tip.id);
 
