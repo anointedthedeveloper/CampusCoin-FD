@@ -237,13 +237,18 @@
       };
       // Tawk's own launcher (and its default "1 new message" greeting/trigger
       // bubble) is hidden in favor of our own toggle button. onLoad covers
-      // the initial render; onChatMessageVisitor re-hides it in case a
-      // proactive trigger (configured in the Tawk.to dashboard) pops it back
-      // open on its own after load. A guaranteed, permanent fix for that
-      // default greeting still needs "Automated Triggers" turned off in the
-      // Tawk.to dashboard — this is a best-effort client-side suppression.
+      // the initial render; the other two catch a proactive trigger
+      // (configured in the Tawk.to dashboard) popping it back open on its
+      // own after load — onUnreadCountChanged is the one that actually
+      // fires for that "1 new message" badge specifically (a trigger message
+      // increments the unread count without necessarily going through
+      // onChatMessageVisitor, which is about the visitor's own messages).
+      // A guaranteed, permanent fix for the default greeting itself still
+      // needs "Automated Triggers" turned off in the Tawk.to dashboard —
+      // this is a best-effort client-side suppression, not a substitute.
       window.Tawk_API.onLoad = hideTawkWidget;
       window.Tawk_API.onChatMessageVisitor = hideTawkWidget;
+      window.Tawk_API.onUnreadCountChanged = hideTawkWidget;
 
       document.getElementById('tawk-chat-toggle')?.addEventListener('click', function () {
         if (typeof window.Tawk_API.toggle === 'function') {
