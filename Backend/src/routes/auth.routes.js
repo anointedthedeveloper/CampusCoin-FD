@@ -7,6 +7,15 @@ const User = require('../models/User');
 const Category = require('../models/Category');
 const { protect } = require('../middleware/auth');
 const { toTitleCaseName } = require('../utils/formatName');
+const { sendPasswordResetEmail } = require('../services/email.service');
+const { authLimiter, forgotPasswordLimiter } = require('../middleware/rateLimit');
+
+// Reset tokens are emailed to the user in raw form but only ever stored as a
+// SHA-256 hash, so a database read (backup leak, injection, etc.) can't be
+// used to reset an account's password.
+function hashToken(rawToken) {
+  return crypto.createHash('sha256').update(rawToken).digest('hex');
+}
 
 const googleClient = process.env.GOOGLE_CLIENT_ID ? new OAuth2Client(process.env.GOOGLE_CLIENT_ID) : null;
 
@@ -15,6 +24,7 @@ const DEFAULT_CATEGORIES = [
   { name: 'Allowance', type: 'income', icon: 'wallet', color: '#10b981' },
   { name: 'Freelance', type: 'income', icon: 'laptop', color: '#06b6d4' },
   { name: 'Gift', type: 'income', icon: 'gift', color: '#8b5cf6' },
+  { name: 'Other Income', type: 'income', icon: 'more-horizontal', color: '#94a3b8' },
   { name: 'Food & Drinks', type: 'expense', icon: 'utensils', color: '#f97316' },
   { name: 'Transport', type: 'expense', icon: 'car', color: '#3b82f6' },
   { name: 'Housing', type: 'expense', icon: 'home', color: '#6366f1' },
@@ -38,7 +48,7 @@ async function seedDefaultCategories(userId) {
 }
 
 // POST /api/v1/auth/register
-router.post('/register', async (req, res) => {
+router.post('/register', authLimiter, async (req, res) => {
   try {
     const { fullName, email, password, school, academicYear, monthlyAllowanceBaseline, savingsGoalAmount } = req.body;
 
@@ -76,7 +86,7 @@ router.post('/register', async (req, res) => {
 // obtained client-side via Google Identity Services. Verifying the token
 // server-side (rather than trusting a client-supplied email) is what makes
 // this safe to use for login.
-router.post('/google', async (req, res) => {
+router.post('/google', authLimiter, async (req, res) => {
   try {
     if (!googleClient) {
       return res.status(503).json({ message: 'Google sign-in is not configured on this server.', code: 'GOOGLE_NOT_CONFIGURED' });
@@ -134,7 +144,7 @@ router.post('/google', async (req, res) => {
 });
 
 // POST /api/v1/auth/login
-router.post('/login', async (req, res) => {
+router.post('/login', authLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) return res.status(400).json({ message: 'Email and password are required' });
@@ -186,20 +196,26 @@ router.post('/refresh', async (req, res) => {
 });
 
 // POST /api/v1/auth/forgot-password
-router.post('/forgot-password', async (req, res) => {
+router.post('/forgot-password', forgotPasswordLimiter, async (req, res) => {
   try {
     const { email } = req.body;
     const user = await User.findOne({ email: email?.toLowerCase().trim() });
     // Always return 200 to prevent email enumeration
     if (!user) return res.json({ data: null, message: 'If that email exists, a reset link was sent.' });
 
-    const token = crypto.randomBytes(32).toString('hex');
-    user.resetPasswordToken = token;
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    user.resetPasswordToken = hashToken(rawToken);
     user.resetPasswordExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
     await user.save();
 
-    // TODO: send email via nodemailer using EMAIL_USER / EMAIL_PASS
-    console.log(`[DEV] Password reset token for ${email}: ${token}`);
+    const resetUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/reset-password/${rawToken}`;
+    try {
+      await sendPasswordResetEmail(user.email, resetUrl);
+    } catch (emailErr) {
+      // Don't leak email-provider failures to the client — the token is
+      // already saved, and re-requesting will issue a fresh one.
+      console.error('Failed to send password reset email:', emailErr);
+    }
 
     res.json({ data: null, message: 'If that email exists, a reset link was sent.' });
   } catch (err) {
@@ -209,7 +225,7 @@ router.post('/forgot-password', async (req, res) => {
 });
 
 // POST /api/v1/auth/reset-password
-router.post('/reset-password', async (req, res) => {
+router.post('/reset-password', authLimiter, async (req, res) => {
   try {
     const { token, newPassword } = req.body;
     if (!token || !newPassword || newPassword.length < 8) {
@@ -217,7 +233,7 @@ router.post('/reset-password', async (req, res) => {
     }
 
     const user = await User.findOne({
-      resetPasswordToken: token,
+      resetPasswordToken: hashToken(token),
       resetPasswordExpires: { $gt: new Date() },
     });
     if (!user) return res.status(400).json({ message: 'Token is invalid or has expired', code: 'INVALID_TOKEN' });
@@ -228,6 +244,35 @@ router.post('/reset-password', async (req, res) => {
     await user.save();
 
     res.json({ data: null, message: 'Password reset successful' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// PATCH /api/v1/auth/change-password — change password while logged in (requires
+// the current password). Google-only accounts have no passwordHash yet, so
+// they must go through this once to set one before they can use it again.
+router.patch('/change-password', protect, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!newPassword || newPassword.length < 8) {
+      return res.status(400).json({ message: 'A new password (min 8 chars) is required', fieldErrors: { newPassword: 'At least 8 characters' } });
+    }
+
+    const user = await User.findById(req.user._id);
+    if (user.passwordHash) {
+      if (!currentPassword) {
+        return res.status(400).json({ message: 'Current password is required' });
+      }
+      const match = await user.matchPassword(currentPassword);
+      if (!match) return res.status(401).json({ message: 'Current password is incorrect', code: 'INVALID_CREDENTIALS' });
+    }
+
+    user.passwordHash = await bcrypt.hash(newPassword, 12);
+    await user.save();
+
+    res.json({ data: null, message: 'Password changed successfully' });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });

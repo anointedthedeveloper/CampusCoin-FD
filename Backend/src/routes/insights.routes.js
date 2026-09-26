@@ -3,8 +3,15 @@ const Insight = require('../models/Insight');
 const SavingTip = require('../models/SavingTip');
 const Bookmark = require('../models/Bookmark');
 const { protect } = require('../middleware/auth');
+const { validateIdParam, isValidObjectId } = require('../utils/objectId');
 
-router.use(protect);
+// protect is applied per-route (not via router.use) because this router is
+// mounted at the bare /api/v1 root to serve /insights, /saving-tips and
+// /bookmarks together — a blanket router.use(protect) here would intercept
+// EVERY unmatched /api/v1/* path (not just this router's own three routes)
+// and return 401 instead of letting it fall through to the app's 404
+// handler.
+router.param('id', validateIdParam);
 
 function formatInsight(i) {
   return {
@@ -41,7 +48,7 @@ function formatBookmark(b) {
 }
 
 // GET /api/v1/insights?month=YYYY-MM
-router.get('/insights', async (req, res) => {
+router.get('/insights', protect, async (req, res) => {
   try {
     const filter = { userId: req.user._id };
     if (req.query.month) filter.month = req.query.month;
@@ -54,7 +61,7 @@ router.get('/insights', async (req, res) => {
 });
 
 // GET /api/v1/saving-tips
-router.get('/saving-tips', async (req, res) => {
+router.get('/saving-tips', protect, async (req, res) => {
   try {
     // Seed a handful of tips if none exist yet
     const count = await SavingTip.countDocuments();
@@ -77,7 +84,7 @@ router.get('/saving-tips', async (req, res) => {
 });
 
 // GET /api/v1/bookmarks
-router.get('/bookmarks', async (req, res) => {
+router.get('/bookmarks', protect, async (req, res) => {
   try {
     const bookmarks = await Bookmark.find({ userId: req.user._id }).sort({ createdAt: -1 });
     res.json({ data: bookmarks.map(formatBookmark) });
@@ -88,10 +95,14 @@ router.get('/bookmarks', async (req, res) => {
 });
 
 // POST /api/v1/bookmarks
-router.post('/bookmarks', async (req, res) => {
+router.post('/bookmarks', protect, async (req, res) => {
   try {
     const { targetType, targetId } = req.body;
     if (!targetType || !targetId) return res.status(400).json({ message: 'targetType and targetId are required' });
+    if (!['insight', 'saving-tip'].includes(targetType)) {
+      return res.status(400).json({ message: "targetType must be 'insight' or 'saving-tip'" });
+    }
+    if (!isValidObjectId(targetId)) return res.status(400).json({ message: 'Invalid targetId' });
 
     const bookmark = await Bookmark.create({ userId: req.user._id, targetType, targetId });
     res.status(201).json({ data: formatBookmark(bookmark) });
@@ -103,7 +114,7 @@ router.post('/bookmarks', async (req, res) => {
 });
 
 // DELETE /api/v1/bookmarks/:id
-router.delete('/bookmarks/:id', async (req, res) => {
+router.delete('/bookmarks/:id', protect, async (req, res) => {
   try {
     const bookmark = await Bookmark.findOne({ _id: req.params.id, userId: req.user._id });
     if (!bookmark) return res.status(404).json({ message: 'Bookmark not found' });

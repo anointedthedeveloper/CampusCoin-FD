@@ -4,6 +4,18 @@ const Transaction = require('../models/Transaction');
 const Category = require('../models/Category');
 const { protect } = require('../middleware/auth');
 const { checkBudgetAfterTransaction } = require('../services/budgetAlert.service');
+const { validateIdParam, isValidObjectId } = require('../utils/objectId');
+
+const TRANSACTION_TYPES = ['income', 'expense'];
+
+function validateTransactionFields({ categoryId, type, amount, occurredAt }) {
+  if (categoryId !== undefined && !isValidObjectId(categoryId)) return 'Invalid categoryId';
+  if (type !== undefined && !TRANSACTION_TYPES.includes(type)) return "type must be 'income' or 'expense'";
+  if (amount !== undefined && (typeof amount !== 'number' && typeof amount !== 'string')) return 'amount must be a number';
+  if (amount !== undefined && !(Number(amount) > 0)) return 'amount must be a positive number';
+  if (occurredAt !== undefined && isNaN(new Date(occurredAt).getTime())) return 'occurredAt must be a valid date';
+  return null;
+}
 
 // Store CSV uploads in memory (we only need the text content, not a file on disk)
 const upload = multer({
@@ -19,6 +31,7 @@ const upload = multer({
 });
 
 router.use(protect);
+router.param('id', validateIdParam);
 
 function formatTx(t) {
   return {
@@ -40,6 +53,7 @@ function formatTx(t) {
 router.get('/', async (req, res) => {
   try {
     const { categoryId, type, startDate, endDate, search, page = 1, pageSize = 20 } = req.query;
+    if (categoryId && !isValidObjectId(categoryId)) return res.status(400).json({ message: 'Invalid categoryId' });
 
     const filter = { userId: req.user._id };
     if (categoryId) filter.categoryId = categoryId;
@@ -99,6 +113,8 @@ router.post('/', async (req, res) => {
     if (!categoryId || !type || amount === undefined || !occurredAt) {
       return res.status(400).json({ message: 'categoryId, type, amount and occurredAt are required' });
     }
+    const validationError = validateTransactionFields({ categoryId, type, amount, occurredAt });
+    if (validationError) return res.status(400).json({ message: validationError });
 
     // Verify the category belongs to this user or is a default
     const cat = await Category.findOne({ _id: categoryId, $or: [{ userId: req.user._id }, { userId: null }] });
@@ -135,6 +151,14 @@ router.patch('/:id', async (req, res) => {
   try {
     const tx = await Transaction.findOne({ _id: req.params.id, userId: req.user._id });
     if (!tx) return res.status(404).json({ message: 'Transaction not found' });
+
+    const validationError = validateTransactionFields(req.body);
+    if (validationError) return res.status(400).json({ message: validationError });
+
+    if (req.body.categoryId !== undefined) {
+      const cat = await Category.findOne({ _id: req.body.categoryId, $or: [{ userId: req.user._id }, { userId: null }] });
+      if (!cat) return res.status(400).json({ message: 'Invalid category' });
+    }
 
     const allowed = ['categoryId', 'type', 'amount', 'description', 'merchant', 'occurredAt'];
     allowed.forEach((key) => {

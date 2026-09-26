@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
 require('dotenv').config();
 
 const { connectDB, disconnectDB } = require('./src/config/db');
@@ -17,10 +18,44 @@ const adminRoutes = require('./src/routes/admin.routes');
 const dashboardRoutes = require('./src/routes/dashboard.routes');
 const aiRoutes = require('./src/routes/ai.routes');
 
+if (!process.env.JWT_SECRET) {
+  // Every access/refresh token and the auth middleware depend on this. Rather
+  // than silently signing tokens with `undefined` (jsonwebtoken throws on
+  // every login/register call, which just looks like the server is broken),
+  // fail loudly at startup so misconfiguration is obvious immediately.
+  console.error('FATAL: JWT_SECRET is not set. Set it in the environment before starting the server.');
+  if (process.env.NODE_ENV === 'production') process.exit(1);
+}
+
 const app = express();
 
+// Trust Vercel's / any reverse proxy's X-Forwarded-For so req.ip (used by the
+// rate limiter) reflects the real client instead of the proxy.
+app.set('trust proxy', 1);
+
 // ── Middleware ────────────────────────────────────────────────────────
-app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173', credentials: true }));
+// crossOriginResourcePolicy is relaxed to "cross-origin" because this API is
+// deliberately called from a different origin (the frontend); helmet's
+// "same-origin" default would have the browser block those responses
+// regardless of the CORS headers below.
+app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+
+// CLIENT_URL may be a single origin or a comma-separated list (e.g. local dev
+// + the deployed frontend), so both can call the API without relaxing CORS
+// to "*".
+const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:5173')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow non-browser requests (no Origin header, e.g. curl/health checks)
+    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+}));
 app.use(express.json());
 
 // ── Health check ──────────────────────────────────────────────────────
@@ -48,6 +83,23 @@ app.use(`${API}/ai`, aiRoutes);
 
 // ── 404 fallback ──────────────────────────────────────────────────────
 app.use((_req, res) => res.status(404).json({ message: 'Route not found' }));
+
+// ── Centralized error handler ────────────────────────────────────────
+// Catches anything that slips past individual routes' own try/catch blocks
+// (malformed JSON bodies, CORS rejections, multer errors, unexpected
+// framework errors) so the client always gets JSON — never a leaked stack
+// trace or an HTML error page.
+// eslint-disable-next-line no-unused-vars
+app.use((err, _req, res, _next) => {
+  console.error('Unhandled error:', err);
+  if (err.type === 'entity.parse.failed' || err instanceof SyntaxError) {
+    return res.status(400).json({ message: 'Malformed request body' });
+  }
+  if (err.message === 'Not allowed by CORS') {
+    return res.status(403).json({ message: 'Origin not allowed' });
+  }
+  res.status(err.status || 500).json({ message: 'Server error' });
+});
 
 // ── Start ─────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 5000;

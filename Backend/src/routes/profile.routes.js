@@ -90,9 +90,18 @@ router.patch('/', async (req, res) => {
     allowed.forEach((key) => {
       if (req.body[key] !== undefined) updates[key] = req.body[key];
     });
-    if (updates.fullName !== undefined) updates.fullName = toTitleCaseName(updates.fullName);
 
-    const user = await User.findByIdAndUpdate(req.user._id, updates, { new: true });
+    if (updates.fullName !== undefined) {
+      if (!updates.fullName?.trim()) return res.status(400).json({ message: 'Full name cannot be empty' });
+      updates.fullName = toTitleCaseName(updates.fullName);
+    }
+    for (const key of ['monthlyAllowanceBaseline', 'savingsGoalAmount']) {
+      if (updates[key] !== undefined && updates[key] !== null && !(Number(updates[key]) >= 0)) {
+        return res.status(400).json({ message: `${key} must be a non-negative number` });
+      }
+    }
+
+    const user = await User.findByIdAndUpdate(req.user._id, updates, { new: true, runValidators: true });
     res.json({ data: user.toPublic() });
   } catch (err) {
     console.error(err);
