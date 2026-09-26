@@ -2,6 +2,7 @@ const router = require('express').Router();
 const User = require('../models/User');
 const Category = require('../models/Category');
 const { protect } = require('../middleware/auth');
+const { toTitleCaseName } = require('../utils/formatName');
 
 // Maps an onboarding spending-category value (from the frontend's
 // SPENDING_CATEGORY_OPTIONS) to a real expense Category so picking it during
@@ -58,6 +59,7 @@ router.patch('/', async (req, res) => {
     allowed.forEach((key) => {
       if (req.body[key] !== undefined) updates[key] = req.body[key];
     });
+    if (updates.fullName !== undefined) updates.fullName = toTitleCaseName(updates.fullName);
 
     const user = await User.findByIdAndUpdate(req.user._id, updates, { new: true });
     res.json({ data: user.toPublic() });

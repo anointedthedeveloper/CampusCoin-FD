@@ -10,10 +10,11 @@ import {
 } from 'lucide-react';
 import { Button, Input, Logo } from '@/components/common';
 import { SelectableCard } from '@/components/onboarding/SelectableCard';
-import { OnboardingProgress } from '@/components/onboarding/OnboardingProgress';
 import { useAuth } from '@/hooks/useAuth';
 import { profileService } from '@/services';
 import { STUDENT_ROUTES } from '@/constants/routes';
+import { DEFAULT_CURRENCY } from '@/constants/config';
+import { formatCurrency } from '@/utils/format';
 import {
   FINANCIAL_GOAL_OPTIONS,
   INCOME_FREQUENCY_OPTIONS,
@@ -26,6 +27,50 @@ import { cn } from '@/utils/cn';
 
 function toggleValue(list: string[], value: string): string[] {
   return list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
+}
+
+// The right-hand "live preview" card. Mirrors the split-panel layout from the
+// product's Figma onboarding flow (logo + step counter up top, a floating
+// preview card on the right showing what the step is about) — but instead of
+// a static mockup screenshot, it reflects whatever the user has actually
+// picked so far, so it reads as a real preview rather than marketing art.
+function PreviewCard({ initial, title, description, children }: {
+  initial: string;
+  title: string;
+  description: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="animate-fade-in-up overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-xl shadow-brand-900/5 dark:border-white/10 dark:bg-surface-elevated dark:shadow-black/30">
+      <div className="flex items-center justify-between bg-brand-50 px-6 py-4 dark:bg-white/5">
+        <Logo iconClassName="h-6 w-6" wordmarkClassName="text-sm" showTagline={false} />
+        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-800 dark:bg-primary-accent/20 dark:text-primary-accent">
+          {initial}
+        </span>
+      </div>
+      <div className="p-6">
+        <h2 className="text-lg font-bold text-brand-900 dark:text-text-primary">{title}</h2>
+        <p className="mt-1 text-sm text-gray-500 dark:text-text-secondary">{description}</p>
+        <div className="mt-5">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+function PreviewRow({ icon: Icon, label, amount }: { icon?: React.ElementType; label: string; amount?: string }) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-xl bg-brand-50 px-4 py-3 dark:bg-white/5">
+      <span className="flex items-center gap-2.5 text-sm font-medium text-brand-900 dark:text-text-primary">
+        {Icon && <Icon className="h-4 w-4 shrink-0 text-brand-600 dark:text-primary-accent" />}
+        {label}
+      </span>
+      {amount && <span className="text-sm font-semibold text-brand-700 dark:text-primary-accent">{amount}</span>}
+    </div>
+  );
+}
+
+function PreviewEmpty({ text }: { text: string }) {
+  return <p className="rounded-xl border border-dashed border-gray-200 px-4 py-6 text-center text-sm text-gray-400 dark:border-white/10 dark:text-text-muted">{text}</p>;
 }
 
 /**
@@ -76,6 +121,7 @@ export function OnboardingPage() {
   }, [user?.id]);
 
   const firstName = user?.fullName?.split(' ')[0] ?? 'there';
+  const avatarInitial = firstName.charAt(0).toUpperCase() || 'C';
 
   async function persist(payload: OnboardingUpdate) {
     setIsSaving(true);
@@ -136,220 +182,44 @@ export function OnboardingPage() {
 
   if (!user) return null;
 
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10 sm:px-6">
-      <div className="w-full max-w-xl">
-        <Link to="/" className="mb-6 flex justify-center">
-          <Logo showTagline />
-        </Link>
+  const selectedIncomeOptions = INCOME_SOURCE_OPTIONS.filter((o) => incomeSources.includes(o.value));
+  const selectedCategoryOptions = SPENDING_CATEGORY_OPTIONS.filter((o) => spendingCategories.includes(o.value));
+  const selectedGoalOptions = FINANCIAL_GOAL_OPTIONS.filter((o) => goals.includes(o.value));
 
-        <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-lg shadow-gray-200/50 dark:border-white/10 dark:bg-surface-elevated dark:shadow-black/40 sm:p-8">
-          {isCreatingWallet ? (
-            <div className="animate-fade-in-up flex flex-col items-center py-6 text-center">
+  return (
+    <div className="min-h-screen bg-brand-50 px-4 py-8 dark:bg-background sm:px-8 lg:px-16">
+      <div className="mx-auto flex max-w-6xl items-center justify-between">
+        <Link to="/">
+          <Logo />
+        </Link>
+        {step <= TOTAL_ONBOARDING_STEPS && !isCreatingWallet && (
+          <span className="text-sm font-semibold text-gray-400 dark:text-text-muted">
+            {step} / {TOTAL_ONBOARDING_STEPS}
+          </span>
+        )}
+      </div>
+
+      <div className="mx-auto mt-10 max-w-6xl pb-10">
+        {isCreatingWallet ? (
+          <div className="mx-auto max-w-md rounded-3xl border border-gray-100 bg-white p-10 text-center shadow-lg shadow-brand-900/5 dark:border-white/10 dark:bg-surface-elevated dark:shadow-black/40">
+            <div className="animate-fade-in-up flex flex-col items-center">
               <span className="relative mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-brand-100 text-brand-700 dark:bg-white/10 dark:text-primary-accent">
                 <Wallet className="h-7 w-7 animate-pulse" />
                 <span className="absolute inset-0 animate-ping rounded-full bg-brand-400/30 dark:bg-primary-accent/30" />
               </span>
-              <h1 className="mt-5 text-xl font-bold text-gray-900 dark:text-text-primary">Creating your wallet…</h1>
+              <h1 className="mt-5 text-xl font-bold text-brand-900 dark:text-text-primary">Creating your wallet…</h1>
               <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-gray-500 dark:text-text-secondary">
                 Setting up your budget, categories, and savings tracking. This only takes a moment.
               </p>
             </div>
-          ) : (
-            <>
-              {step <= TOTAL_ONBOARDING_STEPS && (
-                <div className="mb-6">
-                  <OnboardingProgress step={step} total={TOTAL_ONBOARDING_STEPS} />
-                </div>
-              )}
-
-              {step === 1 && (
-            <div className="animate-fade-in-up text-center">
-              <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-brand-100 text-brand-700 dark:bg-white/10 dark:text-primary-accent">
-                <Coins className="h-6 w-6" />
-              </span>
-              <h1 className="mt-4 text-2xl font-bold text-gray-900 dark:text-text-primary">
-                Welcome to Campus Coin, {firstName}
-              </h1>
-              <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-gray-500 dark:text-text-secondary">
-                Let&apos;s set up your money profile so Campus Coin can give you more useful budgeting
-                insights.
-              </p>
-              <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-center">
-                <Button variant="ghost" onClick={() => void handleSkip()} disabled={isSaving}>
-                  Skip for now
-                </Button>
-                <Button onClick={() => void goToStep(2)} isLoading={isSaving}>
-                  Continue
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {step === 2 && (
+          </div>
+        ) : step === 5 ? (
+          <div className="mx-auto max-w-md rounded-3xl border border-gray-100 bg-white p-10 text-center shadow-lg shadow-brand-900/5 dark:border-white/10 dark:bg-surface-elevated dark:shadow-black/40">
             <div className="animate-fade-in-up">
-              <h1 className="text-xl font-bold text-gray-900 dark:text-text-primary">What money do you usually receive?</h1>
-              <p className="mt-1.5 text-sm text-gray-500 dark:text-text-secondary">
-                Select everything that applies — this just helps us tailor your dashboard.
-              </p>
-
-              <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                {INCOME_SOURCE_OPTIONS.map((option) => (
-                  <SelectableCard
-                    key={option.value}
-                    icon={option.icon}
-                    label={option.label}
-                    selected={incomeSources.includes(option.value)}
-                    onToggle={() => setIncomeSources((prev) => toggleValue(prev, option.value))}
-                  />
-                ))}
-              </div>
-
-              <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <Input
-                  label="Income amount (optional)"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  placeholder="0.00"
-                  value={incomeAmount}
-                  onChange={(e) => setIncomeAmount(e.target.value)}
-                />
-                <div className="flex flex-col gap-1.5">
-                  <span className="text-sm font-medium text-gray-700 dark:text-text-secondary">Frequency</span>
-                  <div className="flex gap-2">
-                    {INCOME_FREQUENCY_OPTIONS.map((option) => (
-                      <button
-                        key={option.value}
-                        type="button"
-                        onClick={() => setIncomeFrequency(option.value)}
-                        className={cn(
-                          'flex-1 rounded-xl border px-2 py-2.5 text-xs font-semibold transition-colors duration-150',
-                          incomeFrequency === option.value
-                            ? 'border-brand-500 bg-brand-50 text-brand-700 dark:border-primary-accent dark:bg-primary-accent/10 dark:text-primary-accent'
-                            : 'border-gray-200 text-gray-500 hover:border-gray-300 dark:border-border dark:text-text-muted dark:hover:border-white/20',
-                        )}
-                      >
-                        {option.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {error && <p className="mt-4 text-sm text-red-600 dark:text-red-400">{error}</p>}
-
-              <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
-                <Button variant="ghost" onClick={() => void handleSkip()} disabled={isSaving}>
-                  Skip for now
-                </Button>
-                <Button
-                  onClick={() => void goToStep(3, { incomeSources, incomeFrequency: incomeFrequency || undefined })}
-                  isLoading={isSaving}
-                >
-                  Continue
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {step === 3 && (
-            <div className="animate-fade-in-up">
-              <h1 className="text-xl font-bold text-gray-900 dark:text-text-primary">What do you usually spend money on?</h1>
-              <p className="mt-1.5 text-sm text-gray-500 dark:text-text-secondary">
-                Pick your usual categories — we&apos;ll put these front and center for you.
-              </p>
-
-              <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                {SPENDING_CATEGORY_OPTIONS.map((option) => (
-                  <SelectableCard
-                    key={option.value}
-                    icon={option.icon}
-                    label={option.label}
-                    selected={spendingCategories.includes(option.value)}
-                    onToggle={() => setSpendingCategories((prev) => toggleValue(prev, option.value))}
-                  />
-                ))}
-              </div>
-
-              {error && <p className="mt-4 text-sm text-red-600 dark:text-red-400">{error}</p>}
-
-              <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
-                <Button variant="ghost" onClick={() => void handleSkip()} disabled={isSaving}>
-                  Skip for now
-                </Button>
-                <Button onClick={() => void goToStep(4, { spendingCategories })} isLoading={isSaving}>
-                  Continue
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {step === 4 && (
-            <div className="animate-fade-in-up">
-              <h1 className="text-xl font-bold text-gray-900 dark:text-text-primary">
-                What would you like Campus Coin to help you with?
-              </h1>
-              <p className="mt-1.5 text-sm text-gray-500 dark:text-text-secondary">
-                Pick as many as apply — these shape the tips you&apos;ll see later.
-              </p>
-
-              <div className="mt-5 grid grid-cols-2 gap-3">
-                {FINANCIAL_GOAL_OPTIONS.map((option) => (
-                  <SelectableCard
-                    key={option.value}
-                    icon={option.icon}
-                    label={option.label}
-                    selected={goals.includes(option.value)}
-                    onToggle={() => setGoals((prev) => toggleValue(prev, option.value))}
-                  />
-                ))}
-              </div>
-
-              <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <Input
-                  label="Monthly spending budget (optional)"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  placeholder="0.00"
-                  value={monthlyBudget}
-                  onChange={(e) => setMonthlyBudget(e.target.value)}
-                />
-                <Input
-                  label="Savings target (optional)"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  placeholder="0.00"
-                  value={savingsTarget}
-                  onChange={(e) => setSavingsTarget(e.target.value)}
-                />
-              </div>
-
-              {error && <p className="mt-4 text-sm text-red-600 dark:text-red-400">{error}</p>}
-
-              <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
-                <Button variant="ghost" onClick={() => void handleSkip()} disabled={isSaving}>
-                  Skip for now
-                </Button>
-                <Button onClick={() => void handleFinishGoals()} isLoading={isSaving}>
-                  Continue
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {step === 5 && (
-            <div className="animate-fade-in-up text-center">
               <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-brand-100 text-brand-700 dark:bg-white/10 dark:text-primary-accent">
                 <PartyPopper className="h-7 w-7" />
               </span>
-              <h1 className="mt-4 text-2xl font-bold text-gray-900 dark:text-text-primary">You&apos;re all set.</h1>
+              <h1 className="mt-4 text-2xl font-bold text-brand-900 dark:text-text-primary">You&apos;re all set.</h1>
               <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-gray-500 dark:text-text-secondary">
                 Your Campus Coin account is ready. Start tracking your money and we&apos;ll help you
                 understand your spending.
@@ -369,10 +239,275 @@ export function OnboardingPage() {
                 Go to Dashboard
               </Button>
             </div>
-          )}
-            </>
-          )}
-        </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:items-start">
+            {/* Left column — the actual step content */}
+            <div className="animate-fade-in-up">
+              {step === 1 && (
+                <div>
+                  <span className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-100 text-brand-700 dark:bg-white/10 dark:text-primary-accent">
+                    <Coins className="h-6 w-6" />
+                  </span>
+                  <h1 className="mt-5 text-4xl font-extrabold leading-tight text-brand-900 dark:text-text-primary">
+                    Welcome to Campus Coin, {firstName}
+                  </h1>
+                  <p className="mt-3 max-w-md text-base leading-relaxed text-gray-600 dark:text-text-secondary">
+                    Let&apos;s set up your money profile so Campus Coin can give you more useful budgeting
+                    insights.
+                  </p>
+                  <div className="mt-8 flex items-center gap-5">
+                    <Button onClick={() => void goToStep(2)} isLoading={isSaving}>
+                      Next
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
+                    <button type="button" onClick={() => void handleSkip()} disabled={isSaving} className="text-sm font-medium text-gray-400 transition-colors hover:text-gray-600 dark:text-text-muted dark:hover:text-text-secondary">
+                      Skip
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {step === 2 && (
+                <div>
+                  <h1 className="text-3xl font-extrabold text-brand-900 dark:text-text-primary">What money do you usually receive?</h1>
+                  <p className="mt-2 text-base text-gray-600 dark:text-text-secondary">
+                    Select everything that applies — this just helps us tailor your dashboard.
+                  </p>
+
+                  <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                    {INCOME_SOURCE_OPTIONS.map((option) => (
+                      <SelectableCard
+                        key={option.value}
+                        icon={option.icon}
+                        label={option.label}
+                        selected={incomeSources.includes(option.value)}
+                        onToggle={() => setIncomeSources((prev) => toggleValue(prev, option.value))}
+                      />
+                    ))}
+                  </div>
+
+                  <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <Input
+                      label="Income amount (optional)"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      placeholder="0.00"
+                      value={incomeAmount}
+                      onChange={(e) => setIncomeAmount(e.target.value)}
+                    />
+                    <div className="flex flex-col gap-1.5">
+                      <span className="text-sm font-medium text-gray-700 dark:text-text-secondary">Frequency</span>
+                      <div className="flex gap-2">
+                        {INCOME_FREQUENCY_OPTIONS.map((option) => (
+                          <button
+                            key={option.value}
+                            type="button"
+                            onClick={() => setIncomeFrequency(option.value)}
+                            className={cn(
+                              'flex-1 rounded-xl border px-2 py-2.5 text-xs font-semibold transition-colors duration-150',
+                              incomeFrequency === option.value
+                                ? 'border-brand-500 bg-brand-50 text-brand-700 dark:border-primary-accent dark:bg-primary-accent/10 dark:text-primary-accent'
+                                : 'border-gray-200 text-gray-500 hover:border-gray-300 dark:border-border dark:text-text-muted dark:hover:border-white/20',
+                            )}
+                          >
+                            {option.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {error && <p className="mt-4 text-sm text-red-600 dark:text-red-400">{error}</p>}
+
+                  <div className="mt-8 flex items-center gap-5">
+                    <Button onClick={() => void goToStep(3, { incomeSources, incomeFrequency: incomeFrequency || undefined })} isLoading={isSaving}>
+                      Next
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
+                    <button type="button" onClick={() => void handleSkip()} disabled={isSaving} className="text-sm font-medium text-gray-400 transition-colors hover:text-gray-600 dark:text-text-muted dark:hover:text-text-secondary">
+                      Skip
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {step === 3 && (
+                <div>
+                  <h1 className="text-3xl font-extrabold text-brand-900 dark:text-text-primary">What do you usually spend money on?</h1>
+                  <p className="mt-2 text-base text-gray-600 dark:text-text-secondary">
+                    Pick your usual categories — we&apos;ll put these front and center for you.
+                  </p>
+
+                  <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                    {SPENDING_CATEGORY_OPTIONS.map((option) => (
+                      <SelectableCard
+                        key={option.value}
+                        icon={option.icon}
+                        label={option.label}
+                        selected={spendingCategories.includes(option.value)}
+                        onToggle={() => setSpendingCategories((prev) => toggleValue(prev, option.value))}
+                      />
+                    ))}
+                  </div>
+
+                  {error && <p className="mt-4 text-sm text-red-600 dark:text-red-400">{error}</p>}
+
+                  <div className="mt-8 flex items-center gap-5">
+                    <Button onClick={() => void goToStep(4, { spendingCategories })} isLoading={isSaving}>
+                      Next
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
+                    <button type="button" onClick={() => void handleSkip()} disabled={isSaving} className="text-sm font-medium text-gray-400 transition-colors hover:text-gray-600 dark:text-text-muted dark:hover:text-text-secondary">
+                      Skip
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {step === 4 && (
+                <div>
+                  <h1 className="text-3xl font-extrabold text-brand-900 dark:text-text-primary">
+                    What would you like Campus Coin to help you with?
+                  </h1>
+                  <p className="mt-2 text-base text-gray-600 dark:text-text-secondary">
+                    Pick as many as apply — these shape the tips you&apos;ll see later.
+                  </p>
+
+                  <div className="mt-6 grid grid-cols-2 gap-3">
+                    {FINANCIAL_GOAL_OPTIONS.map((option) => (
+                      <SelectableCard
+                        key={option.value}
+                        icon={option.icon}
+                        label={option.label}
+                        selected={goals.includes(option.value)}
+                        onToggle={() => setGoals((prev) => toggleValue(prev, option.value))}
+                      />
+                    ))}
+                  </div>
+
+                  <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <Input
+                      label="Monthly spending budget (optional)"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      placeholder="0.00"
+                      value={monthlyBudget}
+                      onChange={(e) => setMonthlyBudget(e.target.value)}
+                    />
+                    <Input
+                      label="Savings target (optional)"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      placeholder="0.00"
+                      value={savingsTarget}
+                      onChange={(e) => setSavingsTarget(e.target.value)}
+                    />
+                  </div>
+
+                  {error && <p className="mt-4 text-sm text-red-600 dark:text-red-400">{error}</p>}
+
+                  <div className="mt-8 flex items-center gap-5">
+                    <Button onClick={() => void handleFinishGoals()} isLoading={isSaving}>
+                      Next
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
+                    <button type="button" onClick={() => void handleSkip()} disabled={isSaving} className="text-sm font-medium text-gray-400 transition-colors hover:text-gray-600 dark:text-text-muted dark:hover:text-text-secondary">
+                      Skip
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Right column — live preview, echoing the Figma onboarding's
+                floating app-mockup panel but reflecting real picks instead of
+                static demo numbers. Hidden on small screens — there's no room
+                for it alongside the actual form. */}
+            <div className="hidden lg:block">
+              {step === 1 && (
+                <PreviewCard initial={avatarInitial} title="Your money, all in one place" description="Get a clear view of your student finances at a glance.">
+                  <div className="grid grid-cols-3 gap-3">
+                    {[
+                      { label: 'Balance', value: 0 },
+                      { label: 'Income', value: 0 },
+                      { label: 'Expense', value: 0 },
+                    ].map((tile) => (
+                      <div key={tile.label} className="rounded-xl bg-brand-50 p-3 dark:bg-white/5">
+                        <p className="text-sm font-bold text-brand-900 dark:text-text-primary">{formatCurrency(tile.value, DEFAULT_CURRENCY)}</p>
+                        <p className="mt-0.5 text-xs text-gray-500 dark:text-text-muted">{tile.label}</p>
+                      </div>
+                    ))}
+                  </div>
+                </PreviewCard>
+              )}
+
+              {step === 2 && (
+                <PreviewCard initial={avatarInitial} title="Track your income" description="Record allowances, scholarships and side-hustle income.">
+                  {incomeAmount && (
+                    <div className="mb-3 rounded-xl bg-brand-50 p-4 dark:bg-white/5">
+                      <p className="text-xs text-gray-500 dark:text-text-muted">
+                        {incomeFrequency ? `Income · ${INCOME_FREQUENCY_OPTIONS.find((o) => o.value === incomeFrequency)?.label}` : 'Income'}
+                      </p>
+                      <p className="mt-0.5 text-xl font-bold text-brand-900 dark:text-text-primary">
+                        {formatCurrency(Number(incomeAmount), DEFAULT_CURRENCY)}
+                      </p>
+                    </div>
+                  )}
+                  {selectedIncomeOptions.length === 0 ? (
+                    <PreviewEmpty text="Pick an income source to see it here." />
+                  ) : (
+                    <div className="space-y-2">
+                      {selectedIncomeOptions.map((option) => (
+                        <PreviewRow key={option.value} icon={option.icon} label={option.label} />
+                      ))}
+                    </div>
+                  )}
+                </PreviewCard>
+              )}
+
+              {step === 3 && (
+                <PreviewCard initial={avatarInitial} title="Keep expenses under control" description="Every category you pick gets set up and ready to use.">
+                  {selectedCategoryOptions.length === 0 ? (
+                    <PreviewEmpty text="Pick a category to see it here." />
+                  ) : (
+                    <div className="space-y-2">
+                      {selectedCategoryOptions.map((option) => (
+                        <PreviewRow key={option.value} icon={option.icon} label={option.label} />
+                      ))}
+                    </div>
+                  )}
+                </PreviewCard>
+              )}
+
+              {step === 4 && (
+                <PreviewCard initial={avatarInitial} title="Build a budget that works" description="Set limits for the things you spend on most.">
+                  {monthlyBudget && (
+                    <div className="mb-4 rounded-xl bg-brand-50 p-4 dark:bg-white/5">
+                      <p className="text-xs text-gray-500 dark:text-text-muted">Monthly budget</p>
+                      <p className="mt-0.5 text-xl font-bold text-brand-900 dark:text-text-primary">{formatCurrency(Number(monthlyBudget), DEFAULT_CURRENCY)}</p>
+                      <div className="mt-2.5 h-2 w-full overflow-hidden rounded-full bg-white dark:bg-white/10">
+                        <div className="h-full w-0 rounded-full bg-brand-500 dark:bg-primary-accent" />
+                      </div>
+                    </div>
+                  )}
+                  {selectedGoalOptions.length === 0 ? (
+                    <PreviewEmpty text="Pick a goal to see it here." />
+                  ) : (
+                    <div className="space-y-2">
+                      {selectedGoalOptions.map((option) => (
+                        <PreviewRow key={option.value} icon={option.icon} label={option.label} />
+                      ))}
+                    </div>
+                  )}
+                </PreviewCard>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

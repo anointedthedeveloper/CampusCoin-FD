@@ -6,6 +6,7 @@ const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User');
 const Category = require('../models/Category');
 const { protect } = require('../middleware/auth');
+const { toTitleCaseName } = require('../utils/formatName');
 
 const googleClient = process.env.GOOGLE_CLIENT_ID ? new OAuth2Client(process.env.GOOGLE_CLIENT_ID) : null;
 
@@ -50,7 +51,7 @@ router.post('/register', async (req, res) => {
 
     const passwordHash = await bcrypt.hash(password, 12);
     const user = await User.create({
-      fullName: fullName.trim(),
+      fullName: toTitleCaseName(fullName),
       email: email.toLowerCase().trim(),
       passwordHash,
       role: 'student',
@@ -112,7 +113,7 @@ router.post('/google', async (req, res) => {
 
     if (!user) {
       user = await User.create({
-        fullName: payload.name || email.split('@')[0],
+        fullName: toTitleCaseName(payload.name || email.split('@')[0].replace(/[._]/g, ' ')),
         email,
         googleId: payload.sub,
         avatarUrl: payload.picture,
