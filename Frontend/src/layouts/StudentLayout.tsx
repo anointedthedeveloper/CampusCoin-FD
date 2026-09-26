@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
+  BarChart3,
   Bell,
   Bot,
   ChevronDown,
@@ -11,50 +12,45 @@ import {
   Plus,
   Receipt,
   Settings,
+  Sparkles,
   Tags,
   User,
   Wallet,
   X,
-  BarChart3,
 } from 'lucide-react';
 import { STUDENT_ROUTES } from '@/constants/routes';
 import { useAuth } from '@/hooks/useAuth';
 import { Avatar, Logo, ThemeToggle } from '@/components/common';
+import { useNotifications } from '@/hooks/useNotifications';
 import { cn } from '@/utils/cn';
 
 const navItems = [
-  { to: STUDENT_ROUTES.dashboard, label: 'Dashboard', icon: LayoutDashboard, end: true },
-  { to: STUDENT_ROUTES.newTransaction, label: 'Add Transaction', icon: Plus, end: true },
-  { to: STUDENT_ROUTES.transactions, label: 'Transactions', icon: Receipt },
-  { to: STUDENT_ROUTES.budgets, label: 'Budgets', icon: Wallet },
-  { to: STUDENT_ROUTES.reports, label: 'Reports', icon: BarChart3 },
-  { to: STUDENT_ROUTES.savingTips, label: 'Saving Tips', icon: PiggyBank },
-  { to: STUDENT_ROUTES.insights, label: 'AI Assistant', icon: Bot },
-  { to: STUDENT_ROUTES.categories, label: 'Categories', icon: Tags },
+  { to: STUDENT_ROUTES.dashboard,      label: 'Dashboard',     icon: LayoutDashboard, end: true },
+  { to: STUDENT_ROUTES.newTransaction, label: 'Add Transaction', icon: Plus,            end: true },
+  { to: STUDENT_ROUTES.transactions,   label: 'Transactions',  icon: Receipt },
+  { to: STUDENT_ROUTES.budgets,        label: 'Budgets',       icon: Wallet },
+  { to: STUDENT_ROUTES.reports,        label: 'Reports',       icon: BarChart3 },
+  { to: STUDENT_ROUTES.savingTips,     label: 'Saving Tips',   icon: PiggyBank },
+  { to: STUDENT_ROUTES.insights,       label: 'AI Assistant',  icon: Bot },
+  { to: STUDENT_ROUTES.categories,     label: 'Categories',    icon: Tags },
 ];
 
-// A one-time "click here" walkthrough of the sidebar for first-time visitors.
-// Anchored to real nav items (via itemRefs) rather than fixed coordinates, so
-// it stays correctly positioned regardless of viewport size or future nav
-// changes. Desktop-only (the sidebar lives off-screen behind a hamburger on
-// mobile, so there's nothing to point at there) — gated at start time rather
-// than skipped silently, so a mobile-only visitor still gets it the first
-// time they open the app on a wider screen.
 const TOUR_STEPS = [
-  { label: 'Dashboard', title: 'Your money at a glance', text: 'Click here anytime to jump back to your overview — balance, income vs. expenses, budgets, and savings progress all in one place.' },
-  { label: 'Add Transaction', title: 'Add your first transaction', text: 'Click here to log income or expenses as they happen. This is what powers everything else — your balance, budgets, reports, and saving tips all come from this.' },
-  { label: 'Transactions', title: 'Review your full history', text: 'Click here to see every transaction you’ve logged, search through them, and filter by category when you need to find something specific.' },
-  { label: 'Budgets', title: 'Set a spending limit', text: 'Click here to cap how much you plan to spend per category each month, and get warned before you actually go over that limit.' },
-  { label: 'Reports', title: 'See where your money goes', text: 'Click here for a deeper breakdown of your spending over time — trends, category splits, and exportable monthly reports.' },
-  { label: 'Saving Tips', title: 'Pick up practical money habits', text: 'Click here for bite-sized tips on saving money as a student, tailored to how you spend.' },
-  { label: 'AI Assistant', title: 'Ask for help anytime', text: 'Click here to ask questions about your spending in plain language and get quick, personalized answers.' },
-  { label: 'Categories', title: 'Manage your finance categories', text: 'Click here to customize the categories your transactions get sorted into — rename, add, or remove them to match how you actually spend.' },
+  { label: 'Dashboard',       title: 'Your money at a glance',        text: 'Jump back here anytime for your balance, income vs. expenses, budgets, and savings progress all in one place.' },
+  { label: 'Add Transaction', title: 'Add your first transaction',     text: 'Log income or expenses as they happen. This powers everything — your balance, budgets, reports, and saving tips all come from this.' },
+  { label: 'Transactions',    title: 'Review your full history',       text: 'See every transaction you\'ve logged, search through them, and filter by category.' },
+  { label: 'Budgets',         title: 'Set a spending limit',           text: 'Cap how much you plan to spend per category each month and get warned before going over.' },
+  { label: 'Reports',         title: 'See where your money goes',      text: 'A deeper breakdown of your spending over time — trends, category splits, and exportable monthly reports.' },
+  { label: 'Saving Tips',     title: 'Pick up practical money habits', text: 'Bite-sized tips on saving money as a student, tailored to how you spend.' },
+  { label: 'AI Assistant',    title: 'Ask for help anytime',           text: 'Ask questions about your spending in plain language and get quick, personalised answers.' },
+  { label: 'Categories',      title: 'Manage your categories',         text: 'Customise the categories your transactions get sorted into — rename, add, or remove them.' },
 ];
 
 export function StudentLayout() {
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const { unreadCount } = useNotifications();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const accountCloseTimer = useRef<ReturnType<typeof setTimeout>>();
@@ -74,10 +70,8 @@ export function StudentLayout() {
     try {
       if (localStorage.getItem(key)) return;
       localStorage.setItem(key, '1');
-    } catch {
-      // ignore storage access failures (e.g. private browsing)
-    }
-    const timer = setTimeout(() => setTourStep(0), 700);
+    } catch { /* ignore */ }
+    const timer = setTimeout(() => setTourStep(0), 800);
     return () => clearTimeout(timer);
   }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -92,8 +86,6 @@ export function StudentLayout() {
     setTourStep(tourStep + 1 >= TOUR_STEPS.length ? null : tourStep + 1);
   }
 
-  // Small delay before closing so moving the cursor from the trigger to the
-  // panel (there's a gap between them) doesn't dismiss it mid-hover.
   function openAccountPanel() {
     if (accountCloseTimer.current) clearTimeout(accountCloseTimer.current);
     setIsAccountOpen(true);
@@ -103,41 +95,47 @@ export function StudentLayout() {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50 dark:bg-background">
+    <div className="flex min-h-screen bg-gray-50/80 dark:bg-background">
+      {/* Mobile overlay */}
       {isSidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/40 lg:hidden"
+          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden"
           onClick={() => setIsSidebarOpen(false)}
           aria-hidden="true"
         />
       )}
 
+      {/* ── Sidebar ──────────────────────────────────────────────────── */}
       <aside
         className={cn(
-          // Fixed + slide-in on mobile (a drawer over the content); on large
-          // screens it switches to sticky rather than static, so it stays
-          // pinned in the viewport as `main` scrolls instead of scrolling
-          // away with the page — `static` let it scroll off with the rest
-          // of the document on any page taller than one screen.
-          'fixed inset-y-0 left-0 z-50 flex w-60 shrink-0 -translate-x-full flex-col bg-brand-950 text-brand-100 transition-transform duration-300 ease-out dark:bg-surface lg:sticky lg:top-0 lg:h-screen lg:translate-x-0',
+          'fixed inset-y-0 left-0 z-50 flex w-[15rem] shrink-0 -translate-x-full flex-col',
+          'bg-gray-950 text-gray-100',
+          'transition-transform duration-300 ease-spring',
+          'lg:sticky lg:top-0 lg:h-screen lg:translate-x-0',
+          'dark:bg-gray-950',
           isSidebarOpen && 'translate-x-0',
         )}
       >
-        <div className="flex items-center justify-between border-b border-white/10 p-4">
-          <Link to={STUDENT_ROUTES.dashboard}>
-            <Logo iconClassName="h-8 w-8" wordmarkClassName="text-white" />
+        {/* Logo */}
+        <div className="flex items-center justify-between px-4 py-4 border-b border-white/5">
+          <Link to={STUDENT_ROUTES.dashboard} className="flex items-center gap-2.5">
+            <Logo iconClassName="h-7 w-7" wordmarkClassName="text-white text-sm font-bold tracking-tight" />
           </Link>
           <button
             type="button"
             onClick={() => setIsSidebarOpen(false)}
-            className="flex h-7 w-7 items-center justify-center rounded-full text-brand-100/70 transition-colors duration-200 hover:bg-white/10 hover:text-white lg:hidden"
+            className="flex h-7 w-7 items-center justify-center rounded-md text-gray-400 hover:bg-white/8 hover:text-white transition-colors lg:hidden"
             aria-label="Close menu"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
-        <nav className="flex-1 space-y-0.5 overflow-y-auto p-3">
+        {/* Nav */}
+        <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-0.5">
+          <p className="px-3 pb-2 pt-1 text-2xs font-semibold uppercase tracking-widest text-gray-500">
+            Menu
+          </p>
           {navItems.map(({ to, label, icon: Icon, end }) => (
             <NavLink
               key={label}
@@ -145,72 +143,133 @@ export function StudentLayout() {
               to={to}
               end={end}
               className={({ isActive }) => {
-                // "Transactions" would otherwise prefix-match /transactions/new
-                // too, lighting up both it and the separate "Add Transaction"
-                // item at once — only the latter should be active there.
                 const active = to === STUDENT_ROUTES.transactions
                   ? isActive && location.pathname !== STUDENT_ROUTES.newTransaction
                   : isActive;
                 return cn(
-                  'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-brand-100/75 transition-all duration-200 hover:bg-white/10 hover:text-white',
-                  active && 'bg-brand-600 text-white shadow-sm',
-                  tourStep !== null && TOUR_STEPS[tourStep].label === label && 'ring-2 ring-primary-accent ring-offset-2 ring-offset-brand-950',
+                  'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium',
+                  'text-gray-400 transition-all duration-150',
+                  'hover:bg-white/6 hover:text-gray-100',
+                  active
+                    ? 'bg-brand-600/20 text-brand-400 font-semibold dark:bg-primary/15 dark:text-primary-accent'
+                    : '',
+                  tourStep !== null && TOUR_STEPS[tourStep].label === label
+                    ? 'ring-2 ring-brand-400 ring-offset-2 ring-offset-gray-950'
+                    : '',
                 );
               }}
             >
-              <Icon className="h-4 w-4 shrink-0" />
-              {label}
+              {({ isActive }) => {
+                const active = to === STUDENT_ROUTES.transactions
+                  ? isActive && location.pathname !== STUDENT_ROUTES.newTransaction
+                  : isActive;
+                return (
+                  <>
+                    <span className={cn(
+                      'flex h-7 w-7 shrink-0 items-center justify-center rounded-md transition-colors',
+                      active
+                        ? 'bg-brand-600/30 text-brand-300'
+                        : 'text-gray-500 group-hover:text-gray-300',
+                    )}>
+                      <Icon className="h-4 w-4" />
+                    </span>
+                    <span className="truncate">{label}</span>
+                    {label === 'Add Transaction' && (
+                      <span className="ml-auto flex h-4 w-4 items-center justify-center rounded bg-brand-600/30 text-brand-400">
+                        <Plus className="h-2.5 w-2.5" />
+                      </span>
+                    )}
+                  </>
+                );
+              }}
             </NavLink>
           ))}
+
+          <div className="mt-2 pt-2 border-t border-white/5 space-y-0.5">
+            <p className="px-3 pb-2 pt-1 text-2xs font-semibold uppercase tracking-widest text-gray-500">
+              Account
+            </p>
+            <NavLink
+              to={STUDENT_ROUTES.profile}
+              className={({ isActive }) =>
+                cn(
+                  'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-400',
+                  'hover:bg-white/6 hover:text-gray-100 transition-all duration-150',
+                  isActive && 'bg-brand-600/20 text-brand-400 font-semibold',
+                )
+              }
+            >
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-gray-500 group-hover:text-gray-300">
+                <User className="h-4 w-4" />
+              </span>
+              Profile
+            </NavLink>
+            <NavLink
+              to={STUDENT_ROUTES.settings}
+              className={({ isActive }) =>
+                cn(
+                  'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-400',
+                  'hover:bg-white/6 hover:text-gray-100 transition-all duration-150',
+                  isActive && 'bg-brand-600/20 text-brand-400 font-semibold',
+                )
+              }
+            >
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-gray-500 group-hover:text-gray-300">
+                <Settings className="h-4 w-4" />
+              </span>
+              Settings
+            </NavLink>
+          </div>
         </nav>
 
-        <div className="space-y-0.5 border-t border-white/10 p-3">
-          <NavLink
-            to={STUDENT_ROUTES.profile}
-            className={({ isActive }) =>
-              cn(
-                'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-brand-100/75 transition-all duration-200 hover:bg-white/10 hover:text-white',
-                isActive && 'bg-brand-600 text-white shadow-sm',
-              )
-            }
-          >
-            <User className="h-4 w-4 shrink-0" />
-            Profile
-          </NavLink>
-          <button
-            onClick={() => void logout()}
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-brand-100/75 transition-all duration-200 hover:bg-white/10 hover:text-white"
-          >
-            <LogOut className="h-4 w-4 shrink-0" />
-            Log Out
-          </button>
+        {/* User footer */}
+        <div className="border-t border-white/5 px-3 py-3">
+          <div className="flex items-center gap-2.5 rounded-lg px-2 py-2">
+            <Avatar name={user?.fullName ?? 'Student'} size="sm" />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xs font-semibold text-gray-200">{user?.fullName?.split(' ')[0] ?? 'Student'}</p>
+              <p className="truncate text-2xs text-gray-500">{user?.email}</p>
+            </div>
+            <button
+              onClick={() => void logout()}
+              className="shrink-0 rounded-md p-1.5 text-gray-500 hover:bg-white/8 hover:text-gray-200 transition-colors"
+              aria-label="Log out"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+            </button>
+          </div>
         </div>
       </aside>
 
+      {/* Tour tooltip */}
       {tourStep !== null && tourAnchorTop !== null && (
         <div
-          className="fixed left-[15.5rem] z-[60] hidden w-80 -translate-y-1/2 lg:block"
-          style={{ top: tourAnchorTop + 20 }}
+          className="fixed left-[15.75rem] z-[60] hidden w-72 -translate-y-1/2 lg:block"
+          style={{ top: tourAnchorTop + 18 }}
         >
-          <div className="animate-fade-in-up rounded-xl bg-gray-900 p-4 text-white shadow-xl shadow-black/30 dark:bg-surface-elevated dark:ring-1 dark:ring-white/10">
-            <p className="text-sm font-semibold">{TOUR_STEPS[tourStep].title}</p>
-            <p className="mt-1 text-xs leading-relaxed text-gray-300 dark:text-text-secondary">{TOUR_STEPS[tourStep].text}</p>
+          <div className="animate-fade-in-up rounded-xl bg-white p-4 shadow-modal ring-1 ring-gray-200 dark:bg-surface-elevated dark:ring-white/10">
+            <p className="text-sm font-semibold text-gray-900 dark:text-text-primary">
+              {TOUR_STEPS[tourStep].title}
+            </p>
+            <p className="mt-1 text-xs leading-relaxed text-gray-500 dark:text-text-secondary">
+              {TOUR_STEPS[tourStep].text}
+            </p>
             <div className="mt-3 flex items-center justify-between">
               <button
                 type="button"
                 onClick={() => setTourStep(null)}
-                className="text-xs font-medium text-gray-400 transition-colors hover:text-white dark:text-text-muted dark:hover:text-text-primary"
+                className="text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors dark:hover:text-text-primary"
               >
-                Skip
+                Skip tour
               </button>
               <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-500 dark:text-text-muted">{tourStep + 1}/{TOUR_STEPS.length}</span>
+                <span className="text-xs text-gray-400">{tourStep + 1}/{TOUR_STEPS.length}</span>
                 <button
                   type="button"
                   onClick={advanceTour}
-                  className="rounded-md bg-white px-2.5 py-1 text-xs font-semibold text-gray-900 transition-colors hover:bg-gray-100 dark:bg-primary-accent dark:text-background dark:hover:bg-primary"
+                  className="rounded-md bg-brand-600 px-3 py-1 text-xs font-semibold text-white hover:bg-brand-700 transition-colors dark:bg-primary dark:hover:bg-primary-accent"
                 >
-                  {tourStep + 1 >= TOUR_STEPS.length ? 'Done' : 'Next'}
+                  {tourStep + 1 >= TOUR_STEPS.length ? 'Done ✓' : 'Next →'}
                 </button>
               </div>
             </div>
@@ -218,63 +277,75 @@ export function StudentLayout() {
         </div>
       )}
 
+      {/* ── Main area ────────────────────────────────────────────────── */}
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center justify-between gap-4 border-b border-gray-200 bg-white px-4 py-3 dark:border-white/10 dark:bg-surface-elevated sm:px-6">
+        {/* Topbar */}
+        <header className={cn(
+          'sticky top-0 z-30',
+          'flex items-center justify-between gap-4',
+          'border-b border-gray-100 bg-white/90 backdrop-blur-md px-4 py-2.5',
+          'dark:border-white/5 dark:bg-surface/90',
+        )}>
+          {/* Mobile: hamburger + logo */}
           <div className="flex items-center gap-3 lg:hidden">
             <button
               type="button"
               onClick={() => setIsSidebarOpen(true)}
-              className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 transition-colors duration-200 hover:bg-gray-100 hover:text-gray-900 dark:text-text-secondary dark:hover:bg-white/10 dark:hover:text-text-primary"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors dark:hover:bg-white/8 dark:text-text-secondary"
               aria-label="Open menu"
             >
               <Menu className="h-5 w-5" />
             </button>
-            <Logo showWordmark={false} iconClassName="h-8 w-8" />
+            <Logo showWordmark={false} iconClassName="h-7 w-7" />
           </div>
 
-          <div className="ml-auto flex items-center gap-2">
+          {/* Desktop: page title area could go here in future */}
+          <div className="hidden lg:block" />
+
+          {/* Right actions */}
+          <div className="flex items-center gap-1">
             <ThemeToggle />
 
-            {/* Notifications with tooltip */}
+            {/* Notifications */}
             <NavLink
               to={STUDENT_ROUTES.notifications}
               className={({ isActive }) =>
                 cn(
-                  'group relative flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 transition-all duration-200 hover:bg-gray-100 hover:text-brand-600 dark:text-text-secondary dark:hover:bg-white/10 dark:hover:text-primary-accent',
-                  isActive && 'bg-brand-50 text-brand-600 dark:bg-white/10 dark:text-primary-accent',
+                  'relative flex h-8 w-8 items-center justify-center rounded-lg transition-colors',
+                  'text-gray-500 hover:bg-gray-100 hover:text-gray-900',
+                  'dark:text-text-secondary dark:hover:bg-white/8 dark:hover:text-text-primary',
+                  isActive && 'bg-gray-100 text-gray-900 dark:bg-white/8 dark:text-text-primary',
                 )
               }
               aria-label="Notifications"
             >
-              <Bell className="h-5 w-5" />
-              <span className="pointer-events-none absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-150 group-hover:opacity-100">
-                Notifications
-              </span>
+              <Bell className="h-4 w-4" />
+              {unreadCount > 0 && (
+                <span className="absolute right-1 top-1 flex h-2 w-2 items-center justify-center rounded-full bg-brand-600 dark:bg-primary-accent">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-60" />
+                </span>
+              )}
             </NavLink>
 
-            {/* AI Assistant with tooltip */}
+            {/* AI */}
             <NavLink
               to={STUDENT_ROUTES.insights}
               className={({ isActive }) =>
                 cn(
-                  'group relative flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 transition-all duration-200 hover:bg-gray-100 hover:text-brand-600 dark:text-text-secondary dark:hover:bg-white/10 dark:hover:text-primary-accent',
-                  isActive && 'bg-brand-50 text-brand-600 dark:bg-white/10 dark:text-primary-accent',
+                  'flex h-8 w-8 items-center justify-center rounded-lg transition-colors',
+                  'text-gray-500 hover:bg-gray-100 hover:text-gray-900',
+                  'dark:text-text-secondary dark:hover:bg-white/8 dark:hover:text-text-primary',
+                  isActive && 'bg-gray-100 text-gray-900 dark:bg-white/8 dark:text-text-primary',
                 )
               }
               aria-label="AI Assistant"
             >
-              <Bot className="h-5 w-5" />
-              <span className="pointer-events-none absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-150 group-hover:opacity-100">
-                Any questions?
-              </span>
+              <Sparkles className="h-4 w-4" />
             </NavLink>
 
-            <div className="mx-1 h-5 w-px bg-gray-200 dark:bg-white/10" />
+            <div className="mx-1.5 h-4 w-px bg-gray-200 dark:bg-white/8" />
 
-            {/* Account — click still goes straight to Profile; hovering (or
-                tapping on touch, via focus-within) opens a quick panel with
-                shortcuts, so the header itself has a way to reach Settings
-                and Log Out without a trip to the sidebar. */}
+            {/* Account dropdown */}
             <div
               className="relative"
               onMouseEnter={openAccountPanel}
@@ -285,48 +356,55 @@ export function StudentLayout() {
                 onFocus={openAccountPanel}
                 className={({ isActive }) =>
                   cn(
-                    'flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-white/10',
-                    isActive && 'bg-gray-100 dark:bg-white/10',
+                    'flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors',
+                    'hover:bg-gray-100 dark:hover:bg-white/8',
+                    isActive && 'bg-gray-100 dark:bg-white/8',
                   )
                 }
               >
                 <Avatar name={user?.fullName ?? 'Student'} size="sm" />
-                <span className="hidden text-sm font-medium text-gray-700 dark:text-text-secondary sm:inline">
+                <span className="hidden text-sm font-medium text-gray-700 dark:text-text-secondary sm:block">
                   {user?.fullName?.split(' ')[0] ?? 'Student'}
                 </span>
-                <ChevronDown className="hidden h-3.5 w-3.5 text-gray-400 dark:text-text-muted sm:inline" />
+                <ChevronDown className="hidden h-3 w-3 text-gray-400 sm:block" />
               </NavLink>
 
               {isAccountOpen && (
                 <div
                   onMouseEnter={openAccountPanel}
                   onMouseLeave={scheduleAccountClose}
-                  className="animate-fade-in-up absolute right-0 top-full z-20 mt-1 w-56 rounded-xl border border-gray-200 bg-white p-1.5 shadow-lg shadow-gray-200/60 dark:border-white/10 dark:bg-surface-elevated dark:shadow-black/40"
+                  className={cn(
+                    'animate-scale-in absolute right-0 top-full mt-1.5 z-20',
+                    'w-52 rounded-xl border border-gray-100 bg-white p-1.5',
+                    'shadow-panel dark:border-white/8 dark:bg-surface-elevated dark:shadow-dark-panel',
+                  )}
                 >
-                  <div className="border-b border-gray-100 px-3 py-2 dark:border-white/10">
-                    <p className="truncate text-sm font-semibold text-gray-900 dark:text-text-primary">{user?.fullName ?? 'Student'}</p>
-                    <p className="truncate text-xs text-gray-500 dark:text-text-secondary">{user?.email}</p>
+                  <div className="px-3 py-2 border-b border-gray-50 dark:border-white/5 mb-1">
+                    <p className="truncate text-sm font-semibold text-gray-900 dark:text-text-primary">
+                      {user?.fullName ?? 'Student'}
+                    </p>
+                    <p className="truncate text-xs text-gray-400 dark:text-text-muted">{user?.email}</p>
                   </div>
-                  <Link
-                    to={STUDENT_ROUTES.profile}
-                    className="mt-1 flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors duration-150 hover:bg-gray-100 dark:text-text-secondary dark:hover:bg-white/10"
-                  >
-                    <User className="h-4 w-4 shrink-0" />
-                    View Profile
-                  </Link>
-                  <Link
-                    to={STUDENT_ROUTES.settings}
-                    className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors duration-150 hover:bg-gray-100 dark:text-text-secondary dark:hover:bg-white/10"
-                  >
-                    <Settings className="h-4 w-4 shrink-0" />
-                    Settings
-                  </Link>
+                  {[
+                    { to: STUDENT_ROUTES.profile,  icon: User,     label: 'View Profile' },
+                    { to: STUDENT_ROUTES.settings, icon: Settings, label: 'Settings' },
+                  ].map(({ to, icon: Icon, label }) => (
+                    <Link
+                      key={to}
+                      to={to}
+                      className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors dark:text-text-secondary dark:hover:bg-white/5"
+                    >
+                      <Icon className="h-4 w-4 text-gray-400 dark:text-text-muted" />
+                      {label}
+                    </Link>
+                  ))}
+                  <div className="my-1 border-t border-gray-50 dark:border-white/5" />
                   <button
                     type="button"
                     onClick={() => void logout().then(() => navigate('/'))}
-                    className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm font-medium text-red-600 transition-colors duration-150 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10"
+                    className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm font-medium text-red-600 hover:bg-red-50 transition-colors dark:text-red-400 dark:hover:bg-red-500/8"
                   >
-                    <LogOut className="h-4 w-4 shrink-0" />
+                    <LogOut className="h-4 w-4" />
                     Log Out
                   </button>
                 </div>

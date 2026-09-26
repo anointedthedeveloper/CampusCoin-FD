@@ -1,4 +1,5 @@
 import { forwardRef, type InputHTMLAttributes, type ReactNode } from 'react';
+import { AlertCircle } from 'lucide-react';
 import { cn } from '@/utils/cn';
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
@@ -20,13 +21,13 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           <label
             htmlFor={inputId}
             className={cn(
-              'font-medium text-gray-700 select-none dark:text-text-secondary',
-              compact ? 'text-xs leading-4' : 'text-sm',
+              'select-none font-medium text-gray-700 dark:text-text-secondary',
+              compact ? 'text-xs' : 'text-sm',
             )}
           >
             {label}
             {props.required && (
-              <span className="ml-0.5 text-brand-500" aria-hidden="true">*</span>
+              <span className="ml-0.5 text-brand-500 dark:text-primary-accent" aria-hidden="true"> *</span>
             )}
           </label>
         )}
@@ -35,8 +36,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           {icon && (
             <span
               className={cn(
-                'pointer-events-none absolute inset-y-0 left-0 flex items-center text-gray-400 transition-colors duration-150 group-focus-within:text-brand-500 dark:text-text-muted dark:group-focus-within:text-primary-accent',
-                compact ? 'pl-3' : 'pl-3.5',
+                'pointer-events-none absolute inset-y-0 left-0 flex items-center text-gray-400 transition-colors duration-150',
+                'group-focus-within:text-brand-500 dark:text-text-muted dark:group-focus-within:text-primary-accent',
+                compact ? 'pl-3 [&>svg]:h-3.5 [&>svg]:w-3.5' : 'pl-3.5 [&>svg]:h-4 [&>svg]:w-4',
               )}
             >
               {icon}
@@ -47,49 +49,54 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             id={inputId}
             ref={ref}
             className={cn(
-              // base
-              'w-full rounded-xl border bg-white text-gray-900 shadow-sm transition-all duration-150',
-              'placeholder:text-gray-400/80 placeholder:font-normal',
-              'dark:bg-surface dark:text-text-primary dark:placeholder:text-text-muted/80 dark:shadow-black/10',
-              // sizing
-              compact ? 'py-2 text-sm' : 'py-2.5 text-[15px]',
-              'px-4',
+              // Base
+              'w-full rounded-lg border bg-white text-gray-900 shadow-inset',
+              'placeholder:text-gray-400/70 placeholder:font-normal',
+              'transition-all duration-150',
+              // Dark
+              'dark:bg-surface dark:text-text-primary dark:placeholder:text-text-muted/60 dark:shadow-none',
+              // Sizing
+              compact ? 'py-1.5 text-sm' : 'py-2.5 text-sm',
+              'px-3.5',
               icon && (compact ? 'pl-9' : 'pl-10'),
-              trailing && 'pr-11',
-              // default border
+              trailing && 'pr-10',
+              // Error vs normal border
               error
-                ? 'border-red-400 bg-red-50/30 dark:border-red-500/60 dark:bg-red-950/20'
-                : 'border-gray-200 hover:border-gray-300 dark:border-border dark:hover:border-white/20',
-              // focus
-              error
-                ? 'focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20'
-                : 'focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/25 dark:focus:border-primary-accent dark:focus:ring-primary-accent/25',
-              // disabled
-              'disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400 disabled:border-gray-200',
-              'dark:disabled:bg-white/5 dark:disabled:text-text-muted dark:disabled:border-border',
+                ? [
+                    'border-red-300 bg-red-50/40',
+                    'focus:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-400/20',
+                    'dark:border-red-500/50 dark:bg-red-950/20',
+                    'dark:focus:border-red-400 dark:focus:ring-red-400/20',
+                  ]
+                : [
+                    'border-gray-200 hover:border-gray-300',
+                    'focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/20',
+                    'dark:border-white/8 dark:hover:border-white/15',
+                    'dark:focus:border-primary-accent/70 dark:focus:ring-primary-accent/20',
+                  ],
+              // Disabled
+              'disabled:cursor-not-allowed disabled:opacity-60',
               className,
             )}
             {...props}
           />
 
           {trailing && (
-            <span className="absolute inset-y-0 right-0 flex items-center pr-3.5">
+            <span className="absolute inset-y-0 right-0 flex items-center pr-3">
               {trailing}
             </span>
           )}
         </div>
 
         {error && (
-          <p className="flex items-center gap-1 text-xs font-medium text-red-600 leading-none mt-0.5 dark:text-red-400">
-            <svg className="h-3 w-3 shrink-0" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true">
-              <path d="M6 1a5 5 0 1 0 0 10A5 5 0 0 0 6 1Zm-.75 2.75a.75.75 0 0 1 1.5 0v2.5a.75.75 0 0 1-1.5 0v-2.5ZM6 9a.75.75 0 1 1 0-1.5A.75.75 0 0 1 6 9Z" />
-            </svg>
+          <p className="flex items-center gap-1.5 text-xs font-medium text-red-600 dark:text-red-400">
+            <AlertCircle className="h-3 w-3 shrink-0" aria-hidden="true" />
             {error}
           </p>
         )}
 
         {hint && !error && (
-          <p className="text-xs text-gray-400 leading-none mt-0.5 dark:text-text-muted">{hint}</p>
+          <p className="text-xs text-gray-400 dark:text-text-muted leading-relaxed">{hint}</p>
         )}
       </div>
     );
