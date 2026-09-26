@@ -250,16 +250,43 @@
       window.Tawk_API.onChatMessageVisitor = hideTawkWidget;
       window.Tawk_API.onUnreadCountChanged = hideTawkWidget;
 
+      // isTawkChatOpen tracks state ourselves rather than trusting
+      // Tawk_API.toggle()'s own internal previous-state tracking, which the
+      // repeated hideWidget() calls above (onLoad, onUnreadCountChanged)
+      // can leave out of sync with what's actually on screen — an
+      // inconsistent starting state is a plausible cause of the widget
+      // occasionally opening in an unexpected (fullscreen) render on desktop
+      // instead of a normal small window. showWidget()+maximize()/minimize()
+      // are unambiguous regardless of whatever state hideWidget() left it in.
+      var isTawkChatOpen = false;
       document.getElementById('tawk-chat-toggle')?.addEventListener('click', function () {
-        if (typeof window.Tawk_API.toggle === 'function') {
-          window.Tawk_API.toggle();
+        if (isTawkChatOpen && typeof window.Tawk_API.minimize === 'function') {
+          window.Tawk_API.minimize();
+          isTawkChatOpen = false;
           return;
         }
 
         if (typeof window.Tawk_API.showWidget === 'function') {
           window.Tawk_API.showWidget();
         }
+        if (typeof window.Tawk_API.maximize === 'function') {
+          window.Tawk_API.maximize();
+        } else if (typeof window.Tawk_API.toggle === 'function') {
+          window.Tawk_API.toggle();
+        }
+        isTawkChatOpen = true;
       });
+
+      // minimize()/hideWidget() from either side (visitor closes the chat
+      // window itself, not just our button) should also reset our tracked
+      // state, so the next click reliably opens rather than trying to
+      // minimize something already closed.
+      window.Tawk_API.onChatMinimized = function () {
+        isTawkChatOpen = false;
+      };
+      window.Tawk_API.onChatHidden = function () {
+        isTawkChatOpen = false;
+      };
 
       var Tawk_LoadStart = new Date();
       // Deferred to idle time rather than injected immediately: Tawk's own
