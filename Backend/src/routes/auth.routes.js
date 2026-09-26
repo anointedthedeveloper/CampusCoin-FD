@@ -82,6 +82,15 @@ router.post('/register', authLimiter, async (req, res) => {
   }
 });
 
+// GET /api/v1/auth/google/config — public. Lets the frontend fetch the
+// Google OAuth client ID from a single source of truth (this server's env)
+// instead of needing its own copy of the same value baked into its build.
+// A client ID is not a secret (it's embedded in every Google sign-in button
+// on the web), so serving it unauthenticated is safe.
+router.get('/google/config', (_req, res) => {
+  res.json({ data: { clientId: process.env.GOOGLE_CLIENT_ID || null } });
+});
+
 // POST /api/v1/auth/google — sign in (or sign up) with a Google ID token
 // obtained client-side via Google Identity Services. Verifying the token
 // server-side (rather than trusting a client-supplied email) is what makes
