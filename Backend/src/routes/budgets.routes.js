@@ -2,8 +2,12 @@ const router = require('express').Router();
 const Budget = require('../models/Budget');
 const Transaction = require('../models/Transaction');
 const { protect } = require('../middleware/auth');
+const { validateIdParam, isValidObjectId } = require('../utils/objectId');
 
 router.use(protect);
+router.param('id', validateIdParam);
+
+const MONTH_RE = /^\d{4}-\d{2}$/;
 
 function formatBudget(b, spentAmount = 0) {
   return {
@@ -37,6 +41,7 @@ async function getSpentAmounts(userId, month, categoryIds) {
 router.get('/', async (req, res) => {
   try {
     const month = req.query.month || new Date().toISOString().slice(0, 7);
+    if (!MONTH_RE.test(month)) return res.status(400).json({ message: 'month must be in YYYY-MM format' });
     const budgets = await Budget.find({ userId: req.user._id, month });
 
     const categoryIds = budgets.map((b) => b.categoryId);
@@ -68,6 +73,9 @@ router.post('/', async (req, res) => {
     if (!categoryId || !month || limitAmount === undefined) {
       return res.status(400).json({ message: 'categoryId, month and limitAmount are required' });
     }
+    if (!isValidObjectId(categoryId)) return res.status(400).json({ message: 'Invalid categoryId' });
+    if (!MONTH_RE.test(month)) return res.status(400).json({ message: 'month must be in YYYY-MM format' });
+    if (!(Number(limitAmount) >= 0)) return res.status(400).json({ message: 'limitAmount must be a non-negative number' });
 
     const budget = await Budget.create({ userId: req.user._id, categoryId, month, limitAmount: Number(limitAmount) });
     const spentMap = await getSpentAmounts(req.user._id, month, [budget.categoryId]);
@@ -85,7 +93,10 @@ router.patch('/:id', async (req, res) => {
     const budget = await Budget.findOne({ _id: req.params.id, userId: req.user._id });
     if (!budget) return res.status(404).json({ message: 'Budget not found' });
 
-    if (req.body.limitAmount !== undefined) budget.limitAmount = Number(req.body.limitAmount);
+    if (req.body.limitAmount !== undefined) {
+      if (!(Number(req.body.limitAmount) >= 0)) return res.status(400).json({ message: 'limitAmount must be a non-negative number' });
+      budget.limitAmount = Number(req.body.limitAmount);
+    }
     await budget.save();
 
     const spentMap = await getSpentAmounts(req.user._id, budget.month, [budget.categoryId]);

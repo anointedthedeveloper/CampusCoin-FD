@@ -1,9 +1,37 @@
 const router = require('express').Router();
+const multer = require('multer');
 const Transaction = require('../models/Transaction');
 const Category = require('../models/Category');
 const { protect } = require('../middleware/auth');
+const { checkBudgetAfterTransaction } = require('../services/budgetAlert.service');
+const { validateIdParam, isValidObjectId } = require('../utils/objectId');
+
+const TRANSACTION_TYPES = ['income', 'expense'];
+
+function validateTransactionFields({ categoryId, type, amount, occurredAt }) {
+  if (categoryId !== undefined && !isValidObjectId(categoryId)) return 'Invalid categoryId';
+  if (type !== undefined && !TRANSACTION_TYPES.includes(type)) return "type must be 'income' or 'expense'";
+  if (amount !== undefined && (typeof amount !== 'number' && typeof amount !== 'string')) return 'amount must be a number';
+  if (amount !== undefined && !(Number(amount) > 0)) return 'amount must be a positive number';
+  if (occurredAt !== undefined && isNaN(new Date(occurredAt).getTime())) return 'occurredAt must be a valid date';
+  return null;
+}
+
+// Store CSV uploads in memory (we only need the text content, not a file on disk)
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB cap
+  fileFilter: (_req, file, cb) => {
+    if (file.mimetype === 'text/csv' || file.originalname.endsWith('.csv')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only CSV files are accepted'));
+    }
+  },
+});
 
 router.use(protect);
+router.param('id', validateIdParam);
 
 function formatTx(t) {
   return {
@@ -25,6 +53,7 @@ function formatTx(t) {
 router.get('/', async (req, res) => {
   try {
     const { categoryId, type, startDate, endDate, search, page = 1, pageSize = 20 } = req.query;
+    if (categoryId && !isValidObjectId(categoryId)) return res.status(400).json({ message: 'Invalid categoryId' });
 
     const filter = { userId: req.user._id };
     if (categoryId) filter.categoryId = categoryId;
@@ -84,6 +113,8 @@ router.post('/', async (req, res) => {
     if (!categoryId || !type || amount === undefined || !occurredAt) {
       return res.status(400).json({ message: 'categoryId, type, amount and occurredAt are required' });
     }
+    const validationError = validateTransactionFields({ categoryId, type, amount, occurredAt });
+    if (validationError) return res.status(400).json({ message: validationError });
 
     // Verify the category belongs to this user or is a default
     const cat = await Category.findOne({ _id: categoryId, $or: [{ userId: req.user._id }, { userId: null }] });
@@ -100,6 +131,14 @@ router.post('/', async (req, res) => {
       source: 'manual',
     });
 
+    if (tx.type === 'expense') {
+      await checkBudgetAfterTransaction(
+        req.user._id,
+        tx.categoryId,
+        tx.occurredAt
+      );
+    }
+
     res.status(201).json({ data: formatTx(tx) });
   } catch (err) {
     console.error(err);
@@ -112,6 +151,14 @@ router.patch('/:id', async (req, res) => {
   try {
     const tx = await Transaction.findOne({ _id: req.params.id, userId: req.user._id });
     if (!tx) return res.status(404).json({ message: 'Transaction not found' });
+
+    const validationError = validateTransactionFields(req.body);
+    if (validationError) return res.status(400).json({ message: validationError });
+
+    if (req.body.categoryId !== undefined) {
+      const cat = await Category.findOne({ _id: req.body.categoryId, $or: [{ userId: req.user._id }, { userId: null }] });
+      if (!cat) return res.status(400).json({ message: 'Invalid category' });
+    }
 
     const allowed = ['categoryId', 'type', 'amount', 'description', 'merchant', 'occurredAt'];
     allowed.forEach((key) => {
@@ -144,13 +191,21 @@ router.delete('/:id', async (req, res) => {
 });
 
 // POST /api/v1/transactions/import/preview
-// Expects multipart/form-data with a CSV file field named "file"
-router.post('/import/preview', async (req, res) => {
+// Accepts multipart/form-data with a CSV file in the "file" field (sent by
+// the frontend) OR a JSON body { csv: "<csv string>" } for backwards compat.
+router.post('/import/preview', upload.single('file'), async (req, res) => {
   try {
-    // Minimal CSV parsing — reads raw text body sent as application/json { csv: "..." }
-    // or plain text. For a full multipart solution add multer; keeping it simple for now.
-    const raw = req.body.csv || '';
-    if (!raw) return res.status(400).json({ message: 'No CSV data provided. Send { csv: "<csv string>" }' });
+    // Prefer the uploaded file buffer; fall back to a raw csv string in body
+    let raw = '';
+    if (req.file) {
+      raw = req.file.buffer.toString('utf-8');
+    } else if (req.body.csv) {
+      raw = req.body.csv;
+    }
+
+    if (!raw.trim()) {
+      return res.status(400).json({ message: 'No CSV data provided. Upload a CSV file.' });
+    }
 
     const lines = raw.trim().split('\n').filter(Boolean);
     const dataLines = lines[0]?.toLowerCase().includes('date') ? lines.slice(1) : lines;
@@ -168,6 +223,10 @@ router.post('/import/preview', async (req, res) => {
 
     res.json({ data: { rows, totalRows: rows.length + invalidRows, invalidRows } });
   } catch (err) {
+    // multer file-filter errors come through here
+    if (err.message === 'Only CSV files are accepted') {
+      return res.status(400).json({ message: err.message });
+    }
     console.error(err);
     res.status(500).json({ message: 'Server error' });
   }

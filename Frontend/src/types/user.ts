@@ -22,6 +22,10 @@ export interface OnboardingUpdate {
   goals?: string[];
   monthlyAllowanceBaseline?: number;
   savingsGoalAmount?: number;
+  // Not stored on the user document — the backend turns this into real
+  // Budget records for the current month, split across the onboarding's
+  // selected spending categories.
+  monthlyBudget?: number;
 }
 
 export interface User {

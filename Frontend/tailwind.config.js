@@ -5,24 +5,18 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Semantic theme tokens — resolve to the channel-triplet CSS variables in
-        // src/styles/index.css via rgb(var(--x) / <alpha-value>), so components that
-        // consume them (bg-surface, text-text-secondary, etc.) switch automatically
-        // between the light and dark palettes without a `dark:` prefix, and still
-        // support opacity modifiers (bg-surface/80). `border` is plain var() — it
-        // already carries its own baked-in alpha and is never opacity-modified.
-        background: 'rgb(var(--background) / <alpha-value>)',
-        surface: 'rgb(var(--surface) / <alpha-value>)',
+        background:         'rgb(var(--background) / <alpha-value>)',
+        surface:            'rgb(var(--surface) / <alpha-value>)',
         'surface-elevated': 'rgb(var(--surface-elevated) / <alpha-value>)',
-        border: 'var(--border)',
-        'text-primary': 'rgb(var(--text-primary) / <alpha-value>)',
-        'text-secondary': 'rgb(var(--text-secondary) / <alpha-value>)',
-        'text-muted': 'rgb(var(--text-muted) / <alpha-value>)',
-        primary: 'rgb(var(--primary) / <alpha-value>)',
-        'primary-accent': 'rgb(var(--primary-accent) / <alpha-value>)',
-        // NextGen BudgetBee brand palette — bright green + gold, matching the logo artwork.
+        border:             'var(--border)',
+        'text-primary':     'rgb(var(--text-primary) / <alpha-value>)',
+        'text-secondary':   'rgb(var(--text-secondary) / <alpha-value>)',
+        'text-muted':       'rgb(var(--text-muted) / <alpha-value>)',
+        primary:            'rgb(var(--primary) / <alpha-value>)',
+        'primary-accent':   'rgb(var(--primary-accent) / <alpha-value>)',
+
         brand: {
-          50: '#f0fdf4',
+          50:  '#f0fdf4',
           100: '#dcfce7',
           200: '#bbf7d0',
           300: '#86efac',
@@ -36,7 +30,7 @@ export default {
         },
         cream: {
           DEFAULT: '#fdf8ee',
-          50: '#fefcf7',
+          50:  '#fefcf7',
           100: '#fdf8ee',
           200: '#faeed2',
         },
@@ -47,27 +41,78 @@ export default {
           700: '#d97706',
         },
       },
+
       fontFamily: {
         sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', 'sans-serif'],
       },
+
+      fontSize: {
+        '2xs': ['0.625rem', { lineHeight: '0.875rem' }],
+      },
+
+      borderRadius: {
+        '4xl': '2rem',
+      },
+
+      boxShadow: {
+        // Crisp, layered shadows — feels premium, not heavy
+        'card':   '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)',
+        'card-hover': '0 4px 16px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.05)',
+        'panel':  '0 4px 24px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.04)',
+        'modal':  '0 20px 60px rgba(0,0,0,0.15), 0 4px 16px rgba(0,0,0,0.08)',
+        'btn':    '0 1px 2px rgba(0,0,0,0.10)',
+        'btn-primary': '0 2px 8px rgba(22,163,74,0.30)',
+        'btn-primary-hover': '0 4px 14px rgba(22,163,74,0.35)',
+        'inset':  'inset 0 1px 2px rgba(0,0,0,0.06)',
+        // Dark-mode equivalents (used explicitly where needed)
+        'dark-card':       '0 1px 4px rgba(0,0,0,0.30)',
+        'dark-card-hover': '0 4px 16px rgba(0,0,0,0.40)',
+        'dark-panel':      '0 4px 24px rgba(0,0,0,0.35)',
+      },
+
       keyframes: {
         'fade-in-up': {
-          '0%': { opacity: '0', transform: 'translateY(16px)' },
+          '0%':   { opacity: '0', transform: 'translateY(12px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
+        'fade-in': {
+          '0%':   { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        'scale-in': {
+          '0%':   { opacity: '0', transform: 'scale(0.96)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
+        },
+        'slide-in-left': {
+          '0%':   { opacity: '0', transform: 'translateX(-12px)' },
+          '100%': { opacity: '1', transform: 'translateX(0)' },
+        },
         'slow-zoom': {
-          '0%': { transform: 'scale(1)' },
+          '0%':   { transform: 'scale(1)' },
           '100%': { transform: 'scale(1.08)' },
         },
         float: {
           '0%, 100%': { transform: 'translateY(0)' },
-          '50%': { transform: 'translateY(-4px)' },
+          '50%':       { transform: 'translateY(-4px)' },
+        },
+        'pulse-soft': {
+          '0%, 100%': { opacity: '1' },
+          '50%':       { opacity: '0.6' },
         },
       },
+
       animation: {
-        'fade-in-up': 'fade-in-up 0.6s ease-out both',
-        'slow-zoom': 'slow-zoom 20s ease-in-out infinite alternate',
-        float: 'float 3.2s ease-in-out infinite',
+        'fade-in-up':    'fade-in-up 0.45s cubic-bezier(0.16,1,0.3,1) both',
+        'fade-in':       'fade-in 0.3s ease-out both',
+        'scale-in':      'scale-in 0.25s cubic-bezier(0.16,1,0.3,1) both',
+        'slide-in-left': 'slide-in-left 0.35s cubic-bezier(0.16,1,0.3,1) both',
+        'slow-zoom':     'slow-zoom 20s ease-in-out infinite alternate',
+        float:           'float 3.2s ease-in-out infinite',
+        'pulse-soft':    'pulse-soft 2s ease-in-out infinite',
+      },
+
+      transitionTimingFunction: {
+        'spring': 'cubic-bezier(0.16, 1, 0.3, 1)',
       },
     },
   },

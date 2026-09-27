@@ -3,6 +3,15 @@
 // real account-chooser popup, unlike google.accounts.id.prompt()'s One Tap,
 // which browsers can silently suppress) and forward the credential it
 // produces to whichever custom-styled button the caller clicked.
+//
+// The client ID itself is fetched from the backend (GET /auth/google/config)
+// rather than read from a VITE_ build-time env var, so it only has to be
+// configured in one place (the backend's GOOGLE_CLIENT_ID). It's not a
+// secret — every Google sign-in button on the web embeds its client ID in
+// public page source — so serving it over a plain unauthenticated GET is
+// safe.
+import { httpClient } from '@/api/httpClient';
+
 interface GoogleCredentialResponse {
   credential: string;
 }
@@ -24,6 +33,18 @@ const SCRIPT_SRC = 'https://accounts.google.com/gsi/client';
 let hiddenButtonEl: HTMLElement | null = null;
 let initPromise: Promise<void> | null = null;
 let pending: { resolve: (token: string) => void; reject: (err: Error) => void } | null = null;
+let clientIdPromise: Promise<string | null> | null = null;
+
+/** Fetches (and caches) the Google client ID from the backend. */
+function getClientId(): Promise<string | null> {
+  if (!clientIdPromise) {
+    clientIdPromise = httpClient
+      .get<{ data: { clientId: string | null } }>('/auth/google/config')
+      .then((res) => res.data.data.clientId)
+      .catch(() => null);
+  }
+  return clientIdPromise;
+}
 
 function loadScript(): Promise<void> {
   if (window.google?.accounts?.id) return Promise.resolve();
@@ -69,16 +90,17 @@ function ensureInitialized(clientId: string): Promise<void> {
 
 /** Warms up the Google Identity script ahead of time so the first real click isn't delayed. */
 export function preloadGoogleIdentity(): void {
-  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
-  if (!clientId) return;
-  void ensureInitialized(clientId).catch(() => {
-    // Ignore — requestGoogleIdToken() will surface the failure on actual use.
+  void getClientId().then((clientId) => {
+    if (!clientId) return;
+    return ensureInitialized(clientId).catch(() => {
+      // Ignore — requestGoogleIdToken() will surface the failure on actual use.
+    });
   });
 }
 
 /** Opens the Google account chooser and resolves with an ID token to send to the backend. */
 export async function requestGoogleIdToken(): Promise<string> {
-  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
+  const clientId = await getClientId();
   if (!clientId) {
     throw new Error('Google sign-in is not set up for this app yet.');
   }

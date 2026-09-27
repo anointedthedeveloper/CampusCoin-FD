@@ -4,42 +4,62 @@
 
 @layer base {
   /*
-   * Channel triplets (not hex) so Tailwind can apply opacity modifiers —
-   * see tailwind.config.js, which wraps each of these as
-   * `rgb(var(--x) / <alpha-value>)`. `--border` is the one exception: it
-   * keeps a baked-in alpha since it's only ever used unmodified.
+   * Channel triplets so Tailwind can apply opacity modifiers.
+   * --border keeps a baked-in alpha as it is never opacity-modified.
    */
   :root {
-    --background: 247 250 247; /* #f7faf7 */
-    --surface: 255 255 255; /* #ffffff */
-    --surface-elevated: 255 255 255; /* #ffffff */
-    --border: rgba(15, 40, 30, 0.08);
-    --text-primary: 22 36 29; /* #16241d */
-    --text-secondary: 75 95 85; /* #4b5f55 */
-    --text-muted: 107 125 116; /* #6b7d74 */
-    --primary: 28 143 83; /* #1c8f53 */
-    --primary-accent: 22 163 74; /* #16a34a */
+    --background:    248 250 248;   /* #f8faf8 — very light green-tinted white */
+    --surface:       255 255 255;   /* #ffffff */
+    --surface-elevated: 255 255 255;
+    --border:        rgba(15, 40, 30, 0.07);
+    --text-primary:  17 24 20;      /* #111814 */
+    --text-secondary:72 90 80;     /* #485a50 */
+    --text-muted:    110 128 118;   /* #6e8076 */
+    --primary:       22 163 74;     /* #16a34a */
+    --primary-accent:20 184 66;    /* #14b842 */
   }
 
   :root.dark {
-    --background: 7 28 20; /* #071c14 */
-    --surface: 13 42 30; /* #0d2a1e */
-    --surface-elevated: 18 53 38; /* #123526 */
-    --border: rgba(255, 255, 255, 0.08);
-    --text-primary: 241 247 243; /* #f1f7f3 */
-    --text-secondary: 168 187 177; /* #a8bbb1 */
-    --text-muted: 120 144 135; /* #789087 */
-    --primary: 22 160 90; /* #16a05a */
-    --primary-accent: 37 199 106; /* #25c76a */
+    --background:    9 18 13;       /* #09120d */
+    --surface:       14 26 19;      /* #0e1a13 */
+    --surface-elevated: 19 36 26;  /* #13241a */
+    --border:        rgba(255, 255, 255, 0.07);
+    --text-primary:  242 248 244;   /* #f2f8f4 */
+    --text-secondary:162 182 170;  /* #a2b6aa */
+    --text-muted:    112 134 122;   /* #70867a */
+    --primary:       22 163 74;     /* #16a34a */
+    --primary-accent:34 197 94;    /* #22c55e */
   }
 
   html {
     font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
     scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   body {
-    @apply bg-background text-text-primary antialiased transition-colors duration-300;
+    @apply bg-background text-text-primary antialiased;
+  }
+
+  /* Smooth theme transitions — only on colour-related props so layout doesn't animate */
+  *, *::before, *::after {
+    transition-property: background-color, border-color, color, box-shadow, fill, stroke, opacity;
+    transition-duration: 150ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* But don't transition transforms — those are for intentional micro-interactions */
+  .no-color-transition, .no-color-transition * {
+    transition: none !important;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      transition-duration: 0ms !important;
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+    }
   }
 
   ::selection {
@@ -47,30 +67,20 @@
   }
 
   :root.dark ::selection {
-    background-color: rgba(37, 199, 106, 0.3);
-    color: #f1f7f3;
+    background-color: rgba(34, 197, 94, 0.25);
+    color: #f2f8f4;
   }
 
-  /* Theme switches should feel instant on structure, soft on color. */
-  *,
-  *::before,
-  *::after {
-    transition-property: background-color, border-color, color, box-shadow, fill, stroke;
-    transition-duration: 200ms;
-    transition-timing-function: ease-out;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-      transition-duration: 0ms !important;
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-    }
-  }
+  /* Scrollbar — subtle, consistent */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 999px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.22); }
+  :root.dark ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.10); }
+  :root.dark ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); }
 }
 
+/* ── Auth glow border ─────────────────────────────────────────────── */
 @property --auth-glow-angle {
   syntax: '<angle>';
   inherits: false;
@@ -78,111 +88,61 @@
 }
 
 @layer components {
-  /* A thin animated "current" that travels around the auth card's edge — a
-     conic-gradient ring, masked down to just the border band, whose start
-     angle is animated directly (not a `transform: rotate()` on the box —
-     for a tall, non-square card that would swing the ring's corners far
-     outside the card instead of tracing its outline). The card and its
-     contents never move. */
-  .auth-glow-border {
-    position: relative;
-  }
-
+  .auth-glow-border { position: relative; }
   .auth-glow-border::before {
     content: '';
     position: absolute;
-    inset: -2.5px;
+    inset: -2px;
     z-index: -1;
     border-radius: inherit;
-    padding: 2.5px;
+    padding: 2px;
     background: conic-gradient(
       from var(--auth-glow-angle, 0deg),
-      transparent 0%,
-      transparent 38%,
-      rgba(134, 239, 172, 0.9) 50%,
+      transparent 0%, transparent 40%,
+      rgba(134, 239, 172, 0.85) 50%,
       rgba(21, 128, 61, 1) 60%,
       rgba(74, 222, 128, 1) 65%,
-      rgba(134, 239, 172, 0.9) 75%,
-      transparent 88%,
-      transparent 100%
+      rgba(134, 239, 172, 0.85) 75%,
+      transparent 88%, transparent 100%
     );
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
-    filter: drop-shadow(0 0 4px rgba(34, 197, 94, 0.55));
+    filter: drop-shadow(0 0 6px rgba(34, 197, 94, 0.45));
     pointer-events: none;
   }
-
-  .auth-glow-cw::before {
-    animation: auth-glow-spin-cw 6s linear infinite;
-  }
-
-  .auth-glow-ccw::before {
-    animation: auth-glow-spin-ccw 6s linear infinite;
-  }
+  .auth-glow-cw::before  { animation: auth-glow-spin-cw  7s linear infinite; }
+  .auth-glow-ccw::before { animation: auth-glow-spin-ccw 7s linear infinite; }
 
   @media (prefers-reduced-motion: reduce) {
-    .auth-glow-cw::before,
-    .auth-glow-ccw::before {
-      animation: none;
-    }
+    .auth-glow-cw::before, .auth-glow-ccw::before { animation: none; }
   }
 }
 
-@keyframes auth-glow-spin-cw {
-  to {
-    --auth-glow-angle: 360deg;
-  }
-}
+@keyframes auth-glow-spin-cw  { to { --auth-glow-angle:  360deg; } }
+@keyframes auth-glow-spin-ccw { to { --auth-glow-angle: -360deg; } }
 
-@keyframes auth-glow-spin-ccw {
-  to {
-    --auth-glow-angle: -360deg;
-  }
-}
-
+/* ── Page / hero animations ────────────────────────────────────────── */
 @keyframes hero-phone-bob {
-  0%,
-  100% {
-    transform: translateY(0) rotate(-2deg);
-  }
-  50% {
-    transform: translateY(-8px) rotate(-1deg);
-  }
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50%       { transform: translateY(-8px) rotate(-1deg); }
 }
-
 .animate-hero-phone-bob {
   animation: hero-phone-bob 4s ease-in-out infinite;
   transform-origin: center;
   will-change: transform;
 }
-
 @media (prefers-reduced-motion: reduce) {
-  .animate-hero-phone-bob {
-    animation: none;
-  }
+  .animate-hero-phone-bob { animation: none; }
 }
 
-/* Campus Coin loader — a handful of coins falling past the wordmark. Each
-   coin's position/size/speed/spin comes in as inline custom properties from
-   the CoinLoader component, so no two runs look identical. */
+/* ── Coin loader ───────────────────────────────────────────────────── */
 @keyframes coin-fall {
-  0% {
-    transform: translateY(-24px) rotate(0deg);
-    opacity: 0;
-  }
-  12% {
-    opacity: 1;
-  }
-  85% {
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(172px) rotate(var(--coin-rotate, 200deg));
-    opacity: 0;
-  }
+  0%   { transform: translateY(-24px) rotate(0deg); opacity: 0; }
+  12%  { opacity: 1; }
+  85%  { opacity: 1; }
+  100% { transform: translateY(172px) rotate(var(--coin-rotate, 200deg)); opacity: 0; }
 }
-
 .coin-rain-coin {
   position: absolute;
   top: 0;
@@ -192,44 +152,61 @@
   border-radius: 50%;
   animation: coin-fall var(--coin-duration, 2.4s) linear infinite;
   animation-delay: var(--coin-delay, 0s);
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.35),
-    0 2px 5px rgba(0, 0, 0, 0.18);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.3), 0 2px 4px rgba(0,0,0,0.15);
   will-change: transform, opacity;
 }
-
 .coin-rain-coin--green {
   background: radial-gradient(circle at 32% 28%, #7cedac 0%, rgb(var(--primary-accent)) 45%, rgb(var(--primary)) 100%);
 }
-
 .coin-rain-coin--gold {
   background: radial-gradient(circle at 32% 28%, #fde68a 0%, #f6ad2b 48%, #b45309 100%);
 }
-
 @media (prefers-reduced-motion: reduce) {
-  .coin-rain-coin {
-    animation: none;
-    opacity: 1;
-  }
+  .coin-rain-coin { animation: none; opacity: 1; }
 }
 
+/* ── Ripple ────────────────────────────────────────────────────────── */
 @keyframes ripple {
-  0% {
-    transform: scale(0);
-    opacity: 0.45;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 0;
-  }
+  0%   { transform: scale(0); opacity: 0.4; }
+  100% { transform: scale(1); opacity: 0; }
 }
-
 .animate-ripple {
-  animation: ripple 650ms ease-out forwards;
+  animation: ripple 600ms ease-out forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-ripple { display: none; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .animate-ripple {
-    display: none;
-  }
+/* ── Skeleton shimmer ──────────────────────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg,
+    rgba(0,0,0,0.06) 25%,
+    rgba(0,0,0,0.10) 50%,
+    rgba(0,0,0,0.06) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 0.5rem;
+}
+:root.dark .skeleton {
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0.04) 25%,
+    rgba(255,255,255,0.07) 50%,
+    rgba(255,255,255,0.04) 75%
+  );
+  background-size: 200% 100%;
+}
+
+/* ── Utility: page container ───────────────────────────────────────── */
+.page-container {
+  @apply space-y-6;
+}
+
+/* ── Utility: section title ────────────────────────────────────────── */
+.section-title {
+  @apply text-xs font-semibold uppercase tracking-widest text-text-muted;
 }

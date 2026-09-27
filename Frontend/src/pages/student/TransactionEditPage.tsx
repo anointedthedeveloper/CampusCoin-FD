@@ -84,44 +84,44 @@ export function TransactionEditPage() {
 
   return (
     <div className="mx-auto max-w-xl">
-      <button onClick={() => navigate(-1)} className="mb-4 flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900">
+      <button onClick={() => navigate(-1)} className="mb-4 flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-text-secondary dark:hover:text-text-primary">
         <ArrowLeft className="h-4 w-4" />Edit Transaction
       </button>
 
       <Card className="p-6">
-        <div className="mb-6 inline-flex rounded-lg bg-gray-100 p-1">
-          <button type="button" onClick={() => { setType('income'); setCategoryId(''); }} className={cn('rounded-md px-4 py-1.5 text-sm font-semibold transition-colors duration-200', type === 'income' ? 'bg-brand-600 text-white shadow-sm' : 'text-gray-600 hover:text-gray-900')}>Income</button>
-          <button type="button" onClick={() => { setType('expense'); setCategoryId(''); }} className={cn('rounded-md px-4 py-1.5 text-sm font-semibold transition-colors duration-200', type === 'expense' ? 'bg-brand-600 text-white shadow-sm' : 'text-gray-600 hover:text-gray-900')}>Expense</button>
+        <div className="mb-6 inline-flex rounded-lg bg-gray-100 p-1 dark:bg-white/10">
+          <button type="button" onClick={() => { setType('income'); setCategoryId(''); }} className={cn('rounded-md px-4 py-1.5 text-sm font-semibold transition-colors duration-200', type === 'income' ? 'bg-brand-600 text-white shadow-sm dark:bg-primary' : 'text-gray-600 hover:text-gray-900 dark:text-text-secondary dark:hover:text-text-primary')}>Income</button>
+          <button type="button" onClick={() => { setType('expense'); setCategoryId(''); }} className={cn('rounded-md px-4 py-1.5 text-sm font-semibold transition-colors duration-200', type === 'expense' ? 'bg-brand-600 text-white shadow-sm dark:bg-primary' : 'text-gray-600 hover:text-gray-900 dark:text-text-secondary dark:hover:text-text-primary')}>Expense</button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="amount" className="text-sm font-medium text-gray-700">Amount</label>
+            <label htmlFor="amount" className="text-sm font-medium text-gray-700 dark:text-text-secondary">Amount</label>
             <div className="relative mt-1">
-              <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-gray-400">₦</span>
-              <input id="amount" type="number" min="0" step="0.01" required value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full rounded-lg border border-gray-300 py-2 pl-7 pr-3 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" />
+              <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-gray-400 dark:text-text-muted">₦</span>
+              <input id="amount" type="number" min="0" step="0.01" required value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full rounded-lg border border-gray-300 py-2 pl-7 pr-3 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-border dark:bg-surface dark:text-text-primary dark:focus:border-primary-accent dark:focus:ring-primary-accent" />
             </div>
           </div>
 
           <div>
-            <label htmlFor="category" className="text-sm font-medium text-gray-700">Category</label>
-            <select id="category" required value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500">
+            <label htmlFor="category" className="text-sm font-medium text-gray-700 dark:text-text-secondary">Category</label>
+            <select id="category" required value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-border dark:bg-surface dark:text-text-primary dark:focus:border-primary-accent dark:focus:ring-primary-accent">
               <option value="" disabled>Select a category</option>
               {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
 
           <div>
-            <label htmlFor="description" className="text-sm font-medium text-gray-700">Description <span className="text-gray-400">(optional)</span></label>
-            <input id="description" type="text" value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" />
+            <label htmlFor="description" className="text-sm font-medium text-gray-700 dark:text-text-secondary">Description <span className="text-gray-400 dark:text-text-muted">(optional)</span></label>
+            <input id="description" type="text" value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-border dark:bg-surface dark:text-text-primary dark:focus:border-primary-accent dark:focus:ring-primary-accent" />
           </div>
 
           <div>
-            <label htmlFor="date" className="text-sm font-medium text-gray-700">Date</label>
-            <input id="date" type="date" required value={date} onChange={(e) => setDate(e.target.value)} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" />
+            <label htmlFor="date" className="text-sm font-medium text-gray-700 dark:text-text-secondary">Date</label>
+            <input id="date" type="date" required value={date} onChange={(e) => setDate(e.target.value)} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-border dark:bg-surface dark:text-text-primary dark:[color-scheme:dark] dark:focus:border-primary-accent dark:focus:ring-primary-accent" />
           </div>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
           <Button type="submit" variant="primary" className="w-full" isLoading={isSubmitting}>Save Changes</Button>
         </form>
       </Card>

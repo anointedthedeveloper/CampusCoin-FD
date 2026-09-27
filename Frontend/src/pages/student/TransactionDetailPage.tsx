@@ -60,7 +60,7 @@ export function TransactionDetailPage() {
 
   return (
     <div className="mx-auto max-w-xl">
-      <button onClick={() => navigate(-1)} className="mb-4 flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900">
+      <button onClick={() => navigate(-1)} className="mb-4 flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-text-secondary dark:hover:text-text-primary">
         <ArrowLeft className="h-4 w-4" />Back
       </button>
 
@@ -71,7 +71,7 @@ export function TransactionDetailPage() {
               <Receipt className="h-5 w-5" />
             </span>
             <div>
-              <p className="font-semibold text-gray-900">{transaction.description || categoryName}</p>
+              <p className="font-semibold text-gray-900 dark:text-text-primary">{transaction.description || categoryName}</p>
               <p className="text-sm text-gray-500 capitalize">{transaction.type}</p>
             </div>
           </div>
@@ -81,12 +81,12 @@ export function TransactionDetailPage() {
         </div>
 
         <div className="mt-6 space-y-3 border-t border-gray-100 pt-5">
-          <div className="flex items-center gap-3 text-sm"><Tag className="h-4 w-4 shrink-0 text-gray-400" /><span className="text-gray-500">Category</span><span className="ml-auto font-medium text-gray-900">{categoryName}</span></div>
-          <div className="flex items-center gap-3 text-sm"><Calendar className="h-4 w-4 shrink-0 text-gray-400" /><span className="text-gray-500">Date</span><span className="ml-auto font-medium text-gray-900">{formatDate(transaction.occurredAt)}</span></div>
+          <div className="flex items-center gap-3 text-sm"><Tag className="h-4 w-4 shrink-0 text-gray-400 dark:text-text-muted" /><span className="text-gray-500 dark:text-text-secondary">Category</span><span className="ml-auto font-medium text-gray-900 dark:text-text-primary">{categoryName}</span></div>
+          <div className="flex items-center gap-3 text-sm"><Calendar className="h-4 w-4 shrink-0 text-gray-400 dark:text-text-muted" /><span className="text-gray-500 dark:text-text-secondary">Date</span><span className="ml-auto font-medium text-gray-900 dark:text-text-primary">{formatDate(transaction.occurredAt)}</span></div>
           {transaction.merchant && (
-            <div className="flex items-center gap-3 text-sm"><Store className="h-4 w-4 shrink-0 text-gray-400" /><span className="text-gray-500">Merchant</span><span className="ml-auto font-medium text-gray-900">{transaction.merchant}</span></div>
+            <div className="flex items-center gap-3 text-sm"><Store className="h-4 w-4 shrink-0 text-gray-400 dark:text-text-muted" /><span className="text-gray-500 dark:text-text-secondary">Merchant</span><span className="ml-auto font-medium text-gray-900 dark:text-text-primary">{transaction.merchant}</span></div>
           )}
-          <div className="flex items-center gap-3 text-sm"><Receipt className="h-4 w-4 shrink-0 text-gray-400" /><span className="text-gray-500">Source</span><span className="ml-auto font-medium capitalize text-gray-900">{transaction.source.replace('-', ' ')}</span></div>
+          <div className="flex items-center gap-3 text-sm"><Receipt className="h-4 w-4 shrink-0 text-gray-400 dark:text-text-muted" /><span className="text-gray-500 dark:text-text-secondary">Source</span><span className="ml-auto font-medium capitalize text-gray-900 dark:text-text-primary">{transaction.source.replace('-', ' ')}</span></div>
         </div>
 
         <div className="mt-6 flex gap-3 border-t border-gray-100 pt-5">

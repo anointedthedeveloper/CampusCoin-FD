@@ -9,6 +9,7 @@ router.use(protect);
 router.get('/monthly', async (req, res) => {
   try {
     const month = req.query.month || new Date().toISOString().slice(0, 7);
+    if (!/^\d{4}-\d{2}$/.test(month)) return res.status(400).json({ message: 'month must be in YYYY-MM format' });
     const [year, mon] = month.split('-').map(Number);
     const start = new Date(year, mon - 1, 1);
     const end = new Date(year, mon, 1);

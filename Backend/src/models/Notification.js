@@ -11,6 +11,9 @@ const notificationSchema = new mongoose.Schema(
     title: { type: String, required: true },
     message: { type: String, required: true },
     isRead: { type: Boolean, default: false },
+    // Optional structured context (e.g. { budgetId, categoryId, month, percentage })
+    // for internal dedupe/lookups. Not part of the public API contract.
+    meta: { type: mongoose.Schema.Types.Mixed },
   },
   { timestamps: true },
 );

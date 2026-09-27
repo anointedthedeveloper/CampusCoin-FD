@@ -7,7 +7,6 @@ export const PUBLIC_ROUTES = {
   adminLogin: '/adlg',
   register: '/register',
   forgotPassword: '/forgot-password',
-  resetPassword: '/reset-password/:token',
 } as const;
 
 export const STUDENT_ROUTES = {

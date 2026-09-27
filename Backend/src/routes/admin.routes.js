@@ -3,10 +3,16 @@ const User = require('../models/User');
 const Category = require('../models/Category');
 const Transaction = require('../models/Transaction');
 const Announcement = require('../models/Announcement');
+const Budget = require('../models/Budget');
+const Notification = require('../models/Notification');
+const Insight = require('../models/Insight');
+const Bookmark = require('../models/Bookmark');
 const { protect, requireAdmin } = require('../middleware/auth');
+const { validateIdParam } = require('../utils/objectId');
 
 // All admin routes require auth + admin role
 router.use(protect, requireAdmin);
+router.param('id', validateIdParam);
 
 /* ─────────────────────────────── USERS ─────────────────────────────── */
 
@@ -82,11 +88,27 @@ router.patch('/users/:id', async (req, res) => {
   }
 });
 
-// DELETE /api/v1/admin/users/:id
+// DELETE /api/v1/admin/users/:id — also removes all of the user's own data
+// (transactions, budgets, categories, notifications, insights, bookmarks) so
+// a deleted account doesn't leave orphaned financial records behind.
 router.delete('/users/:id', async (req, res) => {
   try {
+    if (req.params.id === req.user._id.toString()) {
+      return res.status(400).json({ message: 'You cannot delete your own admin account.' });
+    }
+
     const user = await User.findByIdAndDelete(req.params.id);
     if (!user) return res.status(404).json({ message: 'User not found' });
+
+    await Promise.all([
+      Transaction.deleteMany({ userId: user._id }),
+      Budget.deleteMany({ userId: user._id }),
+      Category.deleteMany({ userId: user._id }),
+      Notification.deleteMany({ userId: user._id }),
+      Insight.deleteMany({ userId: user._id }),
+      Bookmark.deleteMany({ userId: user._id }),
+    ]);
+
     res.json({ data: null, message: 'User deleted' });
   } catch (err) {
     console.error(err);
@@ -116,6 +138,7 @@ router.post('/categories', async (req, res) => {
   try {
     const { name, type, icon, color } = req.body;
     if (!name?.trim() || !type) return res.status(400).json({ message: 'Name and type are required' });
+    if (!['income', 'expense'].includes(type)) return res.status(400).json({ message: "type must be 'income' or 'expense'" });
     const cat = await Category.create({ name: name.trim(), type, icon, color, userId: null, isDefault: true });
     res.status(201).json({ data: formatCat(cat) });
   } catch (err) {
@@ -173,6 +196,9 @@ router.post('/announcements', async (req, res) => {
   try {
     const { title, body, audience, publishNow } = req.body;
     if (!title?.trim() || !body?.trim() || !audience) return res.status(400).json({ message: 'title, body and audience are required' });
+    if (!['all', 'students', 'admins'].includes(audience)) {
+      return res.status(400).json({ message: "audience must be 'all', 'students' or 'admins'" });
+    }
     const ann = await Announcement.create({ title, body, audience, publishedAt: publishNow ? new Date() : null, createdBy: req.user._id });
     res.status(201).json({ data: formatAnn(ann) });
   } catch (err) {
@@ -186,6 +212,9 @@ router.patch('/announcements/:id', async (req, res) => {
   try {
     const ann = await Announcement.findById(req.params.id);
     if (!ann) return res.status(404).json({ message: 'Announcement not found' });
+    if (req.body.audience !== undefined && !['all', 'students', 'admins'].includes(req.body.audience)) {
+      return res.status(400).json({ message: "audience must be 'all', 'students' or 'admins'" });
+    }
     ['title', 'body', 'audience'].forEach((k) => { if (req.body[k] !== undefined) ann[k] = req.body[k]; });
     if (req.body.publishNow) ann.publishedAt = new Date();
     await ann.save();
