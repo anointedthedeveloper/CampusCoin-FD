@@ -37,9 +37,6 @@ const LoginPage = lazy(() =>
 const RegisterPage = lazy(() =>
   import('@/pages/auth/RegisterPage').then((page) => ({ default: page.RegisterPage })),
 );
-const ResetPasswordPage = lazy(() =>
-  import('@/pages/auth/ResetPasswordPage').then((page) => ({ default: page.ResetPasswordPage })),
-);
 
 const OnboardingPage = lazy(() =>
   import('@/pages/onboarding').then((page) => ({ default: page.OnboardingPage })),
@@ -147,7 +144,6 @@ export function AppRoutes() {
           <Route path={PUBLIC_ROUTES.adminLogin} element={<AdminLoginPage />} />
           <Route path={PUBLIC_ROUTES.register} element={<RegisterPage />} />
           <Route path={PUBLIC_ROUTES.forgotPassword} element={<ForgotPasswordPage />} />
-          <Route path={PUBLIC_ROUTES.resetPassword} element={<ResetPasswordPage />} />
         </Route>
 
         {/* Student application (requires authentication) */}

@@ -117,6 +117,10 @@ export function DashboardPage() {
   const { transactions, categories, budgetSummary, report, notifications, tips, insight } = data!;
   const catMap = Object.fromEntries(categories.map((c) => [c.id, c.name]));
   const hasAnyTransactions = transactions.length > 0;
+  // Onboarding creates real budgets/categories with zero transactions logged
+  // yet — gating the whole dashboard on transaction count alone hid all of
+  // that setup and made a freshly-onboarded account look untouched.
+  const hasBudgets = (budgetSummary?.budgets.length ?? 0) > 0;
   const onboardingStatus = user.onboarding?.status ?? 'not_started';
   const setupIncomplete = onboardingStatus !== 'completed';
   const balance = transactions.reduce((sum, t) => sum + (t.type === 'income' ? t.amount : -t.amount), 0);
@@ -127,8 +131,8 @@ export function DashboardPage() {
   const categoryBreakdown = report?.categoryBreakdown ?? [];
   const totalExpenseThisMonth = report?.totalExpense ?? 0;
 
-  // ── Empty state (no transactions yet) ─────────────────────────────
-  if (!hasAnyTransactions) {
+  // ── Empty state (genuinely nothing set up yet) ─────────────────────
+  if (!hasAnyTransactions && !hasBudgets) {
     return (
       <div className="space-y-6">
         <div>

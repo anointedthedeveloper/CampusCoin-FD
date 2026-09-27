@@ -109,10 +109,10 @@ export function StudentLayout() {
       <aside
         className={cn(
           'fixed inset-y-0 left-0 z-50 flex w-[15rem] shrink-0 -translate-x-full flex-col',
-          'bg-gray-950 text-gray-100',
+          'bg-brand-950 text-gray-100',
           'transition-transform duration-300 ease-spring',
           'lg:sticky lg:top-0 lg:h-screen lg:translate-x-0',
-          'dark:bg-gray-950',
+          'dark:bg-brand-950',
           isSidebarOpen && 'translate-x-0',
         )}
       >
