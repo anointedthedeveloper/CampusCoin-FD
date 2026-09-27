@@ -34,50 +34,6 @@
       })();
     </script>
     <style>
-      #tawk-chat-toggle {
-        position: fixed;
-        right: 20px;
-        bottom: 20px;
-        z-index: 9999;
-        display: inline-flex;
-        width: 56px;
-        height: 56px;
-        align-items: center;
-        justify-content: center;
-        border: 2px solid #ffffff;
-        border-radius: 50%;
-        background: #ffffff;
-        color: #168c50;
-        box-shadow:
-          0 0 0 1px rgba(21, 128, 61, 0.12),
-          0 14px 28px rgba(21, 128, 61, 0.22);
-        cursor: pointer;
-        transition:
-          transform 0.2s ease,
-          box-shadow 0.2s ease;
-      }
-
-      #tawk-chat-toggle:hover {
-        transform: translateY(-2px);
-        box-shadow:
-          0 0 0 1px rgba(21, 128, 61, 0.12),
-          0 18px 32px rgba(21, 128, 61, 0.3);
-      }
-
-      #tawk-chat-toggle:focus-visible {
-        outline: 3px solid #86efac;
-        outline-offset: 3px;
-      }
-
-      html.dark #tawk-chat-toggle {
-        border-color: #123526;
-        background: #123526;
-        color: #25c76a;
-        box-shadow:
-          0 0 0 1px rgba(255, 255, 255, 0.08),
-          0 14px 28px rgba(0, 0, 0, 0.35);
-      }
-
       #initial-page-loader {
         position: fixed;
         inset: 0;
@@ -158,7 +114,6 @@
       }
 
       @media (prefers-reduced-motion: reduce) {
-        #tawk-chat-toggle,
         #initial-page-loader .loader-coin {
           transition: none;
           animation: none;
@@ -181,138 +136,6 @@
       <p class="loader-message">Getting your campus wallet ready</p>
     </div>
     <div id="root"></div>
-    <button id="tawk-chat-toggle" type="button" aria-label="Open chat support">
-      <svg
-        width="22"
-        height="22"
-        viewBox="0 0 24 24"
-        fill="none"
-        aria-hidden="true"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M7 18.5V16H5.5C3.57 16 2 14.43 2 12.5V7.5C2 5.57 3.57 4 5.5 4H18.5C20.43 4 22 5.57 22 7.5V12.5C22 14.43 20.43 16 18.5 16H11L7 18.5Z"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-        <path
-          d="M8.5 9.5H15.5M8.5 12.5H13.5"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linecap="round"
-        />
-      </svg>
-    </button>
     <script type="module" src="/src/main.tsx"></script>
-
-    <!--Start of Tawk.to Script-->
-    <script type="text/javascript">
-      var campusCoinPageTitle = document.title;
-      var restoreCampusCoinTitle = function () {
-        if (document.title !== campusCoinPageTitle) {
-          document.title = campusCoinPageTitle;
-        }
-      };
-
-      var pageTitleObserver = new MutationObserver(function () {
-        if (document.visibilityState === 'visible') {
-          restoreCampusCoinTitle();
-        }
-      });
-      pageTitleObserver.observe(document.querySelector('title'), {
-        childList: true,
-        characterData: true,
-        subtree: true,
-      });
-      window.addEventListener('focus', restoreCampusCoinTitle);
-      document.addEventListener('visibilitychange', function () {
-        if (document.visibilityState === 'visible') {
-          restoreCampusCoinTitle();
-        }
-      });
-
-      window.Tawk_API = window.Tawk_API || {};
-      var hideTawkWidget = function () {
-        if (typeof window.Tawk_API.hideWidget === 'function') {
-          window.Tawk_API.hideWidget();
-        }
-      };
-      // Tawk's own launcher (and its default "1 new message" greeting/trigger
-      // bubble) is hidden in favor of our own toggle button. onLoad covers
-      // the initial render; the other two catch a proactive trigger
-      // (configured in the Tawk.to dashboard) popping it back open on its
-      // own after load — onUnreadCountChanged is the one that actually
-      // fires for that "1 new message" badge specifically (a trigger message
-      // increments the unread count without necessarily going through
-      // onChatMessageVisitor, which is about the visitor's own messages).
-      // A guaranteed, permanent fix for the default greeting itself still
-      // needs "Automated Triggers" turned off in the Tawk.to dashboard —
-      // this is a best-effort client-side suppression, not a substitute.
-      window.Tawk_API.onLoad = hideTawkWidget;
-      window.Tawk_API.onChatMessageVisitor = hideTawkWidget;
-      window.Tawk_API.onUnreadCountChanged = hideTawkWidget;
-
-      // isTawkChatOpen tracks state ourselves rather than trusting
-      // Tawk_API.toggle()'s own internal previous-state tracking, which the
-      // repeated hideWidget() calls above (onLoad, onUnreadCountChanged)
-      // can leave out of sync with what's actually on screen — an
-      // inconsistent starting state is a plausible cause of the widget
-      // occasionally opening in an unexpected (fullscreen) render on desktop
-      // instead of a normal small window. showWidget()+maximize()/minimize()
-      // are unambiguous regardless of whatever state hideWidget() left it in.
-      var isTawkChatOpen = false;
-      document.getElementById('tawk-chat-toggle')?.addEventListener('click', function () {
-        if (isTawkChatOpen && typeof window.Tawk_API.minimize === 'function') {
-          window.Tawk_API.minimize();
-          isTawkChatOpen = false;
-          return;
-        }
-
-        if (typeof window.Tawk_API.showWidget === 'function') {
-          window.Tawk_API.showWidget();
-        }
-        if (typeof window.Tawk_API.maximize === 'function') {
-          window.Tawk_API.maximize();
-        } else if (typeof window.Tawk_API.toggle === 'function') {
-          window.Tawk_API.toggle();
-        }
-        isTawkChatOpen = true;
-      });
-
-      // minimize()/hideWidget() from either side (visitor closes the chat
-      // window itself, not just our button) should also reset our tracked
-      // state, so the next click reliably opens rather than trying to
-      // minimize something already closed.
-      window.Tawk_API.onChatMinimized = function () {
-        isTawkChatOpen = false;
-      };
-      window.Tawk_API.onChatHidden = function () {
-        isTawkChatOpen = false;
-      };
-
-      var Tawk_LoadStart = new Date();
-      // Deferred to idle time rather than injected immediately: Tawk's own
-      // init work is heavy enough to show up as a long task (poor INP) if it
-      // lands while someone's mid-keystroke on, say, the signup form. Nothing
-      // about the widget is time-critical on first paint, so idle (or a
-      // short timeout fallback) is a strictly better time to pay that cost.
-      var loadTawk = function () {
-        var script = document.createElement('script');
-        var firstScript = document.getElementsByTagName('script')[0];
-        script.async = true;
-        script.src = 'https://embed.tawk.to/6ab60daff74c113446a800dc/1k3biatf4';
-        script.charset = 'UTF-8';
-        script.setAttribute('crossorigin', '*');
-        firstScript.parentNode.insertBefore(script, firstScript);
-      };
-      if ('requestIdleCallback' in window) {
-        window.requestIdleCallback(loadTawk, { timeout: 4000 });
-      } else {
-        setTimeout(loadTawk, 2500);
-      }
-    </script>
-    <!--End of Tawk.to Script-->
   </body>
 </html>

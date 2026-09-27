@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { EyeOff, Lightbulb, ListChecks, Sparkles, Wallet } from 'lucide-react';
 import { PUBLIC_ROUTES } from '@/constants/routes';
+import { assets } from '@/assets/images';
 
 const values = [
   {
@@ -53,96 +54,97 @@ const steps = [
 
 export function AboutPage() {
   return (
-    <div>
-      <section className="mx-auto max-w-[1280px] px-4 pb-4 pt-10 sm:px-6 lg:pt-14">
-        <p className="text-sm font-semibold uppercase tracking-wide text-[#1a8f57] dark:text-primary-accent">About Campus Coin</p>
-        <h1 className="mt-3 max-w-2xl text-4xl font-bold leading-[1.05] tracking-[-0.02em] text-[#1d3d2d] dark:text-text-primary sm:text-5xl">
-          Budgeting software built for how students actually spend money
-        </h1>
-        <p className="mt-5 max-w-2xl text-base leading-relaxed text-gray-600 dark:text-text-secondary sm:text-lg">
-          Most finance apps assume a fixed monthly paycheck and a linked bank account. Campus Coin
-          doesn&apos;t. It&apos;s built around the reality of student income and spending — canteen
-          food, hostel rent, textbooks, transport, and the occasional night out — so tracking it
-          takes seconds, not a finance degree.
-        </p>
+    <div className="overflow-hidden">
+      <section className="mx-auto grid max-w-[1200px] items-center gap-10 px-4 pb-14 pt-12 sm:px-6 sm:pb-20 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:pt-16">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#1a8f57] dark:text-primary-accent">The thinking behind Campus Coin</p>
+          <h1 className="mt-5 max-w-2xl text-4xl font-bold leading-[1.08] text-[#1d3d2d] dark:text-text-primary sm:text-5xl lg:text-[3.5rem]">
+            Money management should fit student life.
+          </h1>
+          <p className="mt-5 max-w-xl text-base leading-7 text-gray-600 dark:text-text-secondary">
+            Most finance apps assume a fixed paycheck and a linked bank account. Campus Coin starts somewhere more familiar: allowance, gig work, scholarships, gifts, and the everyday costs of campus.
+          </p>
+          <Link to={PUBLIC_ROUTES.features} className="mt-7 inline-flex items-center gap-2 border-b-2 border-[#1c8f53] pb-1 text-sm font-bold text-[#1c8f53] transition-colors hover:text-[#146b3d] dark:text-primary-accent dark:hover:text-white">
+            Explore how it works <span aria-hidden="true">-&gt;</span>
+          </Link>
+        </div>
+        <figure className="relative flex min-h-[300px] items-center justify-center overflow-hidden bg-[#e6f0e4] px-8 pt-8 dark:bg-surface-elevated sm:min-h-[390px]">
+          <div className="absolute left-0 top-0 h-1 w-20 bg-[#1c8f53]" />
+          <img src={assets.heroPhone} alt="Campus Coin mobile dashboard preview" className="relative z-10 max-h-[360px] max-w-full object-contain object-bottom" />
+          <figcaption className="absolute bottom-4 left-4 text-xs font-semibold text-[#1d3d2d]/70 dark:text-text-secondary">A practical view of your money, wherever you are</figcaption>
+        </figure>
       </section>
 
-      <section className="mx-auto max-w-[1280px] px-4 py-10 sm:px-6">
-        <div className="grid gap-10 rounded-[28px] bg-white p-8 shadow-sm dark:bg-surface-elevated dark:shadow-black/20 sm:p-10 lg:grid-cols-2 lg:gap-16">
+      <section className="border-y border-[#1d3d2d]/10 bg-white/60 dark:border-white/10 dark:bg-surface/50">
+        <div className="mx-auto grid max-w-[1200px] gap-8 px-4 py-12 sm:px-6 lg:grid-cols-[0.7fr_1fr_1fr] lg:gap-12 lg:py-16">
           <div>
-            <h2 className="text-2xl font-bold text-[#1d3d2d] dark:text-text-primary">Why we built this</h2>
-            <p className="mt-4 text-sm leading-relaxed text-gray-600 dark:text-text-secondary">
-              College and university students receive money from multiple, irregular sources —
-              allowance from family, part-time or gig income, scholarships, occasional gifts — and
-              rarely track where it actually goes. Generic personal-finance apps are built for
-              salaried adults with fixed pay cycles and bank integrations; they&apos;re often too
-              complex, subscription-gated, or simply irrelevant to a student&apos;s spending
-              patterns.
+            <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#1c8f53] dark:text-primary-accent">Why it exists</p>
+            <h2 className="mt-3 text-2xl font-bold leading-tight text-[#1d3d2d] dark:text-text-primary">A different starting point.</h2>
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-[#1d3d2d] dark:text-text-primary">The reality</h3>
+            <p className="mt-3 text-sm leading-7 text-gray-600 dark:text-text-secondary">
+              Students often receive money from several irregular sources and rarely have a simple way to see where it goes. Tools made for salaried adults can feel complex, costly, or disconnected from campus spending.
             </p>
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-[#1d3d2d] dark:text-text-primary">What Campus Coin does instead</h2>
-            <p className="mt-4 text-sm leading-relaxed text-gray-600 dark:text-text-secondary">
-              It makes logging income and expenses effortless, shows spending by category without
-              any setup, and turns your own transaction history into saving tips you can actually
-              use — with optional AI help to categorize expenses and summarize the month in plain
-              language, always reviewable before it&apos;s final.
+            <h3 className="text-sm font-bold text-[#1d3d2d] dark:text-text-primary">Our response</h3>
+            <p className="mt-3 text-sm leading-7 text-gray-600 dark:text-text-secondary">
+              Campus Coin makes it easy to log money, see spending by category, and get useful saving tips from your own history. Optional AI suggestions stay reviewable and under your control.
             </p>
           </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-[1280px] px-4 py-10 sm:px-6">
-        <h2 className="text-2xl font-bold text-[#1d3d2d] dark:text-text-primary">What you get</h2>
-        <div className="mt-6 grid gap-6 sm:grid-cols-2">
-          {values.map(({ icon: Icon, title, description, badgeClassName }) => (
-            <div
-              key={title}
-              className="group rounded-[26px] bg-[#f6f4ee] p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:bg-[#f2efe9] hover:shadow-md dark:bg-surface-elevated dark:hover:bg-white/[0.04] dark:hover:shadow-black/30"
-            >
-              <span
-                className={`mb-4 flex h-12 w-12 items-center justify-center rounded-full transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6 ${badgeClassName}`}
-              >
-                <Icon className="h-5 w-5" />
+      <section className="mx-auto max-w-[1200px] px-4 py-14 sm:px-6 sm:py-20">
+        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#1c8f53] dark:text-primary-accent">What guides the product</p>
+            <h2 className="mt-3 text-3xl font-bold text-[#1d3d2d] dark:text-text-primary">Useful by design.</h2>
+          </div>
+          <p className="max-w-md text-sm leading-6 text-gray-600 dark:text-text-secondary">Tools for building a clearer picture, without handing over control.</p>
+        </div>
+        <div className="mt-8 grid border-y border-[#1d3d2d]/10 sm:grid-cols-2 dark:border-white/10">
+          {values.map(({ icon: Icon, title, description }, index) => (
+            <article key={title} className={`flex gap-4 py-6 ${index % 2 === 0 ? 'sm:border-r sm:border-[#1d3d2d]/10 sm:pr-8 dark:sm:border-white/10' : 'sm:pl-8'} ${index < 2 ? 'border-b border-[#1d3d2d]/10 dark:border-white/10' : ''}`}>
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center bg-[#e5f1e5] text-[#1c8f53] dark:bg-white/10 dark:text-primary-accent">
+                <Icon className="h-4 w-4" />
               </span>
-              <h3 className="font-semibold text-[#1d3d2d] dark:text-text-primary">{title}</h3>
-              <p className="mt-1.5 text-sm leading-relaxed text-gray-600 dark:text-text-secondary">{description}</p>
-            </div>
+              <div>
+                <h3 className="text-sm font-bold text-[#1d3d2d] dark:text-text-primary">{title}</h3>
+                <p className="mt-2 text-sm leading-6 text-gray-600 dark:text-text-secondary">{description}</p>
+              </div>
+            </article>
           ))}
         </div>
       </section>
 
-      <section className="mx-auto max-w-[1280px] px-4 py-10 sm:px-6">
-        <div className="rounded-[28px] bg-[#122a1f] px-6 py-12 text-white dark:bg-surface-elevated dark:shadow-lg dark:shadow-black/20 sm:px-12">
-          <div className="flex items-center gap-2 text-[#4ade80] dark:text-primary-accent">
+      <section className="bg-[#122a1f] text-white dark:bg-surface-elevated">
+        <div className="mx-auto max-w-[1200px] px-4 py-12 sm:px-6 sm:py-16">
+          <div className="flex items-center gap-3 text-[#78d99a] dark:text-primary-accent">
             <ListChecks className="h-5 w-5" />
-            <span className="text-sm font-semibold uppercase tracking-wide">How it works</span>
+            <p className="text-xs font-bold uppercase tracking-[0.14em]">How it works</p>
           </div>
-          <div className="mt-8 grid gap-8 sm:grid-cols-3">
-            {steps.map(({ step, title, description }) => (
-              <div key={step} className="transition-transform duration-300 hover:-translate-y-1">
-                <span className="text-3xl font-bold text-white/20">{step}</span>
-                <h3 className="mt-2 text-lg font-semibold">{title}</h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-white/60">{description}</p>
+          <div className="mt-8 grid gap-0 sm:grid-cols-3">
+            {steps.map(({ step, title, description }, index) => (
+              <div key={step} className={`py-5 sm:pr-7 ${index > 0 ? 'border-t border-white/15 sm:border-l sm:border-t-0 sm:pl-7' : ''}`}>
+                <span className="text-xs font-bold text-[#78d99a] dark:text-primary-accent">{step}</span>
+                <h3 className="mt-3 text-lg font-bold">{title}</h3>
+                <p className="mt-2 text-sm leading-6 text-white/65">{description}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-[1280px] px-4 pb-16 pt-4 sm:px-6">
-        <div className="flex flex-col items-center gap-4 rounded-[28px] bg-[#d7f0d1] px-6 py-10 text-center dark:bg-surface-elevated dark:shadow-lg dark:shadow-black/20 sm:py-12">
-          <h2 className="text-2xl font-bold text-[#1d3d2d] dark:text-text-primary sm:text-3xl">Ready to see where your money goes?</h2>
-          <p className="max-w-md text-sm text-[#1d3d2d]/70 dark:text-text-secondary">
-            Free to use, no bank account required, and you&apos;re in control of every entry.
-          </p>
-          <Link
-            to={PUBLIC_ROUTES.register}
-            className="mt-2 rounded-xl bg-[#1c8f53] px-7 py-3.5 text-base font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#177e48] hover:shadow-lg hover:shadow-[#1c8f53]/20 active:translate-y-0 dark:bg-primary dark:hover:bg-primary-accent"
-          >
-            Get Started Free
-          </Link>
+      <section className="mx-auto flex max-w-[1200px] flex-col gap-5 px-4 py-10 sm:px-6 sm:py-12 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-[#1d3d2d] dark:text-text-primary">Ready to see where your money goes?</h2>
+          <p className="mt-2 text-sm text-gray-600 dark:text-text-secondary">Free to use, no bank account required, and you stay in control.</p>
         </div>
+        <Link to={PUBLIC_ROUTES.register} className="inline-flex w-fit items-center gap-2 bg-[#1c8f53] px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-[#177e48] dark:bg-primary dark:hover:bg-primary-accent">
+          Get started free <span aria-hidden="true">-&gt;</span>
+        </Link>
       </section>
     </div>
   );

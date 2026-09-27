@@ -184,46 +184,49 @@ const categories = [
 
 function FaqItem({ question, answer }: { question: string; answer: string }) {
   return (
-    <details className="group rounded-2xl bg-[#f6f4ee] p-5 transition-colors duration-200 open:bg-[#f2efe9] dark:bg-surface-elevated dark:open:bg-white/[0.04]">
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 font-semibold text-[#1d3d2d] dark:text-text-primary">
+    <details className="group border-b border-[#1d3d2d]/10 first:border-t dark:border-white/10">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-5 text-sm font-semibold text-[#1d3d2d] marker:hidden dark:text-text-primary sm:text-base">
         {question}
-        <ChevronDown className="h-4 w-4 shrink-0 text-gray-400 transition-transform duration-200 group-open:rotate-180 dark:text-text-muted" />
+        <ChevronDown className="h-4 w-4 shrink-0 text-[#1c8f53] transition-transform duration-200 group-open:rotate-180 dark:text-primary-accent" />
       </summary>
-      <p className="mt-3 text-sm leading-relaxed text-gray-600 dark:text-text-secondary">{answer}</p>
+      <p className="max-w-3xl pb-5 pr-8 text-sm leading-7 text-gray-600 dark:text-text-secondary">{answer}</p>
     </details>
   );
 }
 
 export function FaqPage() {
   return (
-    <div>
-      <section className="mx-auto max-w-[1280px] px-4 pb-4 pt-10 sm:px-6 lg:pt-14">
-        <div className="flex items-center gap-2 text-[#1a8f57] dark:text-primary-accent">
-          <HelpCircle className="h-5 w-5" />
-          <p className="text-sm font-semibold uppercase tracking-wide">Help & FAQ</p>
+    <div className="overflow-hidden">
+      <section className="border-b border-[#1d3d2d]/10 dark:border-white/10">
+        <div className="mx-auto max-w-[1200px] px-4 pb-10 pt-12 sm:px-6 sm:pb-14 lg:pt-16">
+          <div className="flex items-center gap-2 text-[#1a8f57] dark:text-primary-accent">
+            <HelpCircle className="h-4 w-4" />
+            <p className="text-xs font-bold uppercase tracking-[0.14em]">Help & FAQ</p>
+          </div>
+          <div className="mt-4 grid gap-5 md:grid-cols-[1fr_0.65fr] md:items-end">
+            <h1 className="max-w-2xl text-4xl font-bold leading-[1.08] text-[#1d3d2d] dark:text-text-primary sm:text-5xl lg:text-[3.5rem]">
+              Answers for your money questions.
+            </h1>
+            <p className="max-w-lg text-sm leading-7 text-gray-600 dark:text-text-secondary sm:text-base">
+              Find quick guidance on getting started, tracking transactions, setting budgets, and keeping your information private.
+            </p>
+          </div>
         </div>
-        <h1 className="mt-3 max-w-2xl text-4xl font-bold leading-[1.05] tracking-[-0.02em] text-[#1d3d2d] dark:text-text-primary sm:text-5xl">
-          Frequently asked questions
-        </h1>
-        <p className="mt-5 max-w-2xl text-base leading-relaxed text-gray-600 dark:text-text-secondary sm:text-lg">
-          Everything you need to know about Campus Coin — from getting started to understanding your
-          reports and saving tips.
-        </p>
       </section>
 
-      <section className="mx-auto max-w-[1280px] px-4 py-10 sm:px-6">
-        <div className="grid gap-10 lg:grid-cols-[220px_1fr] lg:gap-16">
-          {/* Sticky category nav on desktop */}
-          <nav className="hidden lg:block">
-            <ul className="sticky top-24 space-y-1">
+      <section className="mx-auto max-w-[1200px] px-4 py-10 sm:px-6 sm:py-14">
+        <div className="grid gap-8 lg:grid-cols-[210px_1fr] lg:gap-16">
+          <nav aria-label="FAQ topics" className="lg:block">
+            <p className="mb-3 text-xs font-bold uppercase tracking-[0.14em] text-gray-500 dark:text-text-muted">Browse by topic</p>
+            <ul className="flex gap-2 overflow-x-auto pb-2 lg:sticky lg:top-24 lg:flex-col lg:overflow-visible lg:pb-0">
               {categories.map(({ key, icon: Icon, label, color }) => (
                 <li key={key}>
                   <a
                     href={`#${key}`}
-                    className="group flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-gray-600 transition-colors duration-200 hover:bg-[#f6f4ee] hover:text-[#1d3d2d] dark:text-text-secondary dark:hover:bg-white/5 dark:hover:text-text-primary"
+                    className="flex w-max items-center gap-2 whitespace-nowrap border border-[#1d3d2d]/10 px-3 py-2 text-xs font-semibold text-gray-600 transition-colors hover:border-[#1c8f53]/40 hover:text-[#1c8f53] dark:border-white/10 dark:text-text-secondary dark:hover:text-primary-accent lg:w-full lg:text-sm"
                   >
-                    <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${color}`}>
-                      <Icon className="h-3.5 w-3.5" />
+                    <span className={`flex h-6 w-6 shrink-0 items-center justify-center ${color}`}>
+                      <Icon className="h-3 w-3" />
                     </span>
                     {label}
                   </a>
@@ -232,40 +235,37 @@ export function FaqPage() {
             </ul>
           </nav>
 
-          {/* FAQ sections */}
           <div className="space-y-12">
             {categories.map(({ key, icon: Icon, label, color, faqs }) => (
-              <div key={key} id={key}>
-                <div className="mb-5 flex items-center gap-3">
-                  <span className={`flex h-10 w-10 items-center justify-center rounded-full ${color}`}>
-                    <Icon className="h-5 w-5" />
+              <section key={key} id={key} className="scroll-mt-24">
+                <div className="mb-2 flex items-center gap-3">
+                  <span className={`flex h-8 w-8 items-center justify-center ${color}`}>
+                    <Icon className="h-4 w-4" />
                   </span>
-                  <h2 className="text-xl font-bold text-[#1d3d2d] dark:text-text-primary">{label}</h2>
+                  <h2 className="text-lg font-bold text-[#1d3d2d] dark:text-text-primary">{label}</h2>
                 </div>
-                <div className="space-y-3">
+                <div>
                   {faqs.map(({ question, answer }) => (
                     <FaqItem key={question} question={question} answer={answer} />
                   ))}
                 </div>
-              </div>
+              </section>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-[1280px] px-4 pb-16 pt-4 sm:px-6">
-        <div className="flex flex-col items-center gap-4 rounded-[28px] bg-[#122a1f] px-6 py-10 text-center text-white dark:bg-surface-elevated dark:shadow-lg dark:shadow-black/20 sm:py-12">
-          <Lock className="h-8 w-8 text-[#4ade80] dark:text-primary-accent" />
-          <h2 className="text-2xl font-bold sm:text-3xl">Still have questions?</h2>
-          <p className="max-w-md text-sm text-white/60">
-            Campus Coin is free, private, and requires no bank account. Jump in and explore — your
-            data is yours.
-          </p>
-          <Link
-            to={PUBLIC_ROUTES.register}
-            className="mt-2 rounded-xl bg-[#1c8f53] px-7 py-3.5 text-base font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#177e48] hover:shadow-lg hover:shadow-[#1c8f53]/20 active:translate-y-0 dark:bg-primary dark:hover:bg-primary-accent"
-          >
-            Get Started Free
+      <section className="bg-[#122a1f] text-white dark:bg-surface-elevated">
+        <div className="mx-auto flex max-w-[1200px] flex-col gap-5 px-4 py-10 sm:px-6 md:flex-row md:items-center md:justify-between md:py-12">
+          <div className="flex items-start gap-4">
+            <Lock className="mt-1 h-5 w-5 shrink-0 text-[#78d99a] dark:text-primary-accent" />
+            <div>
+              <h2 className="text-xl font-bold">Ready to take a closer look?</h2>
+              <p className="mt-2 max-w-xl text-sm leading-6 text-white/65">Campus Coin is free to use, needs no bank connection, and keeps every entry in your hands.</p>
+            </div>
+          </div>
+          <Link to={PUBLIC_ROUTES.register} className="inline-flex w-fit shrink-0 items-center gap-2 bg-[#1c8f53] px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-[#25a864]">
+            Get started free <span aria-hidden="true">-&gt;</span>
           </Link>
         </div>
       </section>
