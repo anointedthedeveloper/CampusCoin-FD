@@ -1,6 +1,6 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { STUDENT_ROUTES } from '@/constants/routes';
+import { PUBLIC_ROUTES, STUDENT_ROUTES } from '@/constants/routes';
 import { PageLoader } from '@/components/common';
 import type { UserRole } from '@/types/user';
 
@@ -16,7 +16,7 @@ export function RoleRoute({ allow }: { allow: UserRole[] }) {
   }
 
   if (!user || !allow.includes(user.role)) {
-    return <Navigate to={STUDENT_ROUTES.dashboard} replace />;
+    return <Navigate to={user ? STUDENT_ROUTES.dashboard : PUBLIC_ROUTES.adminLogin} replace />;
   }
 
   return <Outlet />;

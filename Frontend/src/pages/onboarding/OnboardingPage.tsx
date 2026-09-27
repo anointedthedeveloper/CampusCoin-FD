@@ -89,6 +89,22 @@ export function OnboardingPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isCreatingWallet, setIsCreatingWallet] = useState(false);
+  const [walletMsgIdx, setWalletMsgIdx] = useState(0);
+
+  const WALLET_MESSAGES = [
+    'Creating your wallet…',
+    'Setting up your categories…',
+    'Get ready…',
+    'Almost done…',
+    'Final touches…',
+  ];
+
+  useEffect(() => {
+    if (!isCreatingWallet) { setWalletMsgIdx(0); return; }
+    const id = setInterval(() => setWalletMsgIdx((i) => Math.min(i + 1, WALLET_MESSAGES.length - 1)), 2800);
+    return () => clearInterval(id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isCreatingWallet]);
 
   const [incomeSources, setIncomeSources] = useState<string[]>([]);
   const [incomeAmount, setIncomeAmount] = useState('');
@@ -234,7 +250,7 @@ export function OnboardingPage() {
                 <Wallet className="h-7 w-7 animate-pulse" />
                 <span className="absolute inset-0 animate-ping rounded-full bg-brand-400/30 dark:bg-primary-accent/30" />
               </span>
-              <h1 className="mt-5 text-xl font-bold text-brand-900 dark:text-text-primary">Creating your wallet…</h1>
+              <h1 className="mt-5 text-xl font-bold text-brand-900 dark:text-text-primary">{WALLET_MESSAGES[walletMsgIdx]}</h1>
               <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-gray-500 dark:text-text-secondary">
                 Setting up your budget, categories, and savings tracking. This only takes a moment.
               </p>

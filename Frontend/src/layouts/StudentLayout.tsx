@@ -36,14 +36,10 @@ const navItems = [
 ];
 
 const TOUR_STEPS = [
-  { label: 'Dashboard',       title: 'Your money at a glance',        text: 'Jump back here anytime for your balance, income vs. expenses, budgets, and savings progress all in one place.' },
-  { label: 'Add Transaction', title: 'Add your first transaction',     text: 'Log income or expenses as they happen. This powers everything — your balance, budgets, reports, and saving tips all come from this.' },
-  { label: 'Transactions',    title: 'Review your full history',       text: 'See every transaction you\'ve logged, search through them, and filter by category.' },
-  { label: 'Budgets',         title: 'Set a spending limit',           text: 'Cap how much you plan to spend per category each month and get warned before going over.' },
-  { label: 'Reports',         title: 'See where your money goes',      text: 'A deeper breakdown of your spending over time — trends, category splits, and exportable monthly reports.' },
-  { label: 'Saving Tips',     title: 'Pick up practical money habits', text: 'Bite-sized tips on saving money as a student, tailored to how you spend.' },
-  { label: 'AI Assistant',    title: 'Ask for help anytime',           text: 'Ask questions about your spending in plain language and get quick, personalised answers.' },
-  { label: 'Categories',      title: 'Manage your categories',         text: 'Customise the categories your transactions get sorted into — rename, add, or remove them.' },
+  { label: 'Dashboard',       title: 'Your money at a glance',    text: 'Balance, income, expenses, budgets, and savings — all here.' },
+  { label: 'Add Transaction', title: 'Log as you go',             text: 'Add income or expenses in seconds. Everything else updates automatically.' },
+  { label: 'Budgets',         title: 'Set spending limits',       text: 'Cap spending per category each month and get warned before you go over.' },
+  { label: 'AI Assistant',    title: 'Ask anything',              text: 'Ask about your spending in plain language and get instant answers.' },
 ];
 
 export function StudentLayout() {
