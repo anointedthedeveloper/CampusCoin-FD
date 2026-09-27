@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { EyeOff, Lightbulb, ListChecks, Sparkles, Wallet } from 'lucide-react';
 import { PUBLIC_ROUTES } from '@/constants/routes';
 import { assets } from '@/assets/images';
+import { DeviceShowcase } from '@/components/common';
 
 const values = [
   {
@@ -69,13 +70,20 @@ export function AboutPage() {
             Explore how it works <span aria-hidden="true">&rarr;</span>
           </Link>
         </div>
-        <figure className="relative flex min-h-[340px] flex-col overflow-hidden rounded-[28px] bg-[#e6f0e4] px-8 pt-8 shadow-card dark:bg-surface-elevated dark:shadow-dark-card sm:min-h-[430px]">
-          <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-white/80 px-3 py-1 text-[11px] font-semibold text-[#1c8f53] shadow-sm dark:bg-white/10 dark:text-primary-accent">
+        <figure className="relative min-h-[340px] overflow-hidden rounded-[28px] shadow-card dark:shadow-dark-card sm:min-h-[430px]">
+          <span className="absolute left-6 top-6 z-10 inline-flex w-fit items-center gap-1.5 rounded-full bg-white/90 px-3 py-1 text-[11px] font-semibold text-[#1c8f53] shadow-sm dark:bg-white/10 dark:text-primary-accent">
             <span className="h-1.5 w-1.5 rounded-full bg-[#1c8f53] dark:bg-primary-accent" />
             Built for campus life
           </span>
-          <img src={assets.heroPhone} alt="Campus Coin mobile dashboard preview" className="relative z-10 mt-4 max-h-[300px] flex-1 object-contain object-bottom sm:max-h-[340px]" />
-          <figcaption className="pb-5 text-xs font-semibold text-[#1d3d2d]/70 dark:text-text-secondary">A practical view of your money, wherever you are</figcaption>
+          <DeviceShowcase
+            tone="dark"
+            className="flex min-h-[340px] items-center justify-center sm:min-h-[430px]"
+            screenshot={assets.screenshots.dashboard}
+            screenshotAlt="Campus Coin dashboard preview"
+          />
+          <figcaption className="absolute bottom-5 left-6 right-6 text-xs font-semibold text-white/70">
+            A practical view of your money, wherever you are
+          </figcaption>
         </figure>
       </section>
 
