@@ -156,9 +156,10 @@ export function HomePage() {
                 <span className="text-[#1a8f57] dark:text-primary-accent">campus</span>
               </h1>
 
-              <p className="mt-4 max-w-[440px] animate-fade-in-up text-base leading-relaxed text-gray-700 [animation-delay:150ms] dark:text-text-secondary sm:mt-5 sm:text-lg">
-                Campus Coin makes it easy to track spending, stick to a budget, and understand where
-                your money goes — all in one place built for students.
+              <p className="mt-4 max-w-[460px] animate-fade-in-up text-base leading-relaxed text-gray-700 [animation-delay:150ms] dark:text-text-secondary sm:mt-5 sm:text-lg">
+                Log allowance, gig income, and scholarships as they land, cap spending per category
+                with real-time budget bars, and get AI-assisted saving tips from your own habits —
+                no bank account required.
               </p>
 
               <div className="mt-5 flex animate-fade-in-up flex-wrap gap-3 [animation-delay:200ms] sm:mt-8 sm:gap-4">

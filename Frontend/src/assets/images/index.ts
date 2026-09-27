@@ -2,6 +2,7 @@ import aboutDeskDark from './about-desk-dark.webp';
 import authHero from './auth-hero.webp';
 import featuresDesk from './features-desk.webp';
 import featuresDeskDark from './features-desk-dark.webp';
+import faqIllustration from './faq-illustration.webp';
 import heroBackground from './herobg-desk.webp';
 import heroPhone from './herophone.png';
 import logo from './logo.webp';
@@ -15,6 +16,7 @@ export const assets = {
   authHero,
   featuresDesk,
   featuresDeskDark,
+  faqIllustration,
   heroBackground,
   heroPhone,
   logo,

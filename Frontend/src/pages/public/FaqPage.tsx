@@ -7,9 +7,7 @@ import {
   FileSpreadsheet,
   HelpCircle,
   Lock,
-  MessageCircle,
   PiggyBank,
-  Plus,
   Receipt,
   Search,
   ShieldCheck,
@@ -17,6 +15,7 @@ import {
   X,
 } from 'lucide-react';
 import { PUBLIC_ROUTES } from '@/constants/routes';
+import { assets } from '@/assets/images';
 import { cn } from '@/utils/cn';
 
 const categories = [
@@ -202,45 +201,16 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
 
 function FaqIllustration() {
   return (
-    <div className="relative mx-auto hidden h-[320px] w-full max-w-sm md:block lg:h-[380px]">
-      <div className="absolute inset-0 rounded-[40%] bg-[#c9e8ce]/60 blur-2xl dark:bg-primary/10" aria-hidden="true" />
-
-      {/* FAQ card */}
-      <div className="absolute right-2 top-4 w-[78%] -rotate-2 rounded-[24px] bg-white p-5 shadow-panel dark:bg-surface-elevated dark:shadow-dark-panel">
-        <p className="text-sm font-bold text-[#1d3d2d] dark:text-text-primary">FAQ</p>
-        <div className="mt-4 space-y-3">
-          {[100, 85, 92, 70].map((width, index) => (
-            <div key={index} className="flex items-center gap-2.5">
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#1c8f53] text-white dark:bg-primary">
-                <Plus className="h-3 w-3" />
-              </span>
-              <span
-                className="h-2.5 rounded-full bg-[#1d3d2d]/10 dark:bg-white/10"
-                style={{ width: `${width}%` }}
-              />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Question bubble */}
-      <div className="absolute left-0 top-0 flex h-24 w-24 rotate-[-6deg] items-center justify-center rounded-[28%_72%_70%_30%/30%_30%_70%_70%] bg-[#1c8f53] shadow-panel dark:bg-primary">
-        <HelpCircle className="h-10 w-10 text-white" strokeWidth={2.5} />
-      </div>
-
-      {/* Reply bubble */}
-      <div className="absolute bottom-6 right-6 flex h-14 w-14 rotate-3 items-center justify-center rounded-[30%_70%_70%_30%/30%_30%_70%_70%] bg-[#1c8f53] shadow-panel dark:bg-primary">
-        <MessageCircle className="h-5 w-5 text-white" />
-      </div>
-
-      <span className="absolute -left-1 bottom-16 h-2 w-2 rounded-full bg-[#1c8f53]/70 dark:bg-primary-accent/70" aria-hidden="true" />
-      <span className="absolute left-10 bottom-2 h-1.5 w-1.5 rounded-full bg-[#1c8f53]/50 dark:bg-primary-accent/50" aria-hidden="true" />
+    <div className="mx-auto hidden w-full max-w-sm overflow-hidden rounded-[28px] shadow-panel dark:shadow-dark-panel md:block lg:max-w-md">
+      <img src={assets.faqIllustration} alt="" aria-hidden="true" className="block w-full object-cover" />
     </div>
   );
 }
 
 export function FaqPage() {
   const [query, setQuery] = useState('');
+  const [expandedKey, setExpandedKey] = useState<string | null>(null);
+  const isSearching = query.trim().length > 0;
 
   const filteredCategories = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -256,6 +226,17 @@ export function FaqPage() {
   }, [query]);
 
   const hasResults = filteredCategories.length > 0;
+  const resultCount = useMemo(() => filteredCategories.reduce((sum, c) => sum + c.faqs.length, 0), [filteredCategories]);
+
+  function goToCategory(key: string) {
+    setQuery('');
+    setExpandedKey(key);
+    // Let the collapsed→expanded layout settle before scrolling, so the
+    // target section lands under the sticky header instead of short.
+    requestAnimationFrame(() => {
+      document.getElementById(key)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
 
   return (
     <div className="overflow-hidden">
@@ -281,7 +262,7 @@ export function FaqPage() {
             >
               <Search className="ml-3 h-4 w-4 shrink-0 text-gray-400 dark:text-text-muted" aria-hidden="true" />
               <input
-                type="search"
+                type="text"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="Search questions..."
@@ -305,6 +286,11 @@ export function FaqPage() {
                 Search
               </button>
             </form>
+            {isSearching && (
+              <p className="mt-3 text-xs font-medium text-gray-500 dark:text-text-muted">
+                {hasResults ? `${resultCount} question${resultCount === 1 ? '' : 's'} found` : 'No matches yet'}
+              </p>
+            )}
           </div>
 
           <FaqIllustration />
@@ -319,21 +305,25 @@ export function FaqPage() {
             <ul className="flex gap-2 overflow-x-auto pb-2 lg:sticky lg:top-24 lg:flex-col lg:overflow-visible lg:pb-0">
               {categories.map(({ key, icon: Icon, label, color }) => (
                 <li key={key}>
-                  <a
-                    href={`#${key}`}
-                    className="flex w-max items-center gap-2 whitespace-nowrap rounded-full bg-[#f6f4ee] px-3 py-2 text-xs font-semibold text-gray-600 transition-colors hover:bg-[#e5f1e5] hover:text-[#1c8f53] dark:bg-white/5 dark:text-text-secondary dark:hover:bg-white/10 dark:hover:text-primary-accent lg:w-full lg:text-sm"
+                  <button
+                    type="button"
+                    onClick={() => goToCategory(key)}
+                    className={cn(
+                      'flex w-max items-center gap-2 whitespace-nowrap rounded-full px-3 py-2 text-xs font-semibold text-gray-600 transition-colors hover:bg-[#e5f1e5] hover:text-[#1c8f53] dark:text-text-secondary dark:hover:bg-white/10 dark:hover:text-primary-accent lg:w-full lg:text-sm',
+                      expandedKey === key ? 'bg-[#e5f1e5] text-[#1c8f53] dark:bg-white/10' : 'bg-[#f6f4ee] dark:bg-white/5',
+                    )}
                   >
                     <span className={cn('flex h-6 w-6 shrink-0 items-center justify-center rounded-full', color)}>
                       <Icon className="h-3 w-3" />
                     </span>
                     {label}
-                  </a>
+                  </button>
                 </li>
               ))}
             </ul>
           </nav>
 
-          <div className="space-y-12">
+          <div className="space-y-3">
             {!hasResults && (
               <div className="rounded-[26px] bg-[#f6f4ee] px-6 py-12 text-center dark:bg-surface-elevated">
                 <Search className="mx-auto h-6 w-6 text-gray-400 dark:text-text-muted" />
@@ -341,21 +331,42 @@ export function FaqPage() {
                 <p className="mt-1 text-sm text-gray-500 dark:text-text-muted">Try a different word, or browse a topic on the left.</p>
               </div>
             )}
-            {filteredCategories.map(({ key, icon: Icon, label, color, faqs }) => (
-              <section key={key} id={key} className="scroll-mt-24">
-                <div className="mb-2 flex items-center gap-3">
-                  <span className={cn('flex h-8 w-8 items-center justify-center rounded-full', color)}>
-                    <Icon className="h-4 w-4" />
-                  </span>
-                  <h2 className="text-lg font-bold text-[#1d3d2d] dark:text-text-primary">{label}</h2>
-                </div>
-                <div>
-                  {faqs.map(({ question, answer }) => (
-                    <FaqItem key={question} question={question} answer={answer} />
-                  ))}
-                </div>
-              </section>
-            ))}
+            {filteredCategories.map(({ key, icon: Icon, label, color, faqs }) => {
+              const isOpen = isSearching || expandedKey === key;
+              return (
+                <section key={key} id={key} className="scroll-mt-24 overflow-hidden rounded-[20px] bg-[#f6f4ee] dark:bg-surface-elevated">
+                  <button
+                    type="button"
+                    onClick={() => setExpandedKey((current) => (current === key ? null : key))}
+                    aria-expanded={isOpen}
+                    className="flex w-full items-center gap-3 px-5 py-4 text-left"
+                  >
+                    <span className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-full', color)}>
+                      <Icon className="h-4 w-4" />
+                    </span>
+                    <span className="flex-1">
+                      <span className="block text-sm font-bold text-[#1d3d2d] dark:text-text-primary">{label}</span>
+                      <span className="block text-xs text-gray-500 dark:text-text-muted">
+                        {faqs.length} question{faqs.length === 1 ? '' : 's'}
+                      </span>
+                    </span>
+                    <ChevronDown
+                      className={cn(
+                        'h-4 w-4 shrink-0 text-gray-400 transition-transform duration-200 dark:text-text-muted',
+                        isOpen && 'rotate-180',
+                      )}
+                    />
+                  </button>
+                  {isOpen && (
+                    <div className="border-t border-[#1d3d2d]/8 bg-white px-5 dark:border-white/8 dark:bg-transparent">
+                      {faqs.map(({ question, answer }) => (
+                        <FaqItem key={question} question={question} answer={answer} />
+                      ))}
+                    </div>
+                  )}
+                </section>
+              );
+            })}
           </div>
         </div>
       </section>
