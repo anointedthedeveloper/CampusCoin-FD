@@ -1,4 +1,4 @@
-import { aiApi, type CategorySuggestion } from '@/api/ai.api';
+import { aiApi, type AIConversationTurn, type CategorySuggestion } from '@/api/ai.api';
 import { FEATURE_FLAGS } from '@/constants/config';
 
 // Gate every AI call behind its feature flag so the UI degrades gracefully
@@ -6,6 +6,8 @@ import { FEATURE_FLAGS } from '@/constants/config';
 export const aiService = {
   isCategorizationEnabled: () => FEATURE_FLAGS.aiCategorization,
   isInsightsEnabled: () => FEATURE_FLAGS.aiInsights,
+
+  answer: (message: string, history?: AIConversationTurn[]) => aiApi.answer(message, history),
 
   async suggestCategory(description: string, merchant?: string): Promise<CategorySuggestion | null> {
     if (!FEATURE_FLAGS.aiCategorization) return null;

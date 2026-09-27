@@ -13,7 +13,20 @@ export interface MonthlyInsightRequest {
   month: string;
 }
 
+export interface AIConversationTurn {
+  role: 'user' | 'assistant';
+  text: string;
+}
+
 export const aiApi = {
+  async answer(message: string, history: AIConversationTurn[] = []): Promise<string> {
+    const { data } = await httpClient.post<ApiSuccess<{ answer: string }>>('/ai/answer', {
+      message,
+      history,
+    });
+    return data.data.answer;
+  },
+
   async suggestCategory(description: string, merchant?: string): Promise<CategorySuggestion> {
     const { data } = await httpClient.post<ApiSuccess<CategorySuggestion>>('/ai/categorize', {
       description,

@@ -1,16 +1,11 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Bot, Check, Send, Sparkles } from 'lucide-react';
 import { Card, Spinner } from '@/components/common';
-import { transactionService, categoryService, budgetService, tipsService } from '@/services';
-import { reportsApi } from '@/api/reports.api';
+import { aiService, transactionService, categoryService } from '@/services';
 import { useAuth } from '@/hooks/useAuth';
-import { DEFAULT_CURRENCY } from '@/constants/config';
-import { formatCurrency, formatMonthLabel } from '@/utils/format';
+import { formatMonthLabel } from '@/utils/format';
 import { cn } from '@/utils/cn';
 import type { Category } from '@/types/category';
-import type { BudgetSummary } from '@/types/budget';
-import type { MonthlyReport } from '@/types/report';
-import type { SavingTip } from '@/types/insight';
 
 interface ChatMessage {
   id: string;
@@ -19,6 +14,7 @@ interface ChatMessage {
   suggestedCategoryId?: string;
   suggestedCategoryName?: string;
   suggestedAmount?: number;
+  suggestedDescription?: string;
 }
 
 const QUICK_QUESTIONS = ['How do I add money?', "What's my budget?", 'Spending this month?', 'Saving tips?'];
@@ -32,112 +28,30 @@ function parseAmount(text: string): number | undefined {
   return match ? Number(match[1]) : undefined;
 }
 
-interface PageData {
-  categories: Category[];
-  budgetSummary: BudgetSummary | null;
-  report: MonthlyReport | null;
-  tips: SavingTip[];
-}
-
 export function InsightsPage() {
   const { user } = useAuth();
   const month = monthKey();
 
-  const [pageData, setPageData] = useState<PageData | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSending, setIsSending] = useState(false);
 
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
-    async function load() {
-      const [cats, budSum, report, tips] = await Promise.allSettled([
-        categoryService.list(user!.id),
-        budgetService.summary(user!.id, month),
-        reportsApi.getMonthlyReport({ month }),
-        tipsService.list(user!.id, month),
-      ]);
-      if (cancelled) return;
-      setPageData({
-        categories: cats.status === 'fulfilled' ? cats.value : [],
-        budgetSummary: budSum.status === 'fulfilled' ? budSum.value : null,
-        report: report.status === 'fulfilled' ? report.value : null,
-        tips: tips.status === 'fulfilled' ? tips.value : [],
+    categoryService.list(user.id)
+      .then((result) => {
+        if (!cancelled) setCategories(result);
+      })
+      .catch(() => {
+        if (!cancelled) setCategories([]);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
       });
-      setIsLoading(false);
-    }
-    void load();
     return () => { cancelled = true; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, month]);
-
-  function buildQuickAnswer(question: string): string {
-    if (!pageData) return 'Still loading your data…';
-    const { budgetSummary, report, tips, categories } = pageData;
-
-    if (question === 'How do I add money?') {
-      return 'Tap "Add Income" on your dashboard, choose a category like Allowance or Part-time Job, then enter the amount and date.';
-    }
-    if (question === "What's my budget?") {
-      if (!budgetSummary || budgetSummary.budgets.length === 0) {
-        return "You haven't set any budgets for this month yet. Head to the Budgets page to set one.";
-      }
-      const top = [...budgetSummary.budgets].sort((a, b) => b.spentAmount - a.spentAmount)[0];
-      const topName = categories.find((c) => c.id === top.categoryId)?.name ?? 'a category';
-      return `You've budgeted ${formatCurrency(budgetSummary.totalBudgeted, DEFAULT_CURRENCY)} across ${budgetSummary.budgets.length} categor${budgetSummary.budgets.length === 1 ? 'y' : 'ies'} this month, and spent ${formatCurrency(budgetSummary.totalSpent, DEFAULT_CURRENCY)} so far — ${topName} is your biggest category.`;
-    }
-    if (question === 'Spending this month?') {
-      if (!report) return "You haven't logged any transactions this month yet.";
-      return `You've spent ${formatCurrency(report.totalExpense, DEFAULT_CURRENCY)} this month and brought in ${formatCurrency(report.totalIncome, DEFAULT_CURRENCY)}.`;
-    }
-    if (question === 'Saving tips?') {
-      if (tips.length === 0) {
-        return 'No specific saving tips right now. Check the Saving Tips page any time.';
-      }
-      return `I've flagged ${tips.length} thing${tips.length === 1 ? '' : 's'} worth a look this month: ${tips.map((t) => t.title).join('; ')}. See the Saving Tips page for details.`;
-    }
-    return '';
-  }
-
-  function buildAssistantReply(userText: string): ChatMessage {
-    const quickAnswer = buildQuickAnswer(userText);
-    if (quickAnswer) {
-      return { id: crypto.randomUUID(), role: 'assistant', text: quickAnswer };
-    }
-
-    const looksLikeExpense = /bought|spent|₦|paid|purchase/i.test(userText);
-    if (looksLikeExpense && pageData) {
-      const expenseCategories = pageData.categories.filter((c) => c.type === 'expense');
-      const lower = userText.toLowerCase();
-      const categoryMatch =
-        expenseCategories.find((c) => lower.includes(c.name.toLowerCase())) ??
-        expenseCategories.find((c) => c.name === 'Others' || c.name === 'Other');
-      const amount = parseAmount(userText);
-
-      if (categoryMatch && amount) {
-        return {
-          id: crypto.randomUUID(),
-          role: 'assistant',
-          text: `Got it — that looks like a ${formatCurrency(amount, DEFAULT_CURRENCY)} expense in ${categoryMatch.name}. Want me to log it?`,
-          suggestedCategoryId: categoryMatch.id,
-          suggestedCategoryName: categoryMatch.name,
-          suggestedAmount: amount,
-        };
-      }
-      if (categoryMatch) {
-        return {
-          id: crypto.randomUUID(),
-          role: 'assistant',
-          text: `That sounds like it fits ${categoryMatch.name}, but I couldn't find an amount in your message — try including one, e.g. "₦3,500".`,
-        };
-      }
-    }
-
-    return {
-      id: crypto.randomUUID(),
-      role: 'assistant',
-      text: 'I can help with your budget, spending summary, saving tips, or logging an expense — try a quick question below, or describe a purchase like "Bought food at Campus Cafe - ₦3,500".',
-    };
-  }
+  }, [user?.id]);
 
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -149,12 +63,46 @@ export function InsightsPage() {
   const [draft, setDraft] = useState('');
   const [loggedIds, setLoggedIds] = useState<Set<string>>(new Set());
 
-  function sendMessage(text: string) {
-    if (!text.trim()) return;
-    const userMessage: ChatMessage = { id: crypto.randomUUID(), role: 'user', text };
-    const assistantMessage = buildAssistantReply(text);
-    setMessages((prev) => [...prev, userMessage, assistantMessage]);
+  async function sendMessage(text: string) {
+    const trimmedText = text.trim();
+    if (!trimmedText || isSending) return;
+    const history = messages
+      .filter((message) => message.id !== 'welcome')
+      .slice(-8)
+      .map(({ role, text: turnText }) => ({ role, text: turnText }));
+    const userMessage: ChatMessage = { id: crypto.randomUUID(), role: 'user', text: trimmedText };
+    setMessages((prev) => [...prev, userMessage]);
     setDraft('');
+    setIsSending(true);
+
+    try {
+      const answer = await aiService.answer(trimmedText, history);
+      const looksLikeExpense = /bought|spent|₦|paid|purchase/i.test(trimmedText);
+      const lower = trimmedText.toLowerCase();
+      const categoryMatch = categories
+        .filter((category) => category.type === 'expense')
+        .find((category) => lower.includes(category.name.toLowerCase()));
+      const amount = parseAmount(trimmedText);
+      setMessages((prev) => [...prev, {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        text: answer,
+        ...(looksLikeExpense && categoryMatch && amount ? {
+          suggestedCategoryId: categoryMatch.id,
+          suggestedCategoryName: categoryMatch.name,
+          suggestedAmount: amount,
+          suggestedDescription: trimmedText,
+        } : {}),
+      }]);
+    } catch {
+      setMessages((prev) => [...prev, {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        text: 'I could not reach the AI service right now. Please try again shortly.',
+      }]);
+    } finally {
+      setIsSending(false);
+    }
   }
 
   async function handleAccept(message: ChatMessage) {
@@ -163,6 +111,7 @@ export function InsightsPage() {
       type: 'expense',
       categoryId: message.suggestedCategoryId,
       amount: message.suggestedAmount,
+      description: message.suggestedDescription,
       occurredAt: new Date().toISOString(),
     });
     setLoggedIds((prev) => new Set(prev).add(message.id));
@@ -170,7 +119,7 @@ export function InsightsPage() {
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    sendMessage(draft);
+    void sendMessage(draft);
   }
 
   return (
@@ -196,7 +145,7 @@ export function InsightsPage() {
               <div>
                 <p className="text-sm font-semibold text-gray-900">Campus Coin Assistant</p>
                 <p className="flex items-center gap-1 text-xs text-brand-600">
-                  <span className="h-1.5 w-1.5 rounded-full bg-brand-500" /> Rule-based, not a live model
+                  <span className="h-1.5 w-1.5 rounded-full bg-brand-500" /> Gemini · grounded in your monthly totals
                 </p>
               </div>
             </div>
@@ -236,17 +185,20 @@ export function InsightsPage() {
                   </div>
                 </div>
               ))}
+              {isSending && <div className="flex items-center gap-2 text-xs text-gray-500"><Spinner /> Gemini is thinking...</div>}
             </div>
 
             <form onSubmit={handleSubmit} className="flex items-center gap-2 border-t border-gray-100 p-3">
               <input
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
+                disabled={isSending}
                 placeholder="Type a message..."
                 className="flex-1 rounded-full border border-gray-300 px-4 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
               />
               <button
                 type="submit"
+                disabled={isSending || !draft.trim()}
                 className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-600 text-white transition-colors duration-200 hover:bg-brand-700"
                 aria-label="Send message"
               >
@@ -261,7 +213,8 @@ export function InsightsPage() {
               {QUICK_QUESTIONS.map((question) => (
                 <button
                   key={question}
-                  onClick={() => sendMessage(question)}
+                  onClick={() => void sendMessage(question)}
+                  disabled={isSending}
                   className="w-full rounded-lg border border-gray-200 px-3 py-2 text-left text-sm text-gray-700 transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700"
                 >
                   {question}

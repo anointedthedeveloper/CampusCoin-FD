@@ -14,6 +14,7 @@ const reportsRoutes = require('./src/routes/reports.routes');
 const insightsRoutes = require('./src/routes/insights.routes');
 const notificationsRoutes = require('./src/routes/notifications.routes');
 const adminRoutes = require('./src/routes/admin.routes');
+const aiRoutes = require('./src/routes/ai.routes');
 
 const app = express();
 
@@ -41,6 +42,7 @@ app.use(`${API}/reports`, reportsRoutes);
 app.use(`${API}`, insightsRoutes);
 app.use(`${API}/notifications`, notificationsRoutes);
 app.use(`${API}/admin`, adminRoutes);
+app.use(`${API}/ai`, aiRoutes);
 
 // ── 404 fallback ──────────────────────────────────────────────────────
 app.use((_req, res) => res.status(404).json({ message: 'Route not found' }));
