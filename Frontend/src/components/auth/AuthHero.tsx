@@ -38,15 +38,21 @@ function HeroBackground() {
       <img
         src={assets.authHero}
         alt=""
-        className="absolute inset-0 h-full w-full animate-slow-zoom object-cover object-center"
+        className="absolute inset-0 h-full w-full animate-slow-zoom object-cover object-center saturate-[1.15]"
+        aria-hidden="true"
+      />
+      {/* Deep brand-green wash — the hero stays dark/branded in both site themes, like the reference. */}
+      <div
+        className="absolute inset-0 bg-gradient-to-b from-brand-950/90 via-brand-950/75 to-brand-950/95"
         aria-hidden="true"
       />
       <div
-        className="absolute inset-0 bg-gradient-to-b from-brand-950/90 via-brand-950/70 to-brand-950/95"
+        className="absolute inset-0 hidden bg-gradient-to-r from-brand-950/50 via-transparent to-transparent lg:block"
         aria-hidden="true"
       />
+      {/* Warm golden-hour glow, bottom-right — echoes the reference's evening light. */}
       <div
-        className="absolute inset-0 hidden bg-gradient-to-r from-brand-950/40 via-transparent to-transparent lg:block"
+        className="absolute inset-0 bg-[radial-gradient(ellipse_120%_70%_at_85%_100%,rgba(217,167,45,0.22),transparent_60%)]"
         aria-hidden="true"
       />
     </>
@@ -92,7 +98,7 @@ export function AuthHero() {
         </Link>
 
         <div className="animate-fade-in-up [animation-delay:100ms]">
-          <h1 className="max-w-md text-2xl font-bold leading-[1.15] tracking-tight text-white sm:text-3xl lg:text-4xl lg:leading-[1.1] xl:text-5xl">
+          <h1 className="max-w-md text-3xl font-bold leading-[1.1] tracking-tight text-white sm:text-4xl lg:text-[2.75rem] lg:leading-[1.08] xl:text-5xl">
             Smart Finance
             <br />
             for a <span className="text-brand-400">Brighter</span>
@@ -111,7 +117,7 @@ export function AuthHero() {
                 className="flex animate-float items-start gap-2.5 transition-transform duration-200 hover:translate-x-1 lg:gap-3"
                 style={{ animationDelay: `${index * 0.3}s` }}
               >
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/10 text-brand-300 backdrop-blur-sm lg:h-10 lg:w-10 lg:rounded-xl">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-black/20 text-brand-300 backdrop-blur-sm lg:h-10 lg:w-10 lg:rounded-xl">
                   <Icon className="h-3.5 w-3.5 lg:h-4.5 lg:w-4.5" />
                 </span>
                 <div className="min-w-0">
