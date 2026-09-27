@@ -2,7 +2,7 @@
 // full stack (routes -> Mongoose models -> a real database) is exercised
 // exactly like production, without needing a real Atlas cluster.
 process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-jwt-secret-do-not-use-in-prod';
-process.env.CLIENT_URL = 'http://localhost:5173';
+process.env.CLIENT_URL = 'https://frontend.example.test';
 process.env.NODE_ENV = 'test';
 
 const { MongoMemoryServer } = require('mongodb-memory-server');

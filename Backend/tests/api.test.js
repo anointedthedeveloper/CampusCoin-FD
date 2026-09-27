@@ -33,6 +33,17 @@ after(async () => {
   await stopTestDb();
 });
 
+test('CORS: allows the local Vite origin when CLIENT_URL is configured for deployment', async () => {
+  const res = await request.options('/api/v1/profile')
+    .set('Origin', 'http://localhost:5173')
+    .set('Access-Control-Request-Method', 'GET')
+    .set('Access-Control-Request-Headers', 'authorization,content-type');
+
+  assert.equal(res.status, 204);
+  assert.equal(res.headers['access-control-allow-origin'], 'http://localhost:5173');
+  assert.equal(res.headers['access-control-allow-credentials'], 'true');
+});
+
 // ── AUTH ──────────────────────────────────────────────────────────────────
 
 test('register: rejects missing fields', async () => {
