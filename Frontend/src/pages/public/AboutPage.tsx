@@ -37,18 +37,23 @@ const values = [
 const steps = [
   {
     step: '01',
-    title: 'Log it in seconds',
-    description: 'Quick-add income or expenses with categories that actually match student life.',
+    title: 'Log income & expenses',
+    description: 'Quick-add allowance, gig income, scholarships, and gifts, or expenses like food, transport, and hostel costs — sorted into student-relevant categories.',
   },
   {
     step: '02',
-    title: 'See where it goes',
-    description: 'A dashboard and monthly reports break spending down by category, automatically.',
+    title: 'Set budgets, track live',
+    description: 'Cap monthly spending per category and watch a real-time progress bar, with an alert before you go over.',
   },
   {
     step: '03',
-    title: 'Get better at it',
-    description: 'Saving tips and budget alerts are generated from your own habits, not a generic template.',
+    title: 'See it broken down',
+    description: 'A dashboard and monthly reports show category breakdowns, income vs. expense trends, and daily spending patterns.',
+  },
+  {
+    step: '04',
+    title: 'Get smarter over time',
+    description: 'Personalized saving tips and optional AI-assisted categorization, both generated from your own transaction history.',
   },
 ];
 
@@ -103,7 +108,7 @@ export function AboutPage() {
           <div>
             <h3 className="text-sm font-bold text-[#1d3d2d] dark:text-text-primary">Our response</h3>
             <p className="mt-3 text-sm leading-7 text-gray-600 dark:text-text-secondary">
-              Campus Coin makes it easy to log money, see spending by category, and get useful saving tips from your own history. Optional AI suggestions stay reviewable and under your control.
+              Campus Coin lets you log income and expenses by category, set monthly budgets with real-time alerts, and read reports that break spending down by month, week, and day. Saving tips and optional AI categorization are both generated from your own history, and always reviewable before anything is saved.
             </p>
           </div>
         </div>
@@ -143,7 +148,7 @@ export function AboutPage() {
             <ListChecks className="h-5 w-5" />
             <p className="text-xs font-bold uppercase tracking-[0.14em]">How it works</p>
           </div>
-          <div className="mt-8 grid gap-6 sm:grid-cols-3">
+          <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {steps.map(({ step, title, description }) => (
               <div key={step}>
                 <span className="text-xs font-bold text-[#78d99a] dark:text-primary-accent">{step}</span>
