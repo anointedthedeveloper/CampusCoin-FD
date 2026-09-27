@@ -2,7 +2,6 @@ import { Link } from 'react-router-dom';
 import { EyeOff, Lightbulb, ListChecks, Sparkles, Wallet } from 'lucide-react';
 import { PUBLIC_ROUTES } from '@/constants/routes';
 import { assets } from '@/assets/images';
-import { DeviceShowcase } from '@/components/common';
 
 const values = [
   {
@@ -75,13 +74,14 @@ export function AboutPage() {
             <span className="h-1.5 w-1.5 rounded-full bg-[#1c8f53] dark:bg-primary-accent" />
             Built for campus life
           </span>
-          <DeviceShowcase
-            tone="dark"
-            className="flex min-h-[340px] items-center justify-center sm:min-h-[430px]"
-            screenshot={assets.screenshots.dashboard}
-            screenshotAlt="Campus Coin dashboard preview"
+          <img
+            src={assets.aboutDeskDark}
+            alt="Laptop and phone showing the Campus Coin dashboard on a desk"
+            className="h-full min-h-[340px] w-full object-cover sm:min-h-[430px]"
+            loading="eager"
           />
-          <figcaption className="absolute bottom-5 left-6 right-6 text-xs font-semibold text-white/70">
+          <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/60 to-transparent" aria-hidden="true" />
+          <figcaption className="absolute bottom-5 left-6 right-6 text-xs font-semibold text-white/90">
             A practical view of your money, wherever you are
           </figcaption>
         </figure>

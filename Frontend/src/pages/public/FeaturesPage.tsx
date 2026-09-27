@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { PUBLIC_ROUTES } from '@/constants/routes';
 import { assets } from '@/assets/images';
-import { BrowserFrame, DeviceShowcase } from '@/components/common';
+import { BrowserFrame } from '@/components/common';
 
 const groups = [
   {
@@ -176,10 +176,20 @@ export function FeaturesPage() {
             ))}
           </div>
         </div>
-        <DeviceShowcase
-          screenshot={assets.screenshots.dashboard}
-          screenshotAlt="Campus Coin dashboard showing spending totals, a spending breakdown, and recent transactions"
-        />
+        <figure className="overflow-hidden rounded-[28px] shadow-card dark:shadow-dark-card">
+          <img
+            src={assets.featuresDesk}
+            alt="Laptop and phone showing the Campus Coin dashboard on a desk"
+            className="block w-full object-cover dark:hidden"
+            loading="eager"
+          />
+          <img
+            src={assets.featuresDeskDark}
+            alt="Laptop and phone showing the Campus Coin dashboard on a desk"
+            className="hidden w-full object-cover dark:block"
+            loading="eager"
+          />
+        </figure>
       </section>
 
       {groups.map(({ key, eyebrow, title, description, accent, chip, image, imageAlt, reverse, items }, index) => (
