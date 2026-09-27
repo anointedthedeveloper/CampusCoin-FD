@@ -54,9 +54,13 @@ const userSchema = new mongoose.Schema(
     isActive: { type: Boolean, default: true },
     settings: { type: settingsSchema, default: () => ({}) },
     onboarding: { type: onboardingSchema, default: () => ({}) },
-    // Used for password reset flow
+    // Used for the password-reset flow. resetPasswordToken stores a SHA-256
+    // hash of the 6-digit code emailed to the user, never the code itself.
+    // resetPasswordAttempts counts wrong guesses so a code can be locked out
+    // well before someone could brute-force all 900,000 possibilities.
     resetPasswordToken: { type: String },
     resetPasswordExpires: { type: Date },
+    resetPasswordAttempts: { type: Number, default: 0 },
   },
   { timestamps: true },
 );

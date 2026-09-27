@@ -110,7 +110,7 @@ test('forgot-password: does not reveal whether an email is registered', async ()
   assert.equal(res.status, 200);
 });
 
-test('forgot-password + reset-password: full round trip with a hashed, single-use token', async () => {
+test('forgot-password + reset-password: full round trip with a hashed, single-use code', async () => {
   const { email } = await registerUser();
 
   const warnCalls = [];
@@ -119,22 +119,22 @@ test('forgot-password + reset-password: full round trip with a hashed, single-us
   warnMock.mock.restore();
   assert.equal(forgotRes.status, 200);
 
-  const logged = warnCalls.find((line) => line.includes('reset-password/'));
-  assert.ok(logged, 'expected the dev fallback to log a reset link');
-  const rawToken = logged.match(/reset-password\/([a-f0-9]+)/)[1];
+  const logged = warnCalls.find((line) => line.includes('Password reset code'));
+  assert.ok(logged, 'expected the dev fallback to log a reset code');
+  const code = logged.match(/Password reset code for \S+: (\d{6})/)[1];
 
   User = User || require('../src/models/User');
   const dbUser = await User.findOne({ email });
-  assert.equal(dbUser.resetPasswordToken, hashToken(rawToken), 'token must be stored hashed, not raw');
+  assert.equal(dbUser.resetPasswordToken, hashToken(code), 'code must be stored hashed, not raw');
 
-  const badReset = await request.post('/api/v1/auth/reset-password').send({ token: 'wrong-token', newPassword: 'brandNewPassword1' });
+  const badReset = await request.post('/api/v1/auth/reset-password').send({ email, code: '000000', newPassword: 'brandNewPassword1' });
   assert.equal(badReset.status, 400);
 
-  const okReset = await request.post('/api/v1/auth/reset-password').send({ token: rawToken, newPassword: 'brandNewPassword1' });
+  const okReset = await request.post('/api/v1/auth/reset-password').send({ email, code, newPassword: 'brandNewPassword1' });
   assert.equal(okReset.status, 200);
 
-  // Token is single-use
-  const reuseReset = await request.post('/api/v1/auth/reset-password').send({ token: rawToken, newPassword: 'anotherPassword2' });
+  // Code is single-use
+  const reuseReset = await request.post('/api/v1/auth/reset-password').send({ email, code, newPassword: 'anotherPassword2' });
   assert.equal(reuseReset.status, 400);
 
   const oldLogin = await request.post('/api/v1/auth/login').send({ email, password: 'password123' });
@@ -143,16 +143,38 @@ test('forgot-password + reset-password: full round trip with a hashed, single-us
   assert.equal(newLogin.status, 200);
 });
 
-test('reset-password: rejects an expired token', async () => {
+test('reset-password: rejects an expired code', async () => {
   const { email } = await registerUser();
   User = User || require('../src/models/User');
-  const rawToken = 'expired-raw-token-for-test';
+  const code = '123456';
   await User.updateOne(
     { email },
-    { resetPasswordToken: hashToken(rawToken), resetPasswordExpires: new Date(Date.now() - 1000) },
+    { resetPasswordToken: hashToken(code), resetPasswordExpires: new Date(Date.now() - 1000) },
   );
-  const res = await request.post('/api/v1/auth/reset-password').send({ token: rawToken, newPassword: 'somePassword1' });
+  const res = await request.post('/api/v1/auth/reset-password').send({ email, code, newPassword: 'somePassword1' });
   assert.equal(res.status, 400);
+});
+
+test('reset-password: locks out after too many wrong attempts', async () => {
+  const { email } = await registerUser();
+  User = User || require('../src/models/User');
+  const code = '654321';
+  await User.updateOne(
+    { email },
+    { resetPasswordToken: hashToken(code), resetPasswordExpires: new Date(Date.now() + 60_000), resetPasswordAttempts: 0 },
+  );
+
+  let lastStatus;
+  for (let i = 0; i < 5; i += 1) {
+    // eslint-disable-next-line no-await-in-loop
+    const res = await request.post('/api/v1/auth/reset-password').send({ email, code: '111111', newPassword: 'somePassword1' });
+    lastStatus = res.status;
+  }
+  assert.equal(lastStatus, 400);
+
+  // Even the correct code is now rejected — it was invalidated by the lockout.
+  const finalTry = await request.post('/api/v1/auth/reset-password').send({ email, code, newPassword: 'somePassword1' });
+  assert.equal(finalTry.status, 400);
 });
 
 test('change-password: requires auth, requires the correct current password, then works', async () => {
