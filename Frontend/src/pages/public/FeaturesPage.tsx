@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { PUBLIC_ROUTES } from '@/constants/routes';
 import { assets } from '@/assets/images';
+import { BrowserFrame } from '@/components/common';
 
 const groups = [
   {
@@ -23,7 +24,8 @@ const groups = [
     title: 'Log every naira, in seconds',
     description:
       'Quick-add forms for income and expenses, built around how student money actually moves — no bank linking, no waiting for a sync.',
-    accent: 'text-[#1c8f53]',
+    accent: 'text-[#1c8f53] dark:text-primary-accent',
+    chip: 'bg-[#d7f0d1] text-[#1c8f53] dark:bg-white/10 dark:text-primary-accent',
     image: assets.screenshots.dashboard,
     imageAlt: 'Campus Coin dashboard showing stat cards, spending breakdown, and recent transactions',
     reverse: false,
@@ -51,7 +53,8 @@ const groups = [
     title: 'Set limits that match your term, not a template',
     description:
       'Budgets are set per category and period, with a clear read on how much room is left before you overspend.',
-    accent: 'text-blue-600',
+    accent: 'text-blue-600 dark:text-blue-400',
+    chip: 'bg-blue-100 text-blue-600 dark:bg-blue-400/15 dark:text-blue-400',
     image: assets.screenshots.budgets,
     imageAlt: 'Campus Coin budgets page showing category limits and progress bars',
     reverse: true,
@@ -79,7 +82,8 @@ const groups = [
     title: 'See where it actually went',
     description:
       'A dashboard and monthly reports turn raw transactions into a picture you can act on, with charts that hold up for colorblind readers too.',
-    accent: 'text-amber-600',
+    accent: 'text-amber-600 dark:text-amber-400',
+    chip: 'bg-amber-100 text-amber-600 dark:bg-amber-400/15 dark:text-amber-400',
     image: assets.screenshots.reports,
     imageAlt: 'Campus Coin reports page showing income vs expense trend and category charts',
     reverse: false,
@@ -107,7 +111,8 @@ const groups = [
     title: 'Get better at it, with help that stays optional',
     description:
       'Saving tips and AI assistance are generated from your own transaction history — always reviewable, never automatic.',
-    accent: 'text-purple-600',
+    accent: 'text-purple-600 dark:text-purple-400',
+    chip: 'bg-purple-100 text-purple-600 dark:bg-purple-400/15 dark:text-purple-400',
     image: assets.screenshots.aiAssistant,
     imageAlt: 'Campus Coin AI assistant page with saving tips and chat',
     reverse: true,
@@ -134,55 +139,72 @@ const groups = [
 export function FeaturesPage() {
   return (
     <div className="overflow-hidden">
+      {/* ── Hero ── */}
       <section className="mx-auto grid max-w-[1200px] items-center gap-10 px-4 pb-14 pt-12 sm:px-6 sm:pb-20 lg:grid-cols-[0.95fr_1.05fr] lg:gap-16 lg:pt-16">
         <div>
           <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-[#1a8f57] dark:text-primary-accent">
             <span className="h-2 w-2 rounded-full bg-[#1a8f57] dark:bg-primary-accent" /> Made for student money
           </p>
           <h1 className="mt-5 max-w-xl text-4xl font-bold leading-[1.08] text-[#1d3d2d] dark:text-text-primary sm:text-5xl lg:text-[3.5rem]">
-            A clearer picture of where your money goes.
+            Everything you need to manage student money.
           </h1>
           <p className="mt-5 max-w-lg text-base leading-7 text-gray-600 dark:text-text-secondary">
             Track what moves, plan around it, understand the pattern, and make your next decision with a little more confidence.
           </p>
           <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-3">
-            <Link to={PUBLIC_ROUTES.register} className="inline-flex items-center gap-2 border-b-2 border-[#1c8f53] pb-1 text-sm font-bold text-[#1c8f53] transition-colors hover:text-[#146b3d] dark:text-primary-accent dark:hover:text-white">
-              Start your budget <span aria-hidden="true">-&gt;</span>
+            <Link
+              to={PUBLIC_ROUTES.register}
+              className="inline-flex items-center gap-2 rounded-full bg-[#1c8f53] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#177e48] dark:bg-primary dark:hover:bg-primary-accent"
+            >
+              Start your budget <span aria-hidden="true">&rarr;</span>
             </Link>
             <Link to={PUBLIC_ROUTES.faq} className="text-sm font-semibold text-gray-600 underline decoration-gray-300 underline-offset-4 hover:text-[#1d3d2d] dark:text-text-secondary dark:hover:text-text-primary">
               Browse help topics
             </Link>
           </div>
-          <div className="mt-10 grid max-w-lg grid-cols-4 border-t border-[#1d3d2d]/15 pt-4 dark:border-white/15">
+          <div className="mt-10 flex max-w-lg flex-wrap gap-2">
             {groups.map(({ key, eyebrow }, index) => (
-              <a key={key} href={`#${key}`} className="text-xs font-semibold text-gray-600 transition-colors hover:text-[#1c8f53] dark:text-text-secondary dark:hover:text-primary-accent">
-                <span className="mb-1 block text-[10px] font-bold text-[#1c8f53]/70 dark:text-primary-accent/70">0{index + 1}</span>
+              <a
+                key={key}
+                href={`#${key}`}
+                className="flex items-center gap-1.5 rounded-full bg-[#f6f4ee] px-4 py-2 text-xs font-semibold text-gray-600 transition-colors hover:bg-[#e5f1e5] hover:text-[#1c8f53] dark:bg-white/5 dark:text-text-secondary dark:hover:bg-white/10 dark:hover:text-primary-accent"
+              >
+                <span className="text-[10px] font-bold text-[#1c8f53]/70 dark:text-primary-accent/70">0{index + 1}</span>
                 {eyebrow}
               </a>
             ))}
           </div>
         </div>
-        <figure className="relative min-w-0 border border-[#1d3d2d]/10 bg-[#edf4ec] p-2 dark:border-white/10 dark:bg-surface-elevated">
-          <img src={assets.screenshots.dashboard} alt="Campus Coin dashboard showing spending totals, a spending breakdown, and recent transactions" className="block w-full object-cover object-top" />
-          <figcaption className="flex items-center justify-between gap-4 border-t border-[#1d3d2d]/10 px-3 py-3 text-xs text-gray-600 dark:border-white/10 dark:text-text-secondary">
-            <span>One view for your day-to-day money</span>
-            <span className="font-semibold text-[#1c8f53] dark:text-primary-accent">Dashboard</span>
-          </figcaption>
-        </figure>
+        <BrowserFrame
+          src={assets.screenshots.dashboard}
+          alt="Campus Coin dashboard showing spending totals, a spending breakdown, and recent transactions"
+          label="app.campuscoin.ng/dashboard"
+          loading="eager"
+          footer={
+            <div className="flex items-center justify-between gap-4 px-2 pb-1 pt-3 text-xs text-gray-600 dark:text-text-secondary">
+              <span>One view for your day-to-day money</span>
+              <span className="font-semibold text-[#1c8f53] dark:text-primary-accent">Dashboard</span>
+            </div>
+          }
+        />
       </section>
 
-      {groups.map(({ key, eyebrow, title, description, accent, image, imageAlt, reverse, items }) => (
-        <section key={key} id={key} className="scroll-mt-24 border-t border-[#1d3d2d]/10 dark:border-white/10">
-          <div className={`mx-auto grid max-w-[1200px] items-center gap-9 px-4 py-14 sm:px-6 sm:py-20 lg:grid-cols-2 lg:gap-16 ${reverse ? 'lg:[&>*:first-child]:order-2' : ''}`}>
+      {groups.map(({ key, eyebrow, title, description, accent, chip, image, imageAlt, reverse, items }, index) => (
+        <section
+          key={key}
+          id={key}
+          className={`scroll-mt-24 ${index % 2 === 1 ? 'bg-[#f6f4ee]/60 dark:bg-white/[0.015]' : ''}`}
+        >
+          <div className={`mx-auto grid max-w-[1200px] items-center gap-9 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-2 lg:gap-16 ${reverse ? 'lg:[&>*:first-child]:order-2' : ''}`}>
             <div className="py-2">
-              <p className={`text-xs font-bold uppercase tracking-[0.14em] ${accent} dark:brightness-125`}>{eyebrow}</p>
+              <p className={`text-xs font-bold uppercase tracking-[0.14em] ${accent}`}>{eyebrow}</p>
               <h2 className="mt-3 max-w-xl text-3xl font-bold leading-tight text-[#1d3d2d] dark:text-text-primary sm:text-4xl">{title}</h2>
               <p className="mt-4 max-w-xl text-sm leading-7 text-gray-600 dark:text-text-secondary sm:text-base">{description}</p>
 
-              <ul className="mt-7 divide-y divide-[#1d3d2d]/10 border-y border-[#1d3d2d]/10 dark:divide-white/10 dark:border-white/10">
+              <ul className="mt-7 space-y-5">
                 {items.map(({ icon: Icon, title: itemTitle, description: itemDescription }) => (
-                  <li key={itemTitle} className="flex gap-4 py-4 first:pt-4 last:pb-4">
-                    <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center bg-[#e5f1e5] text-[#1c8f53] dark:bg-white/10 dark:text-primary-accent">
+                  <li key={itemTitle} className="flex gap-4">
+                    <span className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${chip}`}>
                       <Icon className="h-4 w-4" />
                     </span>
                     <div>
@@ -194,26 +216,23 @@ export function FeaturesPage() {
               </ul>
             </div>
 
-            <figure className="min-w-0 border border-[#1d3d2d]/10 bg-white p-2 dark:border-white/10 dark:bg-surface-elevated">
-              <img
-                src={image}
-                alt={imageAlt}
-                className="block w-full object-cover object-top"
-                loading="lazy"
-              />
-            </figure>
+            <BrowserFrame src={image} alt={imageAlt} />
           </div>
         </section>
       ))}
 
-      <section className="border-t border-[#1d3d2d]/10 bg-[#eaf2e8] dark:border-white/10 dark:bg-surface-elevated">
-        <div className="mx-auto flex max-w-[1200px] flex-col gap-6 px-4 py-10 sm:px-6 md:flex-row md:items-center md:justify-between md:py-12">
+      {/* ── CTA ── */}
+      <section className="mx-auto max-w-[1200px] px-4 py-14 sm:px-6 sm:py-20">
+        <div className="flex flex-col gap-6 rounded-[28px] bg-[#d7f0d1] px-6 py-10 dark:bg-surface-elevated dark:shadow-lg dark:shadow-black/20 sm:flex-row sm:items-center sm:justify-between sm:px-10 sm:py-12">
           <div>
             <h2 className="text-2xl font-bold text-[#1d3d2d] dark:text-text-primary">Put your money in view.</h2>
-            <p className="mt-2 text-sm text-gray-600 dark:text-text-secondary">Free to use, no bank account required, and you stay in control of every entry.</p>
+            <p className="mt-2 text-sm text-[#1d3d2d]/70 dark:text-text-secondary">Free to use, no bank account required, and you stay in control of every entry.</p>
           </div>
-          <Link to={PUBLIC_ROUTES.register} className="inline-flex w-fit items-center gap-2 bg-[#1c8f53] px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-[#177e48] dark:bg-primary dark:hover:bg-primary-accent">
-            Get started free <span aria-hidden="true">-&gt;</span>
+          <Link
+            to={PUBLIC_ROUTES.register}
+            className="inline-flex w-fit shrink-0 items-center gap-2 rounded-xl bg-[#1c8f53] px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#177e48] hover:shadow-lg hover:shadow-[#1c8f53]/20 dark:bg-primary dark:hover:bg-primary-accent"
+          >
+            Get started free <span aria-hidden="true">&rarr;</span>
           </Link>
         </div>
       </section>

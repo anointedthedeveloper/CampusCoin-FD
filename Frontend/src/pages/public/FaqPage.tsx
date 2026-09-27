@@ -1,3 +1,4 @@
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   BookOpen,
@@ -6,12 +7,17 @@ import {
   FileSpreadsheet,
   HelpCircle,
   Lock,
+  MessageCircle,
   PiggyBank,
+  Plus,
   Receipt,
+  Search,
   ShieldCheck,
   Wallet,
+  X,
 } from 'lucide-react';
 import { PUBLIC_ROUTES } from '@/constants/routes';
+import { cn } from '@/utils/cn';
 
 const categories = [
   {
@@ -194,26 +200,118 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
   );
 }
 
+function FaqIllustration() {
+  return (
+    <div className="relative mx-auto hidden h-[320px] w-full max-w-sm md:block lg:h-[380px]">
+      <div className="absolute inset-0 rounded-[40%] bg-[#c9e8ce]/60 blur-2xl dark:bg-primary/10" aria-hidden="true" />
+
+      {/* FAQ card */}
+      <div className="absolute right-2 top-4 w-[78%] -rotate-2 rounded-[24px] bg-white p-5 shadow-panel dark:bg-surface-elevated dark:shadow-dark-panel">
+        <p className="text-sm font-bold text-[#1d3d2d] dark:text-text-primary">FAQ</p>
+        <div className="mt-4 space-y-3">
+          {[100, 85, 92, 70].map((width, index) => (
+            <div key={index} className="flex items-center gap-2.5">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#1c8f53] text-white dark:bg-primary">
+                <Plus className="h-3 w-3" />
+              </span>
+              <span
+                className="h-2.5 rounded-full bg-[#1d3d2d]/10 dark:bg-white/10"
+                style={{ width: `${width}%` }}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Question bubble */}
+      <div className="absolute left-0 top-0 flex h-24 w-24 rotate-[-6deg] items-center justify-center rounded-[28%_72%_70%_30%/30%_30%_70%_70%] bg-[#1c8f53] shadow-panel dark:bg-primary">
+        <HelpCircle className="h-10 w-10 text-white" strokeWidth={2.5} />
+      </div>
+
+      {/* Reply bubble */}
+      <div className="absolute bottom-6 right-6 flex h-14 w-14 rotate-3 items-center justify-center rounded-[30%_70%_70%_30%/30%_30%_70%_70%] bg-[#1c8f53] shadow-panel dark:bg-primary">
+        <MessageCircle className="h-5 w-5 text-white" />
+      </div>
+
+      <span className="absolute -left-1 bottom-16 h-2 w-2 rounded-full bg-[#1c8f53]/70 dark:bg-primary-accent/70" aria-hidden="true" />
+      <span className="absolute left-10 bottom-2 h-1.5 w-1.5 rounded-full bg-[#1c8f53]/50 dark:bg-primary-accent/50" aria-hidden="true" />
+    </div>
+  );
+}
+
 export function FaqPage() {
+  const [query, setQuery] = useState('');
+
+  const filteredCategories = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return categories;
+    return categories
+      .map((category) => ({
+        ...category,
+        faqs: category.faqs.filter(
+          (faq) => faq.question.toLowerCase().includes(q) || faq.answer.toLowerCase().includes(q),
+        ),
+      }))
+      .filter((category) => category.faqs.length > 0);
+  }, [query]);
+
+  const hasResults = filteredCategories.length > 0;
+
   return (
     <div className="overflow-hidden">
-      <section className="border-b border-[#1d3d2d]/10 dark:border-white/10">
-        <div className="mx-auto max-w-[1200px] px-4 pb-10 pt-12 sm:px-6 sm:pb-14 lg:pt-16">
-          <div className="flex items-center gap-2 text-[#1a8f57] dark:text-primary-accent">
-            <HelpCircle className="h-4 w-4" />
-            <p className="text-xs font-bold uppercase tracking-[0.14em]">Help & FAQ</p>
-          </div>
-          <div className="mt-4 grid gap-5 md:grid-cols-[1fr_0.65fr] md:items-end">
-            <h1 className="max-w-2xl text-4xl font-bold leading-[1.08] text-[#1d3d2d] dark:text-text-primary sm:text-5xl lg:text-[3.5rem]">
-              Answers for your money questions.
+      {/* ── Hero ── */}
+      <section className="mx-auto max-w-[1280px] px-4 pb-10 pt-12 sm:px-6 sm:pb-14 lg:pt-16">
+        <div className="grid gap-10 md:grid-cols-2 md:items-center md:gap-12">
+          <div className="max-w-xl">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/80 px-4 py-1.5 text-xs font-semibold text-[#1c8f53] shadow-sm dark:bg-white/10 dark:text-primary-accent">
+              <HelpCircle className="h-3.5 w-3.5" />
+              Help &amp; FAQ
+            </span>
+            <h1 className="mt-5 text-4xl font-bold leading-[1.08] text-[#1d3d2d] dark:text-text-primary sm:text-5xl lg:text-[3.4rem]">
+              Answers for your <span className="text-[#1a8f57] dark:text-primary-accent">money questions.</span>
             </h1>
-            <p className="max-w-lg text-sm leading-7 text-gray-600 dark:text-text-secondary sm:text-base">
+            <p className="mt-5 max-w-lg text-sm leading-7 text-gray-600 dark:text-text-secondary sm:text-base">
               Find quick guidance on getting started, tracking transactions, setting budgets, and keeping your information private.
             </p>
+
+            <form
+              role="search"
+              onSubmit={(event) => event.preventDefault()}
+              className="mt-7 flex max-w-md items-center gap-1.5 rounded-full bg-white p-1.5 shadow-card dark:bg-surface-elevated dark:shadow-dark-card"
+            >
+              <Search className="ml-3 h-4 w-4 shrink-0 text-gray-400 dark:text-text-muted" aria-hidden="true" />
+              <input
+                type="search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Search questions..."
+                aria-label="Search FAQ questions"
+                className="min-w-0 flex-1 bg-transparent px-1 py-2 text-sm text-[#1d3d2d] placeholder:text-gray-400 focus:outline-none dark:text-text-primary dark:placeholder:text-text-muted"
+              />
+              {query && (
+                <button
+                  type="button"
+                  onClick={() => setQuery('')}
+                  aria-label="Clear search"
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:text-text-muted dark:hover:bg-white/10"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+              <button
+                type="submit"
+                className="shrink-0 rounded-full bg-[#1c8f53] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#177e48] dark:bg-primary dark:hover:bg-primary-accent"
+              >
+                Search
+              </button>
+            </form>
           </div>
+
+          <FaqIllustration />
         </div>
       </section>
 
+      {/* ── Topics + accordion ── */}
       <section className="mx-auto max-w-[1200px] px-4 py-10 sm:px-6 sm:py-14">
         <div className="grid gap-8 lg:grid-cols-[210px_1fr] lg:gap-16">
           <nav aria-label="FAQ topics" className="lg:block">
@@ -223,9 +321,9 @@ export function FaqPage() {
                 <li key={key}>
                   <a
                     href={`#${key}`}
-                    className="flex w-max items-center gap-2 whitespace-nowrap border border-[#1d3d2d]/10 px-3 py-2 text-xs font-semibold text-gray-600 transition-colors hover:border-[#1c8f53]/40 hover:text-[#1c8f53] dark:border-white/10 dark:text-text-secondary dark:hover:text-primary-accent lg:w-full lg:text-sm"
+                    className="flex w-max items-center gap-2 whitespace-nowrap rounded-full bg-[#f6f4ee] px-3 py-2 text-xs font-semibold text-gray-600 transition-colors hover:bg-[#e5f1e5] hover:text-[#1c8f53] dark:bg-white/5 dark:text-text-secondary dark:hover:bg-white/10 dark:hover:text-primary-accent lg:w-full lg:text-sm"
                   >
-                    <span className={`flex h-6 w-6 shrink-0 items-center justify-center ${color}`}>
+                    <span className={cn('flex h-6 w-6 shrink-0 items-center justify-center rounded-full', color)}>
                       <Icon className="h-3 w-3" />
                     </span>
                     {label}
@@ -236,10 +334,17 @@ export function FaqPage() {
           </nav>
 
           <div className="space-y-12">
-            {categories.map(({ key, icon: Icon, label, color, faqs }) => (
+            {!hasResults && (
+              <div className="rounded-[26px] bg-[#f6f4ee] px-6 py-12 text-center dark:bg-surface-elevated">
+                <Search className="mx-auto h-6 w-6 text-gray-400 dark:text-text-muted" />
+                <p className="mt-3 text-sm font-semibold text-[#1d3d2d] dark:text-text-primary">No questions match &ldquo;{query}&rdquo;</p>
+                <p className="mt-1 text-sm text-gray-500 dark:text-text-muted">Try a different word, or browse a topic on the left.</p>
+              </div>
+            )}
+            {filteredCategories.map(({ key, icon: Icon, label, color, faqs }) => (
               <section key={key} id={key} className="scroll-mt-24">
                 <div className="mb-2 flex items-center gap-3">
-                  <span className={`flex h-8 w-8 items-center justify-center ${color}`}>
+                  <span className={cn('flex h-8 w-8 items-center justify-center rounded-full', color)}>
                     <Icon className="h-4 w-4" />
                   </span>
                   <h2 className="text-lg font-bold text-[#1d3d2d] dark:text-text-primary">{label}</h2>
@@ -255,8 +360,9 @@ export function FaqPage() {
         </div>
       </section>
 
-      <section className="bg-[#122a1f] text-white dark:bg-surface-elevated">
-        <div className="mx-auto flex max-w-[1200px] flex-col gap-5 px-4 py-10 sm:px-6 md:flex-row md:items-center md:justify-between md:py-12">
+      {/* ── CTA ── */}
+      <section className="mx-auto max-w-[1200px] px-4 py-14 sm:px-6 sm:py-20">
+        <div className="flex flex-col gap-6 rounded-[28px] bg-[#122a1f] px-6 py-10 text-white dark:bg-surface-elevated dark:shadow-lg dark:shadow-black/20 sm:flex-row sm:items-center sm:justify-between sm:px-10 sm:py-12">
           <div className="flex items-start gap-4">
             <Lock className="mt-1 h-5 w-5 shrink-0 text-[#78d99a] dark:text-primary-accent" />
             <div>
@@ -264,8 +370,11 @@ export function FaqPage() {
               <p className="mt-2 max-w-xl text-sm leading-6 text-white/65">Campus Coin is free to use, needs no bank connection, and keeps every entry in your hands.</p>
             </div>
           </div>
-          <Link to={PUBLIC_ROUTES.register} className="inline-flex w-fit shrink-0 items-center gap-2 bg-[#1c8f53] px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-[#25a864]">
-            Get started free <span aria-hidden="true">-&gt;</span>
+          <Link
+            to={PUBLIC_ROUTES.register}
+            className="inline-flex w-fit shrink-0 items-center gap-2 rounded-xl bg-[#1c8f53] px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#25a864] hover:shadow-lg dark:bg-primary dark:hover:bg-primary-accent"
+          >
+            Get started free <span aria-hidden="true">&rarr;</span>
           </Link>
         </div>
       </section>

@@ -140,11 +140,11 @@ function HeroBackground() {
       />
       <div
         aria-hidden="true"
-        className="absolute inset-0 z-10 bg-gradient-to-b from-white/90 via-white/65 to-white/15 opacity-100 transition-opacity duration-500 dark:opacity-0 md:bg-gradient-to-r md:from-white/70 md:via-white/20 md:to-transparent"
+        className="absolute inset-0 z-10 bg-gradient-to-b from-white/95 via-white/85 to-white/55 opacity-100 transition-opacity duration-500 dark:opacity-0 md:bg-gradient-to-r md:from-white/70 md:via-white/20 md:to-transparent"
       />
       <div
         aria-hidden="true"
-        className="absolute inset-0 z-10 bg-gradient-to-b from-background/85 via-background/30 to-transparent opacity-0 transition-opacity duration-500 dark:opacity-100 md:bg-gradient-to-r md:from-background/75 md:via-background/10 md:to-transparent"
+        className="absolute inset-0 z-10 bg-gradient-to-b from-background/92 via-background/78 to-background/50 opacity-0 transition-opacity duration-500 dark:opacity-100 md:bg-gradient-to-r md:from-background/75 md:via-background/10 md:to-transparent"
       />
     </>
   );

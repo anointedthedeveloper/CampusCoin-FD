@@ -1,4 +1,5 @@
 export * from './Button';
+export * from './BrowserFrame';
 export * from './Input';
 export * from './Card';
 export * from './Spinner';
