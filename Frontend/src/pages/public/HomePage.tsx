@@ -18,9 +18,7 @@ import { PUBLIC_ROUTES, STUDENT_ROUTES } from '@/constants/routes';
 import { Ripple, ScreenshotSlideshow } from '@/components/common';
 import { FeatureGrid } from '@/components/home/FeatureGrid';
 import { assets } from '@/assets/images';
-import { useTheme } from '@/hooks/useTheme';
 import { useRipple } from '@/hooks/useRipple';
-import { cn } from '@/utils/cn';
 
 const stats = [
   { value: '100%', label: 'Free to use' },
@@ -115,36 +113,21 @@ const appFeatureHighlights = [
 ];
 
 function HeroBackground() {
-  const { theme } = useTheme();
-  const isDark = theme === 'dark';
-
   return (
     <>
       <img
         src={assets.heroBackground}
         alt=""
         aria-hidden="true"
-        className={cn(
-          'absolute inset-0 z-0 h-full w-full object-cover object-[36%_center] transition-opacity duration-500 sm:object-[48%_center] md:object-[68%_center]',
-          isDark ? 'opacity-0' : 'opacity-100',
-        )}
-      />
-      <img
-        src={assets.heroBackgroundDark}
-        alt=""
-        aria-hidden="true"
-        className={cn(
-          'absolute inset-0 z-0 h-full w-full object-cover object-[36%_center] transition-opacity duration-500 sm:object-[48%_center] md:object-[68%_center]',
-          isDark ? 'opacity-100' : 'opacity-0',
-        )}
+        className="absolute inset-0 z-0 h-full w-full object-cover object-[62%_center] sm:object-[26%_center] lg:object-[55%_center] dark:brightness-[0.55] dark:saturate-[0.9]"
       />
       <div
         aria-hidden="true"
-        className="absolute inset-0 z-10 bg-gradient-to-b from-white/95 via-white/80 to-white/50 opacity-100 transition-opacity duration-500 dark:opacity-0 md:bg-gradient-to-r md:from-white/70 md:via-white/20 md:to-transparent"
+        className="absolute inset-0 z-10 bg-gradient-to-b from-white/95 via-white/75 to-white/40 dark:hidden lg:bg-gradient-to-r lg:from-white/75 lg:via-white/25 lg:to-transparent"
       />
       <div
         aria-hidden="true"
-        className="absolute inset-0 z-10 bg-gradient-to-b from-background/90 via-background/80 to-background/50 opacity-0 transition-opacity duration-500 dark:opacity-100 md:bg-gradient-to-r md:from-background/75 md:via-background/10 md:to-transparent"
+        className="absolute inset-0 z-10 hidden bg-gradient-to-b from-background/90 via-background/70 to-background/40 dark:block lg:bg-gradient-to-r lg:from-background/85 lg:via-background/25 lg:to-transparent"
       />
     </>
   );
@@ -160,14 +143,14 @@ export function HomePage() {
       <section className="relative isolate -mt-24 min-h-svh overflow-hidden bg-[#f6fbf7] pt-24 dark:bg-background">
         <HeroBackground />
         <div className="relative z-20 mx-auto flex min-h-[calc(100svh-6rem)] max-w-[1280px] items-center px-4 py-6 sm:px-6 md:py-8">
-          <div className="grid w-full items-center gap-6 md:grid-cols-[1.05fr_1fr] md:gap-10">
-            <div className="max-w-[600px] py-3 md:py-6">
+          <div className="grid w-full items-center gap-6 lg:grid-cols-[1.05fr_1fr] lg:gap-10">
+            <div className="max-w-[480px] py-3 md:py-6 lg:max-w-[600px]">
               <span className="inline-flex animate-fade-in-up items-center gap-1.5 rounded-full bg-white/80 px-4 py-1.5 text-xs font-semibold text-[#1d3d2d] shadow-sm transition-transform duration-200 hover:scale-105 dark:bg-white/10 dark:text-text-primary dark:shadow-black/20">
                 <span className="text-[#1f7a43] dark:text-primary-accent">Smart money,</span>
                 <span className="text-[#1d3d2d] dark:text-text-primary">Brighter Future</span>
               </span>
 
-              <h1 className="mt-4 max-w-[560px] animate-fade-in-up text-[2.8rem] font-bold leading-[0.95] tracking-[-0.06em] text-[#1d3d2d] [animation-delay:100ms] dark:text-text-primary sm:mt-5 sm:text-[4.2rem] lg:text-[5.2rem]">
+              <h1 className="mt-4 max-w-[600px] animate-fade-in-up text-[2.6rem] font-bold leading-[1.05] tracking-[-0.04em] text-[#1d3d2d] [animation-delay:100ms] dark:text-text-primary sm:mt-5 sm:text-[3.6rem] lg:text-[4.4rem]">
                 Take control of <br />
                 your money on <br />
                 <span className="text-[#1a8f57] dark:text-primary-accent">campus</span>
@@ -210,11 +193,6 @@ export function HomePage() {
             </div>
           </div>
         </div>
-        <img
-          src={assets.heroPhone}
-          alt="Campus Coin mobile app showing a student balance and transactions"
-          className="pointer-events-none absolute bottom-[7%] right-[4%] z-20 w-[112px] animate-hero-phone-bob object-contain drop-shadow-xl sm:right-[8%] sm:w-[150px] md:bottom-[8%] md:right-[24%] md:w-[clamp(200px,22vw,300px)]"
-        />
       </section>
 
       {/* ── Feature cards ── */}

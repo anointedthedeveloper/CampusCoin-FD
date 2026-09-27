@@ -122,20 +122,6 @@
 @keyframes auth-glow-spin-cw  { to { --auth-glow-angle:  360deg; } }
 @keyframes auth-glow-spin-ccw { to { --auth-glow-angle: -360deg; } }
 
-/* ── Page / hero animations ────────────────────────────────────────── */
-@keyframes hero-phone-bob {
-  0%, 100% { transform: translateY(0) rotate(-2deg); }
-  50%       { transform: translateY(-8px) rotate(-1deg); }
-}
-.animate-hero-phone-bob {
-  animation: hero-phone-bob 4s ease-in-out infinite;
-  transform-origin: center;
-  will-change: transform;
-}
-@media (prefers-reduced-motion: reduce) {
-  .animate-hero-phone-bob { animation: none; }
-}
-
 /* ── Coin loader ───────────────────────────────────────────────────── */
 @keyframes coin-flip {
   0%   { transform: translateX(-50%) rotateY(0deg); }
