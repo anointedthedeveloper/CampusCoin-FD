@@ -131,7 +131,43 @@ export function DashboardPage() {
   const categoryBreakdown = report?.categoryBreakdown ?? [];
   const totalExpenseThisMonth = report?.totalExpense ?? 0;
 
-  // ── Empty state (genuinely nothing set up yet) ─────────────────────
+  // ── Setup gate: block the full dashboard until onboarding is done ──
+  // A user who next'd through every step without filling anything in lands
+  // with status !== 'completed', so we always show the Complete Setup screen
+  // regardless of whether they have transactions or budgets already.
+  if (setupIncomplete) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900 dark:text-text-primary">
+            <GreetingIcon className="h-6 w-6 text-amber-500" />
+            {greeting}, {firstName}!
+          </h1>
+          <p className="mt-1 text-sm text-gray-500 dark:text-text-secondary">Let&apos;s finish setting up your dashboard.</p>
+        </div>
+
+        <Card className="p-10">
+          <EmptyState
+            icon={Wand2}
+            title="Complete your setup to unlock your dashboard"
+            description="You skipped through the setup without filling in any details. Fill in at least one field — income source, spending category, goal, or budget — to activate your full dashboard."
+            action={
+              <div className="flex flex-wrap items-center justify-center gap-3 mt-2">
+                <Link
+                  to={`${STUDENT_ROUTES.onboarding}?edit=1`}
+                  className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 transition-colors shadow-btn-primary hover:shadow-btn-primary-hover"
+                >
+                  <Wand2 className="h-4 w-4" /> Complete Setup
+                </Link>
+              </div>
+            }
+          />
+        </Card>
+      </div>
+    );
+  }
+
+  // ── Empty state (onboarding done, but no transactions/budgets yet) ──
   if (!hasAnyTransactions && !hasBudgets) {
     return (
       <div className="space-y-6">
@@ -145,20 +181,11 @@ export function DashboardPage() {
 
         <Card className="p-10">
           <EmptyState
-            icon={setupIncomplete ? Wand2 : Wallet}
-            title={setupIncomplete ? "Complete your setup" : "Add your first transaction"}
-            description={
-              setupIncomplete
-                ? "Finish your money profile to unlock personalised budgeting insights and recommendations."
-                : "Add your first income or expense and your dashboard will come alive with balance, spending breakdown, and saving tips."
-            }
+            icon={Wallet}
+            title="Add your first transaction"
+            description="Add your first income or expense and your dashboard will come alive with balance, spending breakdown, and saving tips."
             action={
               <div className="flex flex-wrap items-center justify-center gap-3 mt-2">
-                {setupIncomplete && (
-                  <Link to={`${STUDENT_ROUTES.onboarding}?edit=1`} className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 transition-colors shadow-btn-primary hover:shadow-btn-primary-hover">
-                    <Wand2 className="h-4 w-4" /> Complete Setup
-                  </Link>
-                )}
                 <Link to={`${STUDENT_ROUTES.newTransaction}?type=income`} className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 transition-colors shadow-btn-primary hover:shadow-btn-primary-hover">
                   <Plus className="h-4 w-4" /> Add Income
                 </Link>
@@ -202,21 +229,6 @@ export function DashboardPage() {
           </Link>
         </div>
       </div>
-
-      {/* Setup incomplete banner */}
-      {setupIncomplete && (
-        <div className="flex flex-wrap items-center gap-3 rounded-xl border border-brand-100 bg-brand-50 px-4 py-3 dark:border-primary/20 dark:bg-primary/8">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-100 text-brand-600 dark:bg-primary/20 dark:text-primary-accent">
-            <Wand2 className="h-4 w-4" />
-          </span>
-          <p className="flex-1 text-sm font-medium text-gray-900 dark:text-text-primary">
-            Complete your profile to unlock personalised insights and recommendations.
-          </p>
-          <Link to={`${STUDENT_ROUTES.onboarding}?edit=1`} className="shrink-0 text-sm font-semibold text-brand-700 hover:text-brand-800 dark:text-primary-accent">
-            Complete Setup →
-          </Link>
-        </div>
-      )}
 
       {/* Unread notifications banner */}
       {unreadNotifications.length > 0 && (

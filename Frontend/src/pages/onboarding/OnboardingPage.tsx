@@ -147,6 +147,32 @@ export function OnboardingPage() {
   }
 
   async function handleFinishGoals() {
+    // A user who clicked Next on every step without filling anything in
+    // has not actually completed setup — treat that the same as skipping.
+    // At least one real piece of data must have been provided across all
+    // steps for the onboarding to count as completed.
+    const hasAnyData =
+      incomeSources.length > 0 ||
+      incomeAmount.trim() !== '' ||
+      incomeFrequency !== '' ||
+      spendingCategories.length > 0 ||
+      goals.length > 0 ||
+      monthlyBudget.trim() !== '' ||
+      savingsTarget.trim() !== '';
+
+    if (!hasAnyData) {
+      // Nothing filled in — send them back to step 1 with a message so they
+      // know they need to actually complete at least one field.
+      setError('Please fill in at least one field to complete your setup. You can always update this later from your profile.');
+      try {
+        await persist({ currentStep: 1, status: 'in_progress' });
+        setStep(1);
+      } catch {
+        // error state already set by persist()
+      }
+      return;
+    }
+
     setIsCreatingWallet(true);
     // A real minimum wait (not just a spinner) so the "creating your wallet"
     // moment reads as Campus Coin actually doing something on your behalf,
