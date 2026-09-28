@@ -7,7 +7,7 @@ import { AdminLayout } from '@/layouts/AdminLayout';
 import { ProtectedRoute } from './ProtectedRoute';
 import { RoleRoute } from './RoleRoute';
 import { PUBLIC_ROUTES, STUDENT_ROUTES, ADMIN_ROUTES } from '@/constants/routes';
-import { PageLoader } from '@/components/common';
+import { ErrorBoundary, PageLoader } from '@/components/common';
 
 const AboutPage = lazy(() =>
   import('@/pages/public/AboutPage').then((page) => ({ default: page.AboutPage })),
@@ -131,7 +131,8 @@ const AdminUsersPage = lazy(() =>
 
 export function AppRoutes() {
   return (
-    <Suspense fallback={<PageLoader />}>
+    <ErrorBoundary>
+      <Suspense fallback={<PageLoader />}>
       <Routes>
         {/* Public marketing + informational pages */}
         <Route element={<PublicLayout />}>
@@ -189,6 +190,7 @@ export function AppRoutes() {
 
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
-    </Suspense>
+      </Suspense>
+    </ErrorBoundary>
   );
 }

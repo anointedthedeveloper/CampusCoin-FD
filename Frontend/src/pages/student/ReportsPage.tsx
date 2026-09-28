@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowDownRight, ArrowUpRight, ChevronLeft, ChevronRight, Download, Flame, PieChart, Wallet } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, ChevronLeft, ChevronRight, Download, Flame, PieChart, Wallet, BarChart2 } from 'lucide-react';
 import { Card, EmptyState, PageSpinner } from '@/components/common';
 import { CategoryDonutChart } from '@/components/dashboard/CategoryDonutChart';
 import { IncomeExpenseTrendChart } from '@/components/dashboard/IncomeExpenseTrendChart';
@@ -102,7 +102,48 @@ export function ReportsPage() {
 
   const showLoader = useMinLoadTime(isLoading);
   if (showLoader) return <PageSpinner label="Loading report…" />;
-  if (!report)   return null;
+
+  // No report data for this month — show a friendly empty state instead of
+  // returning null (which renders a blank white screen).
+  if (!report) {
+    return (
+      <div className="space-y-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-text-primary">Reports</h1>
+            <p className="mt-0.5 text-sm text-gray-500 dark:text-text-secondary">Your financial overview and insights.</p>
+          </div>
+        </div>
+        {/* Month nav */}
+        <div className="flex items-center justify-center gap-3">
+          <button
+            onClick={() => setMonthOffset((v) => v - 1)}
+            className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 shadow-btn transition-all hover:bg-gray-50 hover:text-gray-900 dark:border-white/[0.08] dark:bg-surface dark:text-text-secondary dark:hover:bg-white/5"
+            aria-label="Previous month"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <span className="min-w-[8rem] text-center text-sm font-semibold text-gray-900 dark:text-text-primary">
+            {formatMonthLabel(month)}
+          </span>
+          <button
+            onClick={() => setMonthOffset((v) => v + 1)}
+            className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 shadow-btn transition-all hover:bg-gray-50 hover:text-gray-900 dark:border-white/[0.08] dark:bg-surface dark:text-text-secondary dark:hover:bg-white/5"
+            aria-label="Next month"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
+        <Card className="p-10">
+          <EmptyState
+            icon={BarChart2}
+            title={`No data for ${formatMonthLabel(month)}`}
+            description="Log some income or expenses this month and your report will appear here automatically."
+          />
+        </Card>
+      </div>
+    );
+  }
 
   const stats = [
     { label: 'Total Income',   value: formatCurrency(report.totalIncome, DEFAULT_CURRENCY),  icon: ArrowUpRight,   tone: 'brand' as const },

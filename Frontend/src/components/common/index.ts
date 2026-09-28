@@ -1,5 +1,6 @@
 export * from './Button';
 export * from './BrowserFrame';
+export * from './ErrorBoundary';
 export * from './Input';
 export * from './FormattedNumberInput';
 export * from './Card';
