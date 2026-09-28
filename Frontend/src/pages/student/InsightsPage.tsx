@@ -3,6 +3,7 @@ import { Bot, Check, MessageSquarePlus, Send, Sparkles, Trash2, Zap } from 'luci
 import { Card, PageSpinner, Spinner } from '@/components/common';
 import { aiService, transactionService, categoryService } from '@/services';
 import { useAuth } from '@/hooks/useAuth';
+import { useMinLoadTime } from '@/hooks/useMinLoadTime';
 import { DEFAULT_CURRENCY } from '@/constants/config';
 import { formatCurrency, formatMonthLabel } from '@/utils/format';
 import { formatNumericInput, normalizeNumericInput } from '@/utils/number';

@@ -14,6 +14,7 @@ import {
   Settings,
   Sparkles,
   Tags,
+  Target,
   User,
   Wallet,
   X,
@@ -31,6 +32,7 @@ const navItems = [
   { to: STUDENT_ROUTES.budgets,        label: 'Budgets',       icon: Wallet },
   { to: STUDENT_ROUTES.reports,        label: 'Reports',       icon: BarChart3 },
   { to: STUDENT_ROUTES.savingTips,     label: 'Saving Tips',   icon: PiggyBank },
+  { to: STUDENT_ROUTES.savingsGoals,   label: 'Savings Goals', icon: Target },
   { to: STUDENT_ROUTES.insights,       label: 'AI Assistant',  icon: Bot },
   { to: STUDENT_ROUTES.categories,     label: 'Categories',    icon: Tags },
 ];

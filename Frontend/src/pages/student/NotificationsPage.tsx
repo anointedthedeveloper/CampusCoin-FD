@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { AlertTriangle, Bell, BellOff, CheckCheck, Info, Megaphone, Sparkles } from 'lucide-react';
 import { Card, EmptyState, PageSpinner } from '@/components/common';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useMinLoadTime } from '@/hooks/useMinLoadTime';
 import { adminAnnouncementService } from '@/services';
 import { formatDate } from '@/utils/format';
 import { cn } from '@/utils/cn';

@@ -75,6 +75,9 @@ const ReportsPage = lazy(() =>
 const SavingTipsPage = lazy(() =>
   import('@/pages/student/SavingTipsPage').then((page) => ({ default: page.SavingTipsPage })),
 );
+const SavingsGoalsPage = lazy(() =>
+  import('@/pages/student/SavingsGoalsPage').then((page) => ({ default: page.SavingsGoalsPage })),
+);
 const SettingsPage = lazy(() =>
   import('@/pages/student/SettingsPage').then((page) => ({ default: page.SettingsPage })),
 );
@@ -163,6 +166,7 @@ export function AppRoutes() {
             <Route path={STUDENT_ROUTES.monthlyReport} element={<MonthlyReportPage />} />
             <Route path={STUDENT_ROUTES.insights} element={<InsightsPage />} />
             <Route path={STUDENT_ROUTES.savingTips} element={<SavingTipsPage />} />
+            <Route path={STUDENT_ROUTES.savingsGoals} element={<SavingsGoalsPage />} />
             <Route path={STUDENT_ROUTES.bookmarks} element={<BookmarksPage />} />
             <Route path={STUDENT_ROUTES.import} element={<ImportPage />} />
             <Route path={STUDENT_ROUTES.profile} element={<ProfilePage />} />

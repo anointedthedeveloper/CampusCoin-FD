@@ -4,6 +4,7 @@ import { Button, Card, EmptyState, PageSpinner } from '@/components/common';
 import { BudgetProgressRow } from '@/components/budgets/BudgetProgressRow';
 import { budgetService, categoryService } from '@/services';
 import { useAuth } from '@/hooks/useAuth';
+import { useMinLoadTime } from '@/hooks/useMinLoadTime';
 import { DEFAULT_CURRENCY } from '@/constants/config';
 import { formatCurrency, formatMonthLabel } from '@/utils/format';
 import { ApiError } from '@/types/api';
@@ -117,7 +118,8 @@ export function BudgetsPage() {
     }
   }
 
-  if (isLoading) return <PageSpinner />;
+  const showLoader = useMinLoadTime(isLoading);
+  if (showLoader) return <PageSpinner label="Loading budgets…" />;
 
   return (
     <div className="space-y-5">

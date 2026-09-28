@@ -1,3 +1,4 @@
+import { CoinLoader } from '@/components/common/CoinLoader';
 import { cn } from '@/utils/cn';
 
 interface SpinnerProps {
@@ -11,6 +12,7 @@ const sizeMap = {
   lg: 'h-9 w-9 border-[3px]',
 };
 
+/** Inline ring spinner — kept for small in-context uses (e.g. button loading states, chat typing indicator) */
 export function Spinner({ className, size = 'lg' }: SpinnerProps) {
   return (
     <span
@@ -27,11 +29,23 @@ export function Spinner({ className, size = 'lg' }: SpinnerProps) {
   );
 }
 
-/** Full-page centred spinner for route-level loading */
-export function PageSpinner() {
+/**
+ * Full-page centred coin loader — the standard route-level loading indicator.
+ * Replaces the old plain ring spinner so every page load shows the branded
+ * CampusCoin coin animation instead of a generic ring.
+ *
+ * Use `PageSpinner` directly when you control the `isLoading` flag yourself.
+ * Pair with `useMinLoadTime` to enforce a minimum 3-second display duration.
+ */
+export function PageSpinner({ label }: { label?: string } = {}) {
   return (
-    <div className="flex h-64 items-center justify-center">
-      <Spinner size="lg" />
+    <div
+      className="flex min-h-[320px] items-center justify-center"
+      role="status"
+      aria-live="polite"
+      aria-label={label ?? 'Loading'}
+    >
+      <CoinLoader label={label ?? 'Loading…'} />
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { Bookmark, Lightbulb, PiggyBank, Sparkles, Utensils, X, type LucideIcon 
 import { Card, EmptyState, PageSpinner } from '@/components/common';
 import { tipsService } from '@/services';
 import { useAuth } from '@/hooks/useAuth';
+import { useMinLoadTime } from '@/hooks/useMinLoadTime';
 import { STUDENT_ROUTES } from '@/constants/routes';
 import { cn } from '@/utils/cn';
 import type { SavingTip } from '@/types/insight';
@@ -52,7 +53,8 @@ export function SavingTipsPage() {
     setRefreshToken((t) => t + 1);
   }
 
-  if (isLoading) return <PageSpinner />;
+  const showLoader = useMinLoadTime(isLoading);
+  if (showLoader) return <PageSpinner label="Loading saving tips…" />;
 
   return (
     <div className="space-y-5">

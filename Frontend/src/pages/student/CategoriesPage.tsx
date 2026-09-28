@@ -4,6 +4,7 @@ import { Button, Card, EmptyState, PageSpinner } from '@/components/common';
 import { DEFAULT_CATEGORY_ICON, EXPENSE_CATEGORY_ICONS, INCOME_CATEGORY_ICONS } from '@/constants/categoryIcons';
 import { categoryService } from '@/services';
 import { useAuth } from '@/hooks/useAuth';
+import { useMinLoadTime } from '@/hooks/useMinLoadTime';
 import { cn } from '@/utils/cn';
 import { ApiError } from '@/types/api';
 import type { Category, CategoryType } from '@/types/category';
@@ -113,7 +114,8 @@ export function CategoriesPage() {
     }
   }
 
-  if (isLoading) return <PageSpinner />;
+  const showLoader = useMinLoadTime(isLoading);
+  if (showLoader) return <PageSpinner label="Loading categories…" />;
 
   return (
     <div className="space-y-5">

@@ -22,6 +22,7 @@ export const STUDENT_ROUTES = {
   monthlyReport: '/reports/monthly',
   insights: '/insights',
   savingTips: '/saving-tips',
+  savingsGoals: '/savings-goals',
   bookmarks: '/bookmarks',
   import: '/import',
   profile: '/profile',

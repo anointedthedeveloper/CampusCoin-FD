@@ -1,10 +1,11 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Receipt } from 'lucide-react';
-import { Button, Card, EmptyState, Spinner } from '@/components/common';
+import { Button, Card, EmptyState, PageSpinner } from '@/components/common';
 import { STUDENT_ROUTES, buildPath } from '@/constants/routes';
 import { categoryService, transactionService } from '@/services';
 import { useAuth } from '@/hooks/useAuth';
+import { useMinLoadTime } from '@/hooks/useMinLoadTime';
 import { cn } from '@/utils/cn';
 import { ApiError } from '@/types/api';
 import type { Category, CategoryType } from '@/types/category';
@@ -49,7 +50,8 @@ export function TransactionEditPage() {
     categoryService.list(user.id, type).then(setCategories).catch(() => setCategories([]));
   }, [user?.id, type]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (isLoadingTx) return <div className="flex h-64 items-center justify-center"><Spinner /></div>;
+  const showLoader = useMinLoadTime(isLoadingTx);
+  if (showLoader) return <PageSpinner label="Loading transaction…" />;
 
   if (!user || !transaction) {
     return (

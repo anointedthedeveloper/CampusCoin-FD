@@ -5,6 +5,7 @@ import { Button, Card, EmptyState, PageSpinner } from '@/components/common';
 import { STUDENT_ROUTES, buildPath } from '@/constants/routes';
 import { categoryService, transactionService } from '@/services';
 import { useAuth } from '@/hooks/useAuth';
+import { useMinLoadTime } from '@/hooks/useMinLoadTime';
 import { DEFAULT_CURRENCY } from '@/constants/config';
 import { formatCurrency, formatDate } from '@/utils/format';
 import { cn } from '@/utils/cn';

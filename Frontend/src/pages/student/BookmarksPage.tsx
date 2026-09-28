@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Bookmark, Lightbulb, PiggyBank, Sparkles, Utensils, type LucideIcon } from 'lucide-react';
-import { Card, EmptyState, Spinner } from '@/components/common';
+import { Card, EmptyState, PageSpinner } from '@/components/common';
 import { tipsService } from '@/services';
 import { useAuth } from '@/hooks/useAuth';
+import { useMinLoadTime } from '@/hooks/useMinLoadTime';
 import { STUDENT_ROUTES } from '@/constants/routes';
 import { cn } from '@/utils/cn';
 import type { SavingTip } from '@/types/insight';
@@ -34,7 +35,8 @@ export function BookmarksPage() {
     setRefreshToken((t) => t + 1);
   }
 
-  if (isLoading) return <div className="flex justify-center py-20"><Spinner /></div>;
+  const showLoader = useMinLoadTime(isLoading);
+  if (showLoader) return <PageSpinner label="Loading bookmarks…" />;
 
   return (
     <div className="space-y-6">

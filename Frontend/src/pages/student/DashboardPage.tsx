@@ -22,6 +22,7 @@ import { Card, EmptyState, PageSpinner } from '@/components/common';
 import { CategoryDonutChart } from '@/components/dashboard/CategoryDonutChart';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { useAuth } from '@/hooks/useAuth';
+import { useMinLoadTime } from '@/hooks/useMinLoadTime';
 import { STUDENT_ROUTES, buildPath } from '@/constants/routes';
 import { DEFAULT_CURRENCY } from '@/constants/config';
 import { formatCurrency, formatDate, formatMonthLabel } from '@/utils/format';
@@ -113,7 +114,8 @@ export function DashboardPage() {
   }, [user?.id, month]);
 
   if (!user) return null;
-  if (isLoading) return <PageSpinner />;
+  const showLoader = useMinLoadTime(isLoading);
+  if (showLoader) return <PageSpinner label="Loading your dashboard…" />;
 
   const { transactions, categories, budgetSummary, report, notifications, tips, insight } = data!;
   const catMap = Object.fromEntries(categories.map((c) => [c.id, c.name]));
@@ -137,11 +139,11 @@ export function DashboardPage() {
     .find((option) => option.value === user.onboarding?.incomeFrequency)?.label;
   const hasOnboardingData = Boolean(
     user.monthlyAllowanceBaseline || user.savingsGoalAmount || incomeSourceLabels.length ||
-    spendingCategoryLabels.length || goalLabels.length || incomeFrequencyLabel,
+    spendingCategoryLabels.length || goalLabels.length || incomeFrequencyLabel ||
+    (budgetSummary?.totalBudgeted ?? 0) > 0,
   );
   const balance = transactions.reduce((sum, t) => sum + (t.type === 'income' ? t.amount : -t.amount), 0);
-  const unreadNotifications = notifications.filter((n) => !n.isRead);
-  const topBudget = budgetSummary?.budgets.slice().sort((a, b) => getBudgetUtilization(b) - getBudgetUtilization(a))[0];
+  const unreadNotifications = notifications.filter((n) => !n.isRead);  const topBudget = budgetSummary?.budgets.slice().sort((a, b) => getBudgetUtilization(b) - getBudgetUtilization(a))[0];
   const topBudgetCategoryName = topBudget ? catMap[topBudget.categoryId] ?? 'Category' : null;
   const topTip = tips[0];
   const categoryBreakdown = report?.categoryBreakdown ?? [];
@@ -273,7 +275,6 @@ export function DashboardPage() {
         <StatCard icon={Wallet}         label="Balance"  value={formatCurrency(balance, DEFAULT_CURRENCY)}                        hint="All time"                tone="blue" />
         <StatCard icon={PiggyBank}      label="Saved"    value={formatCurrency(report?.netSavings ?? 0, DEFAULT_CURRENCY)}        hint={formatMonthLabel(month)} tone="amber" />
       </div>
-
       {hasOnboardingData && (
         <Card>
           <div className="flex flex-wrap items-start justify-between gap-3">

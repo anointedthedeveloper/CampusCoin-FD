@@ -18,6 +18,8 @@ import { Button, FormattedNumberInput, Logo } from '@/components/common';
 import { SelectableCard } from '@/components/onboarding/SelectableCard';
 import { useAuth } from '@/hooks/useAuth';
 import { profileService } from '@/services';
+import { transactionsApi } from '@/api/transactions.api';
+import { categoriesApi } from '@/api/categories.api';
 import { STUDENT_ROUTES } from '@/constants/routes';
 import { CURRENCY_OPTIONS, DEFAULT_CURRENCY } from '@/constants/config';
 import { formatCurrency } from '@/utils/format';
@@ -290,6 +292,66 @@ export function OnboardingPage() {
         persist({ currentStep: 6, status: finalStatus }),
         minimumDelay,
       ]);
+
+      // ── Seed an opening income transaction ──────────────────────────
+      // monthlyAllowanceBaseline was saved during step 2 (or step 4 if the
+      // user went back). We now create a real income transaction for the
+      // current month so the dashboard's Income / Balance / Saved stat cards
+      // are populated immediately — without this, the dashboard shows $0
+      // until the user manually adds a transaction.
+      if (finalStatus === 'completed') {
+        const baseline = user?.monthlyAllowanceBaseline
+          ?? (incomeAmount ? Number(incomeAmount) : 0);
+
+        if (baseline > 0) {
+          try {
+            // Find the user's income categories and pick the best match
+            const categories = await categoriesApi.list();
+            const incomeCategories = categories.filter((c) => c.type === 'income');
+
+            // Map the income source the user selected to the best category name
+            const sourceToCategory: Record<string, string> = {
+              allowance:   'Allowance',
+              scholarship: 'Allowance',
+              'part-time': 'Salary',
+              freelance:   'Freelance',
+              gift:        'Gift',
+            };
+
+            let targetCategoryName = 'Allowance'; // sensible default for students
+            for (const source of incomeSources) {
+              if (sourceToCategory[source]) {
+                targetCategoryName = sourceToCategory[source];
+                break;
+              }
+            }
+
+            const matched =
+              incomeCategories.find((c) => c.name === targetCategoryName) ??
+              incomeCategories.find((c) => c.name === 'Allowance') ??
+              incomeCategories.find((c) => c.name === 'Other Income') ??
+              incomeCategories[0];
+
+            if (matched) {
+              // Annualise weekly/occasionally income to a monthly equivalent
+              let monthlyAmount = baseline;
+              if (incomeFrequency === 'weekly') monthlyAmount = baseline * 4;
+              else if (incomeFrequency === 'occasionally') monthlyAmount = baseline;
+
+              await transactionsApi.create({
+                categoryId: matched.id,
+                type: 'income',
+                amount: monthlyAmount,
+                description: 'Opening balance (from setup)',
+                occurredAt: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString(),
+              });
+            }
+          } catch {
+            // Non-fatal — dashboard will just show $0 until they add a transaction
+          }
+        }
+      }
+
       setIsCreatingWallet(false);
       if (finalStatus === 'completed') {
         setStep(6); // success screen
@@ -578,7 +640,11 @@ export function OnboardingPage() {
                 <div className="flex items-center gap-4">
                   <Button
                     size="lg"
-                    onClick={() => void goToStep(3, { incomeSources, incomeFrequency: incomeFrequency || undefined }, step2IsBlank())}
+                    onClick={() => void goToStep(3, {
+                      incomeSources,
+                      incomeFrequency: incomeFrequency || undefined,
+                      monthlyAllowanceBaseline: incomeAmount ? Number(incomeAmount) : undefined,
+                    }, step2IsBlank())}
                     isLoading={isSaving}
                   >
                     Next

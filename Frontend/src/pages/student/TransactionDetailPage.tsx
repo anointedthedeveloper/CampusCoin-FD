@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Calendar, Pencil, Receipt, Store, Tag, Trash2 } from 'lucide-react';
-import { Button, Card, EmptyState, Spinner } from '@/components/common';
+import { Button, Card, EmptyState, PageSpinner } from '@/components/common';
 import { STUDENT_ROUTES, buildPath } from '@/constants/routes';
 import { categoryService, transactionService } from '@/services';
 import { useAuth } from '@/hooks/useAuth';
+import { useMinLoadTime } from '@/hooks/useMinLoadTime';
 import { DEFAULT_CURRENCY } from '@/constants/config';
 import { formatCurrency, formatDate } from '@/utils/format';
 import { cn } from '@/utils/cn';
@@ -36,7 +37,8 @@ export function TransactionDetailPage() {
     return () => { cancelled = true; };
   }, [user?.id, id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (isLoading) return <div className="flex h-64 items-center justify-center"><Spinner /></div>;
+  const showLoader = useMinLoadTime(isLoading);
+  if (showLoader) return <PageSpinner label="Loading transaction…" />;
 
   if (!user || !transaction) {
     return (

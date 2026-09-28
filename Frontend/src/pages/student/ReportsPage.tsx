@@ -8,6 +8,7 @@ import { DEFAULT_CURRENCY } from '@/constants/config';
 import { formatCurrency, formatDate, formatMonthLabel } from '@/utils/format';
 import { categoryService, reportService } from '@/services';
 import { useAuth } from '@/hooks/useAuth';
+import { useMinLoadTime } from '@/hooks/useMinLoadTime';
 import { cn } from '@/utils/cn';
 import type { Category } from '@/types/category';
 import type { MonthlyReport } from '@/types/report';
@@ -99,7 +100,8 @@ export function ReportsPage() {
   const heatmapCells  = useMemo(() => (report ? buildHeatmapCells(month, report.dailySpend) : []), [report, month]);
   const maxDailyAmt   = useMemo(() => Math.max(0, ...(report?.dailySpend.map((i) => i.amount) ?? [])), [report]);
 
-  if (isLoading) return <PageSpinner />;
+  const showLoader = useMinLoadTime(isLoading);
+  if (showLoader) return <PageSpinner label="Loading report…" />;
   if (!report)   return null;
 
   const stats = [
