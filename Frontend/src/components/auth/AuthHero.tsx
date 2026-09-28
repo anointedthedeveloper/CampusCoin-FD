@@ -87,7 +87,13 @@ export function AuthHero() {
 
   return (
     <div className="relative flex h-full w-full flex-col overflow-hidden">
-      <HeroBackground />
+      {/* Below lg, this column owns its own background. At lg+, AuthLayout
+          renders one continuous background across both columns instead
+          (see AuthLayout.tsx) — this stays for legibility on narrower
+          viewports without duplicating the photo/gradient at lg+. */}
+      <div className="lg:hidden">
+        <HeroBackground />
+      </div>
 
       <div className="relative flex h-full flex-col justify-between gap-3 p-6 sm:p-8 lg:gap-0 lg:p-10 xl:p-14">
         <Link to={PUBLIC_ROUTES.home} className="animate-fade-in-up">
