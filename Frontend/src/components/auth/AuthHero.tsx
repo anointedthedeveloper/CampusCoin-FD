@@ -107,15 +107,15 @@ export function AuthHero() {
         </Link>
 
         <div className="animate-fade-in-up [animation-delay:100ms]">
-          <h1 className="max-w-md text-3xl font-bold leading-[1.1] tracking-tight text-[#1d3d2d] dark:text-white sm:text-4xl lg:text-[2.75rem] lg:leading-[1.08] xl:text-5xl">
+          <h1 className="max-w-md text-3xl font-bold leading-[1.1] tracking-tight text-gray-900 dark:text-white sm:text-4xl lg:text-[2.75rem] lg:leading-[1.08] xl:text-5xl">
             Smart Finance
             <br />
-            for a <span className="text-[#1a8f57] dark:text-brand-400">Brighter</span>
+            for a <span className="text-brand-700 dark:text-brand-400">Brighter</span>
             <br />
             Campus Life
           </h1>
 
-          <p className="mt-3 max-w-sm text-xs leading-relaxed text-gray-600 dark:text-white/75 sm:text-sm lg:mt-5">
+          <p className="mt-3 max-w-sm text-xs leading-relaxed text-gray-700 dark:text-white/75 sm:text-sm lg:mt-5">
             Manage your money, track your spending, and build better financial habits — all in one place.
           </p>
 
@@ -130,7 +130,7 @@ export function AuthHero() {
                   <Icon className="h-3.5 w-3.5 lg:h-4.5 lg:w-4.5" />
                 </span>
                 <div className="min-w-0">
-                  <p className="text-xs font-semibold text-[#1d3d2d] dark:text-white lg:text-sm">{title}</p>
+                  <p className="text-xs font-semibold text-gray-900 dark:text-white lg:text-sm">{title}</p>
                   <p className="text-[10px] leading-snug text-gray-600 dark:text-white/65 lg:text-xs">{body}</p>
                 </div>
               </div>
@@ -138,7 +138,7 @@ export function AuthHero() {
           </div>
         </div>
 
-        <p className="animate-fade-in-up text-xs font-medium italic text-gray-500 dark:text-white/50 [animation-delay:200ms] lg:text-sm">
+        <p className="animate-fade-in-up text-xs font-medium italic text-gray-600 dark:text-white/50 [animation-delay:200ms] lg:text-sm">
           Smarter Students. Better Tomorrow.
         </p>
       </div>

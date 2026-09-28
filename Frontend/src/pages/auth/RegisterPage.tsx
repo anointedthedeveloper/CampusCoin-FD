@@ -15,13 +15,13 @@ export function RegisterPage() {
   const navigate = useNavigate();
   const { compact } = useOutletContext<AuthPageOutletContext>();
 
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [fullName, setFullName]               = useState('');
+  const [email, setEmail]                     = useState('');
+  const [password, setPassword]               = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword]       = useState(false);
+  const [error, setError]                     = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting]       = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   async function handleGoogleSignup() {
@@ -29,9 +29,6 @@ export function RegisterPage() {
     setIsGoogleLoading(true);
     try {
       const signedUpUser = await loginWithGoogle();
-      // Same account may already exist (Google account linked to a prior
-      // password sign-up) — only send genuinely unconfigured accounts
-      // through onboarding, not one that's already completed or skipped it.
       const onboardingStatus = signedUpUser.onboarding?.status ?? 'not_started';
       const needsOnboarding = onboardingStatus === 'not_started' || onboardingStatus === 'in_progress';
       navigate(needsOnboarding ? STUDENT_ROUTES.onboarding : STUDENT_ROUTES.dashboard, { replace: true });
@@ -45,17 +42,14 @@ export function RegisterPage() {
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setError(null);
-
-    if (!fullName.trim()) { setError('Enter your full name.'); return; }
-    if (!isValidEmail(email)) { setError('Enter a valid email address.'); return; }
-    if (!isStrongPassword(password)) { setError('Password must be at least 8 characters.'); return; }
-    if (password !== confirmPassword) { setError('Passwords do not match.'); return; }
+    if (!fullName.trim())             { setError('Enter your full name.');             return; }
+    if (!isValidEmail(email))         { setError('Enter a valid email address.');      return; }
+    if (!isStrongPassword(password))  { setError('Password must be at least 8 characters.'); return; }
+    if (password !== confirmPassword) { setError('Passwords do not match.');           return; }
 
     setIsSubmitting(true);
     try {
       await register({ fullName, email, password });
-      // Every new account starts unconfigured — send them through the
-      // one-time money-profile setup instead of straight to an empty dashboard.
       navigate(STUDENT_ROUTES.onboarding, { replace: true });
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Something went wrong. Please try again.');
@@ -64,23 +58,36 @@ export function RegisterPage() {
     }
   }
 
-  const gap = compact ? 'gap-2' : 'gap-3.5';
-
   return (
     <div>
       <AuthPageHeader
         icon={User}
-        title="Create Your Account"
-        subtitle="Join Campus Coin and start managing your finances."
+        title="Create your account"
+        subtitle="Free forever. No credit card needed."
         compact={compact}
       />
 
-      <form onSubmit={handleSubmit} className={cn('flex flex-col', compact ? 'mt-3' : 'mt-6', gap)}>
+      {/* Google first */}
+      <GoogleButton
+        onClick={() => void handleGoogleSignup()}
+        isLoading={isGoogleLoading}
+        label="Sign up with Google"
+      />
+
+      <div className={cn('flex items-center gap-3', compact ? 'my-3' : 'my-5')}>
+        <div className="h-px flex-1 bg-gray-200 dark:bg-white/10" />
+        <span className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-text-muted">
+          or continue with email
+        </span>
+        <div className="h-px flex-1 bg-gray-200 dark:bg-white/10" />
+      </div>
+
+      <form onSubmit={handleSubmit} className={cn('flex flex-col', compact ? 'gap-3' : 'gap-4')}>
         <Input
           compact={compact}
-          label="Full Name"
+          label="Full name"
           name="fullName"
-          placeholder="Enter your full name"
+          placeholder="Jane Doe"
           icon={<User className="h-4 w-4" />}
           value={fullName}
           onChange={(e) => setFullName(e.target.value)}
@@ -90,7 +97,7 @@ export function RegisterPage() {
 
         <Input
           compact={compact}
-          label="Email Address"
+          label="Email address"
           type="email"
           name="email"
           placeholder="you@example.com"
@@ -106,14 +113,14 @@ export function RegisterPage() {
           label="Password"
           type={showPassword ? 'text' : 'password'}
           name="password"
-          placeholder="Create a password"
+          placeholder="At least 8 characters"
           icon={<Lock className="h-4 w-4" />}
-          hint="At least 8 characters"
+          hint="Minimum 8 characters"
           trailing={
             <button
               type="button"
               onClick={() => setShowPassword((v) => !v)}
-              className="rounded p-0.5 text-gray-400 transition-colors hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:text-text-muted dark:hover:text-text-secondary"
+              className="rounded p-0.5 text-gray-400 transition-colors hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:text-text-muted dark:hover:text-text-secondary"
               aria-label={showPassword ? 'Hide password' : 'Show password'}
             >
               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -127,10 +134,10 @@ export function RegisterPage() {
 
         <Input
           compact={compact}
-          label="Confirm Password"
+          label="Confirm password"
           type={showPassword ? 'text' : 'password'}
           name="confirmPassword"
-          placeholder="Confirm your password"
+          placeholder="Re-enter your password"
           icon={<Lock className="h-4 w-4" />}
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
@@ -147,27 +154,38 @@ export function RegisterPage() {
           </div>
         )}
 
-        <Button type="submit" variant="primary" className="w-full" isLoading={isSubmitting} loadingText="Creating account…">
-          Sign Up
+        <Button
+          type="submit"
+          variant="primary"
+          size={compact ? 'md' : 'lg'}
+          className="w-full"
+          isLoading={isSubmitting}
+          loadingText="Creating account…"
+        >
+          Create Account
           <ArrowRight className="h-4 w-4" />
         </Button>
+
+        <p className="text-center text-xs text-gray-400 dark:text-text-muted">
+          By creating an account you agree to our{' '}
+          <Link to={PUBLIC_ROUTES.faq} className="underline underline-offset-2 hover:text-gray-600 dark:hover:text-text-secondary">
+            Terms
+          </Link>{' '}
+          and{' '}
+          <Link to={PUBLIC_ROUTES.faq} className="underline underline-offset-2 hover:text-gray-600 dark:hover:text-text-secondary">
+            Privacy Policy
+          </Link>
+          .
+        </p>
       </form>
 
-      <div className={cn('flex items-center gap-3', compact ? 'my-3' : 'my-5')}>
-        <div className="h-px flex-1 bg-gray-200 dark:bg-white/10" />
-        <span className="text-xs font-medium uppercase tracking-wider text-gray-400 dark:text-text-muted">or</span>
-        <div className="h-px flex-1 bg-gray-200 dark:bg-white/10" />
-      </div>
-
-      <GoogleButton onClick={() => void handleGoogleSignup()} isLoading={isGoogleLoading} label="Sign up with Google" />
-
-      <p className={cn('text-center text-sm text-gray-500 dark:text-text-secondary', compact ? 'mt-3' : 'mt-5')}>
+      <p className={cn('text-center text-sm text-gray-500 dark:text-text-secondary', compact ? 'mt-4' : 'mt-6')}>
         Already have an account?{' '}
         <Link
           to={PUBLIC_ROUTES.login}
-          className="font-semibold text-brand-600 transition-colors hover:text-brand-700 dark:text-primary-accent dark:hover:text-primary"
+          className="font-bold text-brand-600 hover:text-brand-700 dark:text-primary-accent dark:hover:text-primary"
         >
-          Login
+          Sign in →
         </Link>
       </p>
     </div>

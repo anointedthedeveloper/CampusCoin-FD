@@ -55,17 +55,15 @@ function StepProgress({ current, total }: { current: number; total: number }) {
           <div
             key={i}
             className={cn(
-              'h-1.5 flex-1 rounded-full transition-all duration-300',
-              i < current
+              'h-2 flex-1 rounded-full transition-all duration-500',
+              i + 1 <= current
                 ? 'bg-brand-600 dark:bg-primary-accent'
-                : i === current - 1
-                  ? 'bg-brand-600 dark:bg-primary-accent'
-                  : 'bg-gray-200 dark:bg-white/10',
+                : 'bg-gray-200 dark:bg-white/10',
             )}
           />
         ))}
       </div>
-      <span className="shrink-0 text-xs font-semibold text-gray-400 dark:text-text-muted">
+      <span className="shrink-0 rounded-full bg-brand-100 px-2.5 py-0.5 text-xs font-bold text-brand-700 dark:bg-primary/20 dark:text-primary-accent">
         {current} / {total}
       </span>
     </div>
@@ -80,15 +78,15 @@ function PreviewCard({ initial, title, description, children }: {
   children: React.ReactNode;
 }) {
   return (
-    <div className="animate-fade-in-up flex h-full min-h-[520px] flex-col overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-xl shadow-brand-900/5 dark:border-white/10 dark:bg-surface-elevated dark:shadow-black/30">
-      <div className="flex items-center justify-between bg-gradient-to-r from-brand-50 to-brand-100/50 px-7 py-5 dark:from-white/5 dark:to-white/[0.03]">
-        <Logo iconClassName="h-7 w-7" wordmarkClassName="text-base" showTagline={false} />
-        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-600 text-sm font-bold text-white dark:bg-primary">
+    <div className="animate-fade-in-up flex h-full min-h-[520px] flex-col overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-[0_8px_32px_rgba(0,0,0,0.08),0_2px_8px_rgba(0,0,0,0.05)] dark:border-white/10 dark:bg-surface-elevated dark:shadow-black/30">
+      <div className="flex items-center justify-between border-b border-gray-100 bg-gradient-to-r from-brand-600 to-brand-700 px-7 py-5 dark:border-white/5">
+        <Logo iconClassName="h-7 w-7" wordmarkClassName="text-base text-white" showTagline={false} />
+        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20 text-sm font-bold text-white">
           {initial}
         </span>
       </div>
       <div className="flex flex-1 flex-col p-7">
-        <h2 className="text-lg font-bold text-brand-900 dark:text-text-primary">{title}</h2>
+        <h2 className="text-lg font-bold text-gray-900 dark:text-text-primary">{title}</h2>
         <p className="mt-1 text-sm text-gray-500 dark:text-text-secondary">{description}</p>
         <div className="mt-5 flex-1">{children}</div>
       </div>
@@ -98,19 +96,19 @@ function PreviewCard({ initial, title, description, children }: {
 
 function PreviewRow({ icon: Icon, label, amount }: { icon?: React.ElementType; label: string; amount?: string }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-xl bg-brand-50 px-4 py-3 dark:bg-white/5">
-      <span className="flex items-center gap-2.5 text-sm font-medium text-brand-900 dark:text-text-primary">
+    <div className="flex items-center justify-between gap-3 rounded-xl border border-brand-100 bg-brand-50 px-4 py-3 dark:border-white/5 dark:bg-white/5">
+      <span className="flex items-center gap-2.5 text-sm font-semibold text-gray-800 dark:text-text-primary">
         {Icon && <Icon className="h-4 w-4 shrink-0 text-brand-600 dark:text-primary-accent" />}
         {label}
       </span>
-      {amount && <span className="text-sm font-semibold text-brand-700 dark:text-primary-accent">{amount}</span>}
+      {amount && <span className="text-sm font-bold text-brand-700 dark:text-primary-accent">{amount}</span>}
     </div>
   );
 }
 
 function PreviewEmpty({ text }: { text: string }) {
   return (
-    <p className="rounded-xl border border-dashed border-gray-200 px-4 py-8 text-center text-sm text-gray-400 dark:border-white/10 dark:text-text-muted">
+    <p className="rounded-xl border-2 border-dashed border-gray-200 px-4 py-10 text-center text-sm text-gray-400 dark:border-white/10 dark:text-text-muted">
       {text}
     </p>
   );
@@ -398,15 +396,15 @@ export function OnboardingPage() {
   // ── Creating wallet loading screen ──────────────────────────────────
   if (isCreatingWallet) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-brand-50 px-4 dark:bg-background">
-        <div className="w-full max-w-md rounded-3xl border border-gray-100 bg-white p-12 text-center shadow-xl dark:border-white/10 dark:bg-surface-elevated">
+      <div className="flex min-h-screen items-center justify-center bg-white px-4 dark:bg-background">
+        <div className="w-full max-w-md rounded-3xl border border-gray-200 bg-white p-12 text-center shadow-[0_8px_40px_rgba(0,0,0,0.10)] dark:border-white/10 dark:bg-surface-elevated">
           <div className="animate-fade-in-up flex flex-col items-center gap-5">
             <span className="relative flex h-20 w-20 items-center justify-center rounded-full bg-brand-100 text-brand-700 dark:bg-white/10 dark:text-primary-accent">
               <Wallet className="h-9 w-9 animate-pulse" />
               <span className="absolute inset-0 animate-ping rounded-full bg-brand-400/25 dark:bg-primary-accent/25" />
             </span>
             <div>
-              <h1 className="text-xl font-bold text-brand-900 dark:text-text-primary">
+              <h1 className="text-2xl font-extrabold text-gray-900 dark:text-text-primary">
                 {WALLET_MESSAGES[walletMsgIdx]}
               </h1>
               <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-gray-500 dark:text-text-secondary">
@@ -436,14 +434,14 @@ export function OnboardingPage() {
   // ── Success screen ────────────────────────────────────────────────
   if (step === 6) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-brand-50 px-4 dark:bg-background">
-        <div className="w-full max-w-md rounded-3xl border border-gray-100 bg-white p-12 text-center shadow-xl dark:border-white/10 dark:bg-surface-elevated">
+      <div className="flex min-h-screen items-center justify-center bg-white px-4 dark:bg-background">
+        <div className="w-full max-w-md rounded-3xl border border-gray-200 bg-white p-12 text-center shadow-[0_8px_40px_rgba(0,0,0,0.10)] dark:border-white/10 dark:bg-surface-elevated">
           <div className="animate-fade-in-up flex flex-col items-center gap-5">
             <span className="flex h-20 w-20 items-center justify-center rounded-full bg-brand-100 text-brand-700 dark:bg-white/10 dark:text-primary-accent">
               <PartyPopper className="h-9 w-9" />
             </span>
             <div>
-              <h1 className="text-2xl font-extrabold text-brand-900 dark:text-text-primary">
+              <h1 className="text-2xl font-extrabold text-gray-900 dark:text-text-primary">
                 You&apos;re all set, {firstName}!
               </h1>
               <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-gray-500 dark:text-text-secondary">
@@ -478,7 +476,7 @@ export function OnboardingPage() {
 
   // ── Main onboarding layout ────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-white to-brand-50/50 px-4 pb-16 pt-6 dark:from-background dark:via-background dark:to-background sm:px-10 lg:px-20 xl:px-28">
+    <div className="min-h-screen bg-gray-50/50 px-4 pb-16 pt-6 dark:bg-background sm:px-10 lg:px-20 xl:px-28">
       {/* Top bar */}
       <div className="mx-auto max-w-7xl">
         <div className="flex items-center justify-between">
@@ -504,11 +502,11 @@ export function OnboardingPage() {
                 <span
                   key={label}
                   className={cn(
-                    'flex-1 text-center text-2xs font-medium transition-colors duration-200',
+                    'flex-1 text-center text-2xs font-semibold transition-colors duration-200',
                     i + 1 === step
-                      ? 'text-brand-700 dark:text-primary-accent'
+                      ? 'text-brand-600 dark:text-primary-accent'
                       : i + 1 < step
-                        ? 'text-gray-400 dark:text-text-muted'
+                        ? 'text-gray-500 dark:text-text-muted'
                         : 'text-gray-300 dark:text-white/20',
                   )}
                 >
@@ -545,7 +543,7 @@ export function OnboardingPage() {
                   <Coins className="h-7 w-7" />
                 </span>
                 <div>
-                  <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-brand-900 dark:text-text-primary">
+                  <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-gray-900 dark:text-text-primary">
                     Welcome to Campus Coin,<br />{firstName} 👋
                   </h1>
                   <p className="mt-3 max-w-md text-base leading-relaxed text-gray-600 dark:text-text-secondary">
@@ -572,7 +570,7 @@ export function OnboardingPage() {
                     id="onboarding-currency"
                     value={currency}
                     onChange={(event) => setCurrency(event.target.value)}
-                    className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/20 dark:border-white/[0.08] dark:bg-surface dark:text-text-primary"
+                    className="w-full rounded-xl border border-gray-300 bg-white px-3.5 py-2.5 text-sm font-medium text-gray-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-white/[0.08] dark:bg-surface dark:text-text-primary"
                   >
                     {CURRENCY_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
                   </select>
@@ -595,7 +593,7 @@ export function OnboardingPage() {
               <div className="space-y-6">
                 <div>
                   <p className="text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-primary-accent">Step 2 of {TOTAL_ONBOARDING_STEPS}</p>
-                  <h1 className="mt-1 text-3xl font-extrabold text-brand-900 dark:text-text-primary">
+                  <h1 className="mt-1 text-3xl font-extrabold text-gray-900 dark:text-text-primary">
                     What money do you usually receive?
                   </h1>
                   <p className="mt-2 text-base text-gray-500 dark:text-text-secondary">
@@ -628,7 +626,7 @@ export function OnboardingPage() {
                       maxLength={60}
                       required
                       aria-invalid={Boolean(error && !otherIncomeSource.trim())}
-                      className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/20 dark:border-border dark:bg-surface dark:text-text-primary"
+                      className="w-full rounded-xl border border-gray-300 bg-white px-3.5 py-2.5 text-sm font-medium text-gray-900 placeholder:text-gray-400 placeholder:font-normal shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-white/10 dark:bg-surface dark:text-text-primary"
                       placeholder="e.g. Freelance design"
                     />
                     {!otherIncomeSource.trim() && <p className="text-xs text-gray-500 dark:text-text-muted">Enter a name before continuing.</p>}
@@ -654,7 +652,7 @@ export function OnboardingPage() {
                             'flex-1 rounded-xl border px-2 py-2.5 text-xs font-semibold transition-colors duration-150',
                             incomeFrequency === opt.value
                               ? 'border-brand-500 bg-brand-50 text-brand-700 dark:border-primary-accent dark:bg-primary-accent/10 dark:text-primary-accent'
-                              : 'border-gray-200 text-gray-500 hover:border-gray-300 dark:border-border dark:text-text-muted dark:hover:border-white/20',
+                              : 'border-gray-300 bg-white text-gray-600 hover:border-gray-400 hover:bg-gray-50 dark:border-white/10 dark:bg-surface dark:text-text-muted dark:hover:border-white/20',
                           )}
                         >
                           {opt.label}
@@ -702,7 +700,7 @@ export function OnboardingPage() {
               <div className="space-y-6">
                 <div>
                   <p className="text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-primary-accent">Step 3 of {TOTAL_ONBOARDING_STEPS}</p>
-                  <h1 className="mt-1 text-3xl font-extrabold text-brand-900 dark:text-text-primary">
+                  <h1 className="mt-1 text-3xl font-extrabold text-gray-900 dark:text-text-primary">
                     What do you usually spend money on?
                   </h1>
                   <p className="mt-2 text-base text-gray-500 dark:text-text-secondary">
@@ -735,7 +733,7 @@ export function OnboardingPage() {
                       maxLength={60}
                       required
                       aria-invalid={Boolean(error && !otherSpendingCategory.trim())}
-                      className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/20 dark:border-border dark:bg-surface dark:text-text-primary"
+                      className="w-full rounded-xl border border-gray-300 bg-white px-3.5 py-2.5 text-sm font-medium text-gray-900 placeholder:text-gray-400 placeholder:font-normal shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-white/10 dark:bg-surface dark:text-text-primary"
                       placeholder="e.g. Pet care"
                     />
                     {!otherSpendingCategory.trim() && <p className="text-xs text-gray-500 dark:text-text-muted">Enter a name before continuing.</p>}
@@ -778,7 +776,7 @@ export function OnboardingPage() {
               <div className="space-y-6">
                 <div>
                   <p className="text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-primary-accent">Step 4 of {TOTAL_ONBOARDING_STEPS}</p>
-                  <h1 className="mt-1 text-3xl font-extrabold text-brand-900 dark:text-text-primary">
+                  <h1 className="mt-1 text-3xl font-extrabold text-gray-900 dark:text-text-primary">
                     What would you like Campus Coin to help with?
                   </h1>
                   <p className="mt-2 text-base text-gray-500 dark:text-text-secondary">
@@ -844,7 +842,7 @@ export function OnboardingPage() {
               <div className="space-y-6">
                 <div>
                   <p className="text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-primary-accent">Step 5 of {TOTAL_ONBOARDING_STEPS}</p>
-                  <h1 className="mt-1 text-3xl font-extrabold text-brand-900 dark:text-text-primary">
+                  <h1 className="mt-1 text-3xl font-extrabold text-gray-900 dark:text-text-primary">
                     Meet your AI Assistant
                   </h1>
                   <p className="mt-2 text-base text-gray-500 dark:text-text-secondary">
@@ -880,7 +878,7 @@ export function OnboardingPage() {
                       color: 'bg-brand-100 text-brand-600 dark:bg-primary/15 dark:text-primary-accent',
                     },
                   ].map(({ icon: Icon, title, desc, color }) => (
-                    <div key={title} className="flex items-start gap-3 rounded-xl border border-gray-100 bg-white p-4 shadow-card dark:border-white/[0.06] dark:bg-surface-elevated">
+                    <div key={title} className="flex items-start gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/[0.06] dark:bg-surface-elevated">
                       <span className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-xl', color)}>
                         <Icon className="h-4 w-4" />
                       </span>
@@ -924,8 +922,8 @@ export function OnboardingPage() {
                     { label: 'Income',  value: 0 },
                     { label: 'Expense', value: 0 },
                   ].map((tile) => (
-                    <div key={tile.label} className="rounded-xl bg-brand-50 p-3 dark:bg-white/5">
-                      <p className="text-sm font-bold text-brand-900 dark:text-text-primary">
+                    <div key={tile.label} className="rounded-xl bg-gray-50 p-3 dark:bg-white/5">
+                      <p className="text-sm font-bold text-gray-900 dark:text-text-primary">
                         {formatCurrency(tile.value, currency)}
                       </p>
                       <p className="mt-0.5 text-xs text-gray-500 dark:text-text-muted">{tile.label}</p>

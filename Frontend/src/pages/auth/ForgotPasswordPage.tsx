@@ -1,37 +1,27 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { KeyRound, Lock, Mail } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle2, KeyRound, Lock, Mail } from 'lucide-react';
 import { Button, Input } from '@/components/common';
 import { authService } from '@/services';
 import { PUBLIC_ROUTES } from '@/constants/routes';
 import { isValidEmail, isStrongPassword } from '@/utils/validation';
 import { ApiError } from '@/types/api';
 
-// A single page carries the whole flow — request a code, then enter it plus
-// a new password — rather than a separate emailed link. A code the user
-// types in themselves has no URL to get wrong (stale CLIENT_URL, broken deep
-// link, an email client mangling the link) and no click-through step at all.
 export function ForgotPasswordPage() {
   const navigate = useNavigate();
   const [step, setStep] = useState<'request' | 'verify'>('request');
 
-  const [email, setEmail] = useState('');
-  const [code, setCode] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail]                     = useState('');
+  const [code, setCode]                       = useState('');
+  const [password, setPassword]               = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-
-  const [error, setError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError]                     = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting]       = useState(false);
 
   async function handleRequestCode(event: FormEvent) {
     event.preventDefault();
     setError(null);
-
-    if (!isValidEmail(email)) {
-      setError('Enter a valid email address.');
-      return;
-    }
-
+    if (!isValidEmail(email)) { setError('Enter a valid email address.'); return; }
     setIsSubmitting(true);
     try {
       await authService.forgotPassword({ email });
@@ -44,19 +34,9 @@ export function ForgotPasswordPage() {
   async function handleVerifyAndReset(event: FormEvent) {
     event.preventDefault();
     setError(null);
-
-    if (!/^\d{6}$/.test(code)) {
-      setError('Enter the 6-digit code from your email.');
-      return;
-    }
-    if (!isStrongPassword(password)) {
-      setError('Password must be at least 8 characters.');
-      return;
-    }
-    if (password !== confirmPassword) {
-      setError('Passwords do not match.');
-      return;
-    }
+    if (!/^\d{6}$/.test(code))       { setError('Enter the 6-digit code from your email.'); return; }
+    if (!isStrongPassword(password))  { setError('Password must be at least 8 characters.'); return; }
+    if (password !== confirmPassword) { setError('Passwords do not match.');                 return; }
 
     setIsSubmitting(true);
     try {
@@ -72,14 +52,27 @@ export function ForgotPasswordPage() {
   if (step === 'verify') {
     return (
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-text-primary">Enter your code</h1>
-        <p className="mt-1 text-sm text-gray-500 dark:text-text-secondary">
-          We sent a 6-digit code to <span className="font-medium text-gray-700 dark:text-text-primary">{email}</span>. It expires in 15 minutes.
+        {/* Success banner */}
+        <div className="mb-6 flex items-start gap-3 rounded-xl border border-brand-200 bg-brand-50 px-4 py-3.5 dark:border-primary/20 dark:bg-primary/10">
+          <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-brand-600 dark:text-primary-accent" />
+          <div>
+            <p className="text-sm font-semibold text-brand-800 dark:text-primary-accent">Code sent!</p>
+            <p className="mt-0.5 text-xs text-brand-700/80 dark:text-primary-accent/80">
+              Check <span className="font-medium">{email}</span> — the code expires in 15 minutes.
+            </p>
+          </div>
+        </div>
+
+        <h1 className="text-2xl font-extrabold tracking-tight text-gray-900 dark:text-text-primary">
+          Enter your code
+        </h1>
+        <p className="mt-1 mb-6 text-sm text-gray-500 dark:text-text-secondary">
+          Enter the code and choose a new password.
         </p>
 
-        <form onSubmit={handleVerifyAndReset} className="mt-6 space-y-4">
+        <form onSubmit={handleVerifyAndReset} className="flex flex-col gap-4">
           <Input
-            label="Verification Code"
+            label="6-digit code"
             type="text"
             inputMode="numeric"
             autoComplete="one-time-code"
@@ -91,24 +84,22 @@ export function ForgotPasswordPage() {
             maxLength={6}
             required
           />
-
           <Input
-            label="New Password"
+            label="New password"
             type="password"
             name="password"
-            placeholder="Enter a new password"
+            placeholder="At least 8 characters"
             icon={<Lock className="h-4 w-4" />}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             autoComplete="new-password"
             required
           />
-
           <Input
-            label="Confirm Password"
+            label="Confirm new password"
             type="password"
             name="confirmPassword"
-            placeholder="Confirm your new password"
+            placeholder="Re-enter your new password"
             icon={<Lock className="h-4 w-4" />}
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
@@ -116,19 +107,24 @@ export function ForgotPasswordPage() {
             required
           />
 
-          {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+          {error && (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-3.5 py-3 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-950/30 dark:text-red-300">
+              {error}
+            </div>
+          )}
 
-          <Button type="submit" variant="primary" className="w-full" isLoading={isSubmitting}>
+          <Button type="submit" variant="primary" size="lg" className="w-full" isLoading={isSubmitting}>
             Reset Password
+            <ArrowRight className="h-4 w-4" />
           </Button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-gray-600 dark:text-text-secondary">
-          Didn&apos;t get a code?{' '}
+        <p className="mt-5 text-center text-sm text-gray-500 dark:text-text-secondary">
+          Didn&apos;t receive the code?{' '}
           <button
             type="button"
-            onClick={() => setStep('request')}
-            className="font-semibold text-brand-600 hover:text-brand-700 dark:text-primary-accent dark:hover:text-primary"
+            onClick={() => { setStep('request'); setError(null); }}
+            className="font-bold text-brand-600 hover:text-brand-700 dark:text-primary-accent"
           >
             Try again
           </button>
@@ -139,14 +135,16 @@ export function ForgotPasswordPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-text-primary">Forgot Password</h1>
-      <p className="mt-1 text-sm text-gray-500 dark:text-text-secondary">
-        Enter your email and we&apos;ll send you a verification code to reset your password.
+      <h1 className="text-2xl font-extrabold tracking-tight text-gray-900 dark:text-text-primary">
+        Reset your password
+      </h1>
+      <p className="mt-1 mb-6 text-sm text-gray-500 dark:text-text-secondary">
+        We&apos;ll email you a 6-digit code to reset your password.
       </p>
 
-      <form onSubmit={handleRequestCode} className="mt-6 space-y-4">
+      <form onSubmit={handleRequestCode} className="flex flex-col gap-4">
         <Input
-          label="Email Address"
+          label="Email address"
           type="email"
           name="email"
           placeholder="you@example.com"
@@ -157,20 +155,25 @@ export function ForgotPasswordPage() {
           required
         />
 
-        {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+        {error && (
+          <div className="rounded-lg border border-red-200 bg-red-50 px-3.5 py-3 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-950/30 dark:text-red-300">
+            {error}
+          </div>
+        )}
 
-        <Button type="submit" variant="primary" className="w-full" isLoading={isSubmitting}>
-          Send Code
+        <Button type="submit" variant="primary" size="lg" className="w-full" isLoading={isSubmitting}>
+          Send Reset Code
+          <ArrowRight className="h-4 w-4" />
         </Button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-gray-600 dark:text-text-secondary">
-        Remembered your password?{' '}
+      <p className="mt-5 text-center text-sm text-gray-500 dark:text-text-secondary">
         <Link
           to={PUBLIC_ROUTES.login}
-          className="font-semibold text-brand-600 hover:text-brand-700 dark:text-primary-accent dark:hover:text-primary"
+          className="inline-flex items-center gap-1.5 font-bold text-brand-600 hover:text-brand-700 dark:text-primary-accent"
         >
-          Log In
+          <ArrowLeft className="h-3.5 w-3.5" />
+          Back to Sign In
         </Link>
       </p>
     </div>

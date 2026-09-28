@@ -8,22 +8,25 @@ interface AuthPageHeaderProps {
   compact?: boolean;
 }
 
-/** Icon + title + subtitle used at the top of every auth card (login, register, forgot/reset password). */
-export function AuthPageHeader({ icon: Icon, title, subtitle, compact = false }: AuthPageHeaderProps) {
+/**
+ * Title + subtitle used at the top of every auth card.
+ * The icon prop is kept for API compatibility but the design no longer
+ * uses it — the branding lives in the hero panel.
+ */
+export function AuthPageHeader({ title, subtitle, compact = false }: AuthPageHeaderProps) {
   return (
-    <div className={cn('flex items-start', compact ? 'gap-3' : 'gap-4')}>
-      <span
+    <div className={cn('space-y-1', compact ? 'mb-4' : 'mb-6')}>
+      <h1
         className={cn(
-          'flex shrink-0 items-center justify-center rounded-full bg-brand-600 text-white shadow-sm',
-          compact ? 'h-9 w-9' : 'h-12 w-12',
+          'font-extrabold tracking-tight text-gray-900 dark:text-text-primary',
+          compact ? 'text-xl' : 'text-2xl sm:text-3xl',
         )}
       >
-        <Icon className={compact ? 'h-4 w-4' : 'h-5 w-5'} />
-      </span>
-      <div>
-        <h1 className={cn('font-bold text-gray-900 dark:text-text-primary', compact ? 'text-lg' : 'text-xl sm:text-2xl')}>{title}</h1>
-        <p className={cn('text-gray-500 dark:text-text-secondary', compact ? 'mt-0.5 text-xs' : 'mt-1 text-sm')}>{subtitle}</p>
-      </div>
+        {title}
+      </h1>
+      <p className={cn('text-gray-500 dark:text-text-secondary', compact ? 'text-xs' : 'text-sm')}>
+        {subtitle}
+      </p>
     </div>
   );
 }
