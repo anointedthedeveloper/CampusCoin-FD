@@ -98,6 +98,28 @@ app.use(express.json());
 // ── Health check ──────────────────────────────────────────────────────
 app.get('/', (_req, res) => res.json({ message: 'CampusCoin API is running' }));
 
+// Configuration check — reports which integrations are set up (booleans
+// only, never the values) so a deployment can be verified at a glance.
+async function healthHandler(_req, res) {
+  const { isEmailConfigured } = require('./src/services/email.service');
+  const { hasAiProvider, getConfiguredProvider } = require('./src/services/ai.service');
+  const database = await connectDB();
+  res.status(database ? 200 : 503).json({
+    data: {
+      database,
+      jwtSecret: Boolean(process.env.JWT_SECRET),
+      email: isEmailConfigured(),
+      emailProvider: process.env.RESEND_API_KEY ? 'resend' : isEmailConfigured() ? 'smtp' : null,
+      ai: hasAiProvider(),
+      aiProvider: hasAiProvider() ? getConfiguredProvider().provider : null,
+      googleSignIn: Boolean(process.env.GOOGLE_CLIENT_ID),
+      clientUrl: Boolean(process.env.CLIENT_URL),
+    },
+  });
+}
+app.get('/api/v1/health', healthHandler);
+app.get('/api/ccoin/health', healthHandler);
+
 const databaseIndependentRoutes = new Set([
   '/api/v1/auth/google/config',
   '/api/ccoin/auth/google/config',

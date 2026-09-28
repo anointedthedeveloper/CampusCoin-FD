@@ -17,3 +17,5 @@ export * from './GoogleButton';
 export * from './ScreenshotSlideshow';
 export * from './ScrollToTop';
 export * from './TawkToVisibility';
+export * from './QuickGuideVideo';
+export * from './ConfirmDialog';

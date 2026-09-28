@@ -1,10 +1,12 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Bell, Brain, Coins, SlidersHorizontal } from 'lucide-react';
+import { Bell, Brain, Coins, SlidersHorizontal, Type } from 'lucide-react';
 import { Button, Card, Input } from '@/components/common';
 import { CURRENCY_OPTIONS, DEFAULT_BUDGET_ALERT_THRESHOLD, DEFAULT_CURRENCY } from '@/constants/config';
 import { profileService } from '@/services';
 import { ApiError } from '@/types/api';
 import type { UserSettings } from '@/types/user';
+import { FONT_SCALES, getFontScale, setFontScale, type FontScaleId } from '@/utils/fontScale';
+import { useAuth } from '@/hooks/useAuth';
 
 const DEFAULT_SETTINGS: UserSettings = {
   currency: DEFAULT_CURRENCY,
@@ -24,6 +26,8 @@ const TOGGLES = [
 ] as const;
 
 export function SettingsPage() {
+  const { refreshUser } = useAuth();
+  const [fontScale, setFontScaleState] = useState<FontScaleId>(getFontScale);
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -52,6 +56,9 @@ export function SettingsPage() {
     try {
       const updated = await profileService.updateSettings(settings);
       setSettings({ ...DEFAULT_SETTINGS, ...updated });
+      // Keep the signed-in user in sync so changes (currency, AI features)
+      // apply across the app without a reload.
+      await refreshUser().catch(() => undefined);
       setSaved(true);
     } catch (error) {
       setSaveError(error instanceof ApiError ? error.message : 'Settings could not be saved. Please try again.');
@@ -124,6 +131,33 @@ export function SettingsPage() {
                 </span>
                 <input type="checkbox" checked={settings[key]} onChange={(event) => updateSetting(key, event.target.checked)} className="h-4 w-4 shrink-0 rounded border-gray-300 accent-brand-600" />
               </label>
+            ))}
+          </div>
+        </Card>
+
+        <Card>
+          <div className="flex items-center gap-2">
+            <Type className="h-4 w-4 text-brand-600 dark:text-primary-accent" />
+            <h2 className="font-semibold text-gray-900 dark:text-text-primary">Accessibility</h2>
+          </div>
+          <p className="mt-1 text-xs text-gray-500 dark:text-text-muted">Text size applies immediately on this device.</p>
+          <div className="mt-3 flex flex-wrap gap-2" role="radiogroup" aria-label="Text size">
+            {FONT_SCALES.map((scale) => (
+              <button
+                key={scale.id}
+                type="button"
+                role="radio"
+                aria-checked={fontScale === scale.id}
+                onClick={() => { setFontScale(scale.id); setFontScaleState(scale.id); }}
+                className={
+                  fontScale === scale.id
+                    ? 'rounded-lg border border-brand-500 bg-brand-50 px-4 py-2 font-semibold text-brand-700 dark:border-primary-accent dark:bg-primary/10 dark:text-primary-accent'
+                    : 'rounded-lg border border-gray-200 px-4 py-2 font-medium text-gray-700 hover:bg-gray-50 dark:border-white/10 dark:text-text-secondary dark:hover:bg-white/5'
+                }
+                style={{ fontSize: `${scale.px - 2}px` }}
+              >
+                {scale.label}
+              </button>
             ))}
           </div>
         </Card>

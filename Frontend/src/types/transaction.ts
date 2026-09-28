@@ -1,6 +1,6 @@
 import type { CategoryType } from './category';
 
-export type TransactionSource = 'manual' | 'csv-import' | 'ai-suggested';
+export type TransactionSource = 'manual' | 'csv-import' | 'ai-suggested' | 'recurring';
 
 export interface Transaction {
   id: string;
@@ -23,6 +23,8 @@ export interface TransactionPayload {
   description?: string;
   merchant?: string;
   occurredAt: string;
+  /** Save even if it looks like a same-day duplicate. */
+  confirmDuplicate?: boolean;
 }
 
 export interface TransactionFilters {

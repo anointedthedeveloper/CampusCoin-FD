@@ -17,13 +17,13 @@ export const AUTH_HERO_DETAIL_QUERY = '(min-height: 920px), (min-width: 1024px)'
 const features = [
   {
     icon: Wallet,
-    title: 'Easy Transactions',
-    body: 'Send, receive and manage your money with ease.',
+    title: 'Track Every Naira',
+    body: 'Log income and expenses in seconds — no bank account needed.',
   },
   {
     icon: ShieldCheck,
-    title: 'Secure & Reliable',
-    body: 'Your data and funds are protected with modern security.',
+    title: 'Private & Secure',
+    body: 'Only you can see your financial records.',
   },
   {
     icon: TrendingUp,
@@ -41,17 +41,10 @@ function HeroBackground() {
         className="absolute inset-0 h-full w-full animate-slow-zoom object-cover object-center saturate-[1.15]"
         aria-hidden="true"
       />
-      {/* Light mode: a stronger bottom-to-top gradient that keeps the photo
-          vivid in the upper section but gives the text area real contrast.
-          Dark mode: keeps the existing deep brand-green wash. */}
+      {/* A light tint only — text readability comes from the glass panels,
+          not from washing the photo out. */}
       <div
-        className="absolute inset-0 bg-gradient-to-b from-white/30 via-white/55 to-white/80 dark:from-brand-950/90 dark:via-brand-950/75 dark:to-brand-950/95"
-        aria-hidden="true"
-      />
-      {/* Warm golden-hour glow, bottom-right — dark mode only; the light
-          reference is bright, even daylight, not a dusk/evening tint. */}
-      <div
-        className="absolute inset-0 hidden bg-[radial-gradient(ellipse_120%_70%_at_85%_100%,rgba(217,167,45,0.22),transparent_60%)] dark:block"
+        className="absolute inset-0 bg-gradient-to-b from-brand-950/20 to-brand-950/35 dark:from-black/65 dark:to-brand-950/80"
         aria-hidden="true"
       />
     </>
@@ -73,9 +66,9 @@ export function AuthHero() {
     return (
       <div className="relative flex h-full w-full items-center overflow-hidden">
         <HeroBackground />
-        <Link to={PUBLIC_ROUTES.home} className="relative flex min-w-0 items-center gap-3 px-4">
+        <Link to={PUBLIC_ROUTES.home} className="glass-panel relative mx-3 flex min-w-0 items-center gap-3 rounded-2xl px-4 py-2">
           <Logo iconClassName="h-9 w-9 drop-shadow-md" showWordmark={false} />
-          <div className="auth-hero-text min-w-0">
+          <div className="min-w-0">
             <p className="truncate text-sm font-bold text-[#1d3d2d] dark:text-white">Campus Coin</p>
             <p className="truncate text-xs text-gray-600 dark:text-white/70">Smart Finance for a Brighter Campus Life</p>
           </div>
@@ -94,19 +87,19 @@ export function AuthHero() {
         <HeroBackground />
       </div>
 
-      <div className="auth-hero-text relative flex h-full flex-col justify-between gap-3 p-6 sm:p-8 lg:gap-0 lg:p-10 xl:p-14">
-        <Link to={PUBLIC_ROUTES.home} className="animate-fade-in-up">
+      <div className="relative flex h-full flex-col justify-between gap-3 p-4 sm:p-6 lg:gap-6 lg:p-10 xl:p-14">
+        <Link to={PUBLIC_ROUTES.home} className="glass-panel w-fit animate-fade-in-up rounded-2xl px-4 py-3">
           <Logo
             iconClassName="h-9 w-9 drop-shadow-md lg:h-11 lg:w-11"
             wordmarkClassName="text-base text-[#1d3d2d] dark:text-white lg:text-lg"
             showTagline={false}
           />
-          <span className="-mt-1 ml-[2.75rem] block text-[11px] font-medium text-gray-500 dark:text-white/60 lg:ml-[3.25rem] lg:text-xs">
+          <span className="-mt-1 ml-[2.75rem] block text-[11px] font-medium text-gray-600 dark:text-white/70 lg:ml-[3.25rem] lg:text-xs">
             {APP_TAGLINE}
           </span>
         </Link>
 
-        <div className="animate-fade-in-up [animation-delay:100ms]">
+        <div className="glass-panel max-w-lg animate-fade-in-up rounded-3xl p-5 [animation-delay:100ms] sm:p-6 lg:p-8">
           <h1 className="max-w-md text-3xl font-bold leading-[1.1] tracking-tight text-gray-900 dark:text-white sm:text-4xl lg:text-[2.75rem] lg:leading-[1.08] xl:text-5xl">
             Smart Finance
             <br />
@@ -115,7 +108,7 @@ export function AuthHero() {
             Campus Life
           </h1>
 
-          <p className="mt-3 max-w-sm text-xs leading-relaxed text-gray-700 dark:text-white/75 sm:text-sm lg:mt-5">
+          <p className="mt-3 max-w-sm text-xs leading-relaxed text-gray-800 dark:text-white/80 sm:text-sm lg:mt-5">
             Manage your money, track your spending, and build better financial habits — all in one place.
           </p>
 
@@ -131,14 +124,14 @@ export function AuthHero() {
                 </span>
                 <div className="min-w-0">
                   <p className="text-xs font-semibold text-gray-900 dark:text-white lg:text-sm">{title}</p>
-                  <p className="text-[10px] leading-snug text-gray-600 dark:text-white/65 lg:text-xs">{body}</p>
+                  <p className="text-[10px] leading-snug text-gray-700 dark:text-white/70 lg:text-xs">{body}</p>
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        <p className="animate-fade-in-up text-xs font-medium italic text-gray-600 dark:text-white/50 [animation-delay:200ms] lg:text-sm">
+        <p className="glass-chip w-fit animate-fade-in-up rounded-full px-4 py-1.5 text-xs font-medium italic text-gray-800 dark:text-white/80 [animation-delay:200ms] lg:text-sm">
           Smarter Students. Better Tomorrow.
         </p>
       </div>

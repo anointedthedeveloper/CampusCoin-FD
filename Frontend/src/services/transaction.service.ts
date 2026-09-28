@@ -24,7 +24,8 @@ export const transactionService = {
   },
 
   async createMany(_userId: string, payloads: TransactionPayload[]): Promise<Transaction[]> {
-    return Promise.all(payloads.map((p) => transactionsApi.create(p)));
+    // Bank statements legitimately contain identical same-day rows.
+    return Promise.all(payloads.map((p) => transactionsApi.create({ ...p, confirmDuplicate: true })));
   },
 
   async update(_userId: string, id: string, payload: Partial<TransactionPayload>): Promise<Transaction> {

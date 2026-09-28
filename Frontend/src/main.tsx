@@ -2,6 +2,9 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import './styles/index.css';
+import { applyFontScale } from './utils/fontScale';
+
+applyFontScale();
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {

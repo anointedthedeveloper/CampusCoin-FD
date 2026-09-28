@@ -229,47 +229,73 @@ async function processDueRecurringTransactions() {
   return dueItems.length;
 }
 
+const MAX_CATCH_UP_RUNS = 62;
+
+// Posts every occurrence that has come due (catching up if the student
+// hasn't opened the app for a while). Each occurrence is claimed atomically
+// by advancing nextRunAt first, so two parallel requests can never post the
+// same occurrence twice.
 async function processDueRecurringTransactionsForUser(userId) {
   const now = new Date();
-
   const dueItems = await MoneyRoutine.find({
     user: userId,
     isActive: true,
     nextRunAt: { $lte: now },
-    $or: [{ endDate: null }, { endDate: { $gte: now } }],
   });
 
   let processed = 0;
+  for (const item of dueItems) {
+    let runAt = item.nextRunAt;
+    for (let i = 0; i < MAX_CATCH_UP_RUNS && runAt <= now; i += 1) {
+      if (item.endDate && runAt > item.endDate) break;
+      const nextRun = getNextRunDate(runAt, item.frequency, item.interval);
+      const finished = Boolean(item.endDate && nextRun > item.endDate);
+      const claimed = await MoneyRoutine.findOneAndUpdate(
+        { _id: item._id, nextRunAt: runAt, isActive: true },
+        { $set: { nextRunAt: nextRun, lastRunAt: runAt, ...(finished ? { isActive: false } : {}) } },
+        { returnDocument: 'after' },
+      );
+      if (!claimed) break; // another request already posted this occurrence
 
-  for (const recurring of dueItems) {
-    const tx = await Transaction.create({
-      userId: recurring.user,
-      categoryId: recurring.category,
-      amount: recurring.amount,
-      type: recurring.type,
-      description: recurring.description,
-      source: 'recurring',
-      occurredAt: recurring.nextRunAt,
-    });
-
-    if (tx.type === 'expense') {
-      await checkBudgetAfterTransaction(recurring.user, recurring.category, tx.occurredAt);
+      const tx = await Transaction.create({
+        userId: item.user,
+        categoryId: item.category,
+        amount: item.amount,
+        type: item.type,
+        description: item.description,
+        source: 'recurring',
+        occurredAt: runAt,
+      });
+      if (tx.type === 'expense') {
+        await checkBudgetAfterTransaction(item.user, item.category, tx.occurredAt).catch(() => undefined);
+      }
+      processed += 1;
+      if (finished) break;
+      runAt = nextRun;
     }
-
-    recurring.lastRunAt = recurring.nextRunAt;
-
-    const nextRun = getNextRunDate(recurring.nextRunAt, recurring.frequency, recurring.interval);
-    recurring.nextRunAt = nextRun;
-
-    if (recurring.endDate && nextRun > recurring.endDate) {
-      recurring.isActive = false;
+    // An end date that has already passed with nothing left to post.
+    if (item.endDate && item.endDate < now) {
+      await MoneyRoutine.updateOne({ _id: item._id, nextRunAt: { $gt: item.endDate } }, { $set: { isActive: false } });
     }
-
-    await recurring.save();
-    processed += 1;
   }
-
   return processed;
+}
+
+// Called from the student's main data endpoints (transactions, dashboard,
+// budgets, reports) so recurring entries post on time without a cron job —
+// the API runs serverless. Throttled per user per warm instance.
+const lastProcessedAt = new Map();
+const PROCESS_THROTTLE_MS = 60 * 1000;
+async function ensureRecurringProcessed(userId) {
+  const key = userId.toString();
+  const last = lastProcessedAt.get(key) ?? 0;
+  if (Date.now() - last < PROCESS_THROTTLE_MS) return;
+  lastProcessedAt.set(key, Date.now());
+  try {
+    await processDueRecurringTransactionsForUser(userId);
+  } catch (err) {
+    console.error('Recurring processing failed:', err.message);
+  }
 }
 
 // POST /api/v1/money-routines/process
@@ -287,4 +313,6 @@ router.post('/process', async (req, res) => {
 module.exports = {
   router,
   processDueRecurringTransactions,
+  processDueRecurringTransactionsForUser,
+  ensureRecurringProcessed,
 };

@@ -4,12 +4,14 @@ const Transaction = require('../models/Transaction');
 const Budget = require('../models/Budget');
 const Category = require('../models/Category');
 const { protect } = require('../middleware/auth');
+const { ensureRecurringProcessed } = require('./recurring.routes');
 
 router.use(protect);
 
 // GET /api/v1/my-money  (also served at /api/ccoin/my-money)
 router.get('/', async (req, res) => {
   try {
+    await ensureRecurringProcessed(req.user._id);
     const userId = req.user._id;
 
     // Current month

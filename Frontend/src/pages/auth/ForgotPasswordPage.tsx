@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, CheckCircle2, KeyRound, Lock, Mail } from 'lucide-react';
 import { Button, Input } from '@/components/common';
 import { authService } from '@/services';
@@ -9,10 +9,15 @@ import { ApiError } from '@/types/api';
 
 export function ForgotPasswordPage() {
   const navigate = useNavigate();
-  const [step, setStep] = useState<'request' | 'verify'>('request');
+  // The reset email links here with ?email=…&code=… so the student can
+  // reset straight from the email without retyping the code.
+  const [searchParams] = useSearchParams();
+  const linkEmail = searchParams.get('email') ?? '';
+  const linkCode = searchParams.get('code') ?? '';
+  const [step, setStep] = useState<'request' | 'verify'>(linkEmail && /^\d{6}$/.test(linkCode) ? 'verify' : 'request');
 
-  const [email, setEmail]                     = useState('');
-  const [code, setCode]                       = useState('');
+  const [email, setEmail]                     = useState(linkEmail);
+  const [code, setCode]                       = useState(/^\d{6}$/.test(linkCode) ? linkCode : '');
   const [password, setPassword]               = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError]                     = useState<string | null>(null);
@@ -26,6 +31,8 @@ export function ForgotPasswordPage() {
     try {
       await authService.forgotPassword({ email });
       setStep('verify');
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Could not send the reset code. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -41,7 +48,7 @@ export function ForgotPasswordPage() {
     setIsSubmitting(true);
     try {
       await authService.resetPassword({ email, code, newPassword: password });
-      navigate(PUBLIC_ROUTES.login, { replace: true });
+      navigate(PUBLIC_ROUTES.login, { replace: true, state: { notice: 'Password reset successful. Sign in with your new password.' } });
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Something went wrong. Please try again.');
     } finally {
@@ -56,9 +63,11 @@ export function ForgotPasswordPage() {
         <div className="mb-6 flex items-start gap-3 rounded-xl border border-brand-200 bg-brand-50 px-4 py-3.5 dark:border-primary/20 dark:bg-primary/10">
           <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-brand-600 dark:text-primary-accent" />
           <div>
-            <p className="text-sm font-semibold text-brand-800 dark:text-primary-accent">Code sent!</p>
+            <p className="text-sm font-semibold text-brand-800 dark:text-primary-accent">{linkCode ? 'Almost done!' : 'Code sent!'}</p>
             <p className="mt-0.5 text-xs text-brand-700/80 dark:text-primary-accent/80">
-              Check <span className="font-medium">{email}</span> — the code expires in 15 minutes.
+              {linkCode
+                ? <>Choose a new password for <span className="font-medium">{email}</span>.</>
+                : <>If an account exists for <span className="font-medium">{email}</span>, a 6-digit code is on its way (check spam too). It expires in 15 minutes.</>}
             </p>
           </div>
         </div>

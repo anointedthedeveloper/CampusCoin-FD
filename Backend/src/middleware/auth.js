@@ -33,7 +33,7 @@ async function protect(req, res, next) {
     return res.status(401).json({ message: 'User no longer exists', code: 'USER_NOT_FOUND' });
   }
   if (!user.isActive) {
-    return res.status(403).json({ message: 'Account suspended', code: 'ACCOUNT_SUSPENDED' });
+    return res.status(403).json({ message: 'Your account has been suspended. Please contact the Campus Coin administrator.', code: 'ACCOUNT_SUSPENDED' });
   }
   req.user = user;
   next();

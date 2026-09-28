@@ -1,6 +1,6 @@
 import { httpClient } from '../httpClient';
 import type { ApiSuccess, PaginatedResult } from '@/types/api';
-import type { AdminUserSummary } from '@/types/admin';
+import type { AdminUserDetail, AdminUserSummary, SavingTipTemplate } from '@/types/admin';
 
 export interface AdminUserFilters {
   search?: string;
@@ -18,8 +18,13 @@ export const adminUsersApi = {
     return data.data;
   },
 
-  async getById(id: string): Promise<AdminUserSummary> {
-    const { data } = await httpClient.get<ApiSuccess<AdminUserSummary>>(`/admin/users/${id}`);
+  async getById(id: string): Promise<AdminUserDetail> {
+    const { data } = await httpClient.get<ApiSuccess<AdminUserDetail>>(`/admin/users/${id}`);
+    return data.data;
+  },
+
+  async resetAccount(id: string): Promise<AdminUserSummary> {
+    const { data } = await httpClient.post<ApiSuccess<AdminUserSummary>>(`/admin/users/${id}/reset`);
     return data.data;
   },
 
@@ -32,5 +37,26 @@ export const adminUsersApi = {
 
   async remove(id: string): Promise<void> {
     await httpClient.delete(`/admin/users/${id}`);
+  },
+};
+
+export const adminSavingTipsApi = {
+  async list(): Promise<SavingTipTemplate[]> {
+    const { data } = await httpClient.get<ApiSuccess<SavingTipTemplate[]>>('/admin/saving-tips');
+    return data.data ?? [];
+  },
+
+  async create(payload: { title: string; body: string; category?: string }): Promise<SavingTipTemplate> {
+    const { data } = await httpClient.post<ApiSuccess<SavingTipTemplate>>('/admin/saving-tips', payload);
+    return data.data;
+  },
+
+  async update(id: string, payload: Partial<{ title: string; body: string; category: string }>): Promise<SavingTipTemplate> {
+    const { data } = await httpClient.patch<ApiSuccess<SavingTipTemplate>>(`/admin/saving-tips/${id}`, payload);
+    return data.data;
+  },
+
+  async remove(id: string): Promise<void> {
+    await httpClient.delete(`/admin/saving-tips/${id}`);
   },
 };

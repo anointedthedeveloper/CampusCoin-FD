@@ -5,6 +5,39 @@ export interface AdminUserSummary extends User {
   isActive: boolean;
 }
 
+export interface AdminRecentTransaction {
+  id: string;
+  type: 'income' | 'expense';
+  amount: number;
+  description: string;
+  categoryName: string;
+  occurredAt: string;
+}
+
+export interface AdminUserDetail extends AdminUserSummary {
+  categoryCount?: number;
+  budgetCount?: number;
+  totalIncome?: number;
+  totalExpense?: number;
+  recentTransactions?: AdminRecentTransaction[];
+}
+
+export interface SavingTipTemplate {
+  id: string;
+  title: string;
+  body: string;
+  category: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CategoryUsage {
+  name: string;
+  type: 'income' | 'expense';
+  transactionCount: number;
+  totalAmount: number;
+}
+
 export type AnnouncementAudience = 'all' | 'students' | 'admins';
 
 export interface Announcement {
@@ -30,5 +63,10 @@ export interface SystemStatistics {
   totalTransactions: number;
   totalCategories: number;
   averageMonthlySpendPerUser: number;
+  suspendedUsers?: number;
+  newUsersLast30Days?: number;
+  incomeTransactions?: number;
+  expenseTransactions?: number;
+  mostUsedCategories?: CategoryUsage[];
   generatedAt: string;
 }

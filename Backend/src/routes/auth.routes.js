@@ -7,8 +7,9 @@ const User = require('../models/User');
 const Category = require('../models/Category');
 const { protect } = require('../middleware/auth');
 const { toTitleCaseName } = require('../utils/formatName');
-const { sendPasswordResetCode } = require('../services/email.service');
+const { sendPasswordResetCode, isEmailConfigured } = require('../services/email.service');
 const { authLimiter, forgotPasswordLimiter } = require('../middleware/rateLimit');
+const { seedDefaultCategories } = require('../services/defaultCategories.service');
 
 // Reset tokens are emailed to the user in raw form but only ever stored as a
 // SHA-256 hash, so a database read (backup leak, injection, etc.) can't be
@@ -19,23 +20,7 @@ function hashToken(rawToken) {
 
 const googleClient = process.env.GOOGLE_CLIENT_ID ? new OAuth2Client(process.env.GOOGLE_CLIENT_ID) : null;
 
-const DEFAULT_CATEGORIES = [
-  { name: 'Salary', type: 'income', icon: 'briefcase', color: '#22c55e' },
-  { name: 'Allowance', type: 'income', icon: 'wallet', color: '#10b981' },
-  { name: 'Freelance', type: 'income', icon: 'laptop', color: '#06b6d4' },
-  { name: 'Gift', type: 'income', icon: 'gift', color: '#8b5cf6' },
-  { name: 'Other Income', type: 'income', icon: 'more-horizontal', color: '#94a3b8' },
-  { name: 'Food & Drinks', type: 'expense', icon: 'utensils', color: '#f97316' },
-  { name: 'Transport', type: 'expense', icon: 'car', color: '#3b82f6' },
-  { name: 'Housing', type: 'expense', icon: 'home', color: '#6366f1' },
-  { name: 'Utilities', type: 'expense', icon: 'zap', color: '#eab308' },
-  { name: 'Healthcare', type: 'expense', icon: 'heart', color: '#ef4444' },
-  { name: 'Education', type: 'expense', icon: 'book', color: '#0ea5e9' },
-  { name: 'Entertainment', type: 'expense', icon: 'music', color: '#d946ef' },
-  { name: 'Shopping', type: 'expense', icon: 'shopping-bag', color: '#f43f5e' },
-  { name: 'Savings', type: 'expense', icon: 'piggy-bank', color: '#14b8a6' },
-  { name: 'Other', type: 'expense', icon: 'more-horizontal', color: '#94a3b8' },
-];
+
 
 function signTokens(userId) {
   const accessToken = jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '15m' });
@@ -43,9 +28,6 @@ function signTokens(userId) {
   return { accessToken, refreshToken };
 }
 
-async function seedDefaultCategories(userId) {
-  await Category.insertMany(DEFAULT_CATEGORIES.map((c) => ({ ...c, userId, isDefault: true })));
-}
 
 // POST /api/v1/auth/register
 router.post('/register', authLimiter, async (req, res) => {
@@ -145,7 +127,7 @@ router.post('/google', authLimiter, async (req, res) => {
       isNewUser = true;
     }
 
-    if (!user.isActive) return res.status(403).json({ message: 'Account suspended', code: 'ACCOUNT_SUSPENDED' });
+    if (!user.isActive) return res.status(403).json({ message: 'Your account has been suspended. Please contact the Campus Coin administrator.', code: 'ACCOUNT_SUSPENDED' });
 
     const { accessToken, refreshToken } = signTokens(user._id);
     res.status(isNewUser ? 201 : 200).json({ data: { user: user.toPublic(), accessToken, refreshToken } });
@@ -173,7 +155,7 @@ router.post('/login', authLimiter, async (req, res) => {
     const match = await user.matchPassword(password);
     if (!match) return invalidCredentials();
 
-    if (!user.isActive) return res.status(403).json({ message: 'Account suspended', code: 'ACCOUNT_SUSPENDED' });
+    if (!user.isActive) return res.status(403).json({ message: 'Your account has been suspended. Please contact the Campus Coin administrator.', code: 'ACCOUNT_SUSPENDED' });
 
     const { accessToken, refreshToken } = signTokens(user._id);
     res.json({ data: { user: user.toPublic(), accessToken, refreshToken } });
@@ -222,7 +204,18 @@ const RESET_CODE_MAX_ATTEMPTS = 5;
 router.post('/forgot-password', forgotPasswordLimiter, async (req, res) => {
   try {
     const { email } = req.body;
-    const user = await User.findOne({ email: email?.toLowerCase().trim() });
+    if (typeof email !== 'string' || !email.trim()) {
+      return res.status(400).json({ message: 'Email is required' });
+    }
+    // In production, say so plainly when no email provider is set up —
+    // otherwise students wait for a code that can never arrive.
+    if (!isEmailConfigured() && process.env.NODE_ENV === 'production') {
+      return res.status(503).json({
+        message: 'Password reset emails are not set up on the server yet. Please contact the administrator.',
+        code: 'EMAIL_NOT_CONFIGURED',
+      });
+    }
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
     // Always return 200 to prevent email enumeration
     if (!user) return res.json({ data: null, message: 'If that email exists, a reset code was sent.' });
 
@@ -237,9 +230,13 @@ router.post('/forgot-password', forgotPasswordLimiter, async (req, res) => {
     try {
       await sendPasswordResetCode(user.email, code);
     } catch (emailErr) {
-      // Don't leak email-provider failures to the client — the code is
-      // already saved, and re-requesting will issue a fresh one.
+      // Tell the student the email didn't go out rather than leaving them
+      // waiting for a code that never arrives; a retry issues a fresh code.
       console.error('Failed to send password reset email:', emailErr);
+      return res.status(502).json({
+        message: 'We could not send the reset email right now. Please try again in a few minutes.',
+        code: 'EMAIL_SEND_FAILED',
+      });
     }
 
     res.json({ data: null, message: 'If that email exists, a reset code was sent.' });

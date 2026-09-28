@@ -4,15 +4,19 @@ const Transaction = require('../models/Transaction');
 const Budget = require('../models/Budget');
 const { protect } = require('../middleware/auth');
 const { validateIdParam } = require('../utils/objectId');
+const { ensureSystemTemplates } = require('../services/defaultCategories.service');
 
 const CATEGORY_TYPES = ['income', 'expense'];
-const FALLBACK_NAME = { income: 'Other Income', expense: 'Other' };
+const FALLBACK_NAMES = { income: ['Other Income'], expense: ['Miscellaneous', 'Other'] };
 
 // The fallback categories transactions/budgets get reassigned to when their
 // own category is deleted. Looked up (and created on demand, for accounts
 // that predate the "Other Income" default) rather than assumed to exist.
 async function getOrCreateFallbackCategory(userId, type) {
-  const name = FALLBACK_NAME[type];
+  // Older accounts were seeded with "Other"; newer ones get "Miscellaneous".
+  const existing = await Category.findOne({ userId, type, name: { $in: FALLBACK_NAMES[type] } });
+  if (existing) return existing;
+  const name = FALLBACK_NAMES[type][0];
   return Category.findOneAndUpdate(
     { userId, type, name },
     { $setOnInsert: { userId, type, name, icon: 'more-horizontal', color: '#94a3b8', isDefault: true } },
@@ -40,9 +44,17 @@ function formatCategory(c) {
 // GET /api/v1/categories  — returns user's own + system defaults
 router.get('/', async (req, res) => {
   try {
-    const categories = await Category.find({
-      $or: [{ userId: req.user._id }, { userId: null, isDefault: true }],
-    }).sort({ name: 1 });
+    await ensureSystemTemplates();
+    const [own, system] = await Promise.all([
+      Category.find({ userId: req.user._id }).sort({ name: 1 }),
+      Category.find({ userId: null, isDefault: true }).sort({ name: 1 }),
+    ]);
+    // Students get personal copies of the defaults at sign-up; system
+    // templates the admin adds later still show up, but never as a
+    // duplicate of a name the student already has.
+    const ownKeys = new Set(own.map((c) => `${c.type}:${c.name.toLowerCase()}`));
+    const categories = [...own, ...system.filter((c) => !ownKeys.has(`${c.type}:${c.name.toLowerCase()}`))]
+      .sort((a, b) => a.name.localeCompare(b.name));
     res.json({ data: categories.map(formatCategory) });
   } catch (err) {
     console.error(err);
@@ -84,7 +96,7 @@ router.patch('/:id', async (req, res) => {
 });
 
 // DELETE /api/v1/categories/:id — reassigns any transactions/budgets in this
-// category to the type's fallback ("Other" / "Other Income") category, then
+// category to the type's fallback ("Miscellaneous"/"Other" / "Other Income") category, then
 // deletes it. Returns how many transactions were moved so the client can
 // tell the user what happened instead of them silently vanishing.
 router.delete('/:id', async (req, res) => {
@@ -92,7 +104,7 @@ router.delete('/:id', async (req, res) => {
     const category = await Category.findOne({ _id: req.params.id, userId: req.user._id });
     if (!category) return res.status(404).json({ message: 'Category not found' });
 
-    if (category.name.trim().toLowerCase() === FALLBACK_NAME[category.type].toLowerCase()) {
+    if (FALLBACK_NAMES[category.type].some((name) => name.toLowerCase() === category.name.trim().toLowerCase())) {
       return res.status(400).json({
         message: `"${category.name}" is the default fallback category for ${category.type} and cannot be deleted.`,
         code: 'CANNOT_DELETE_FALLBACK',

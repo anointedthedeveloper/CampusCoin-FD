@@ -24,6 +24,8 @@ export function SavingTipsPage() {
   const { user }                     = useAuth();
   const [tips, setTips]              = useState<SavingTip[]>([]);
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
+  const [dismissedCount, setDismissedCount] = useState(0);
+  const currency = user?.settings?.currency ?? 'NGN';
   const [isLoading, setIsLoading]    = useState(true);
   const [refreshToken, setRefreshToken] = useState(0);
 
@@ -31,28 +33,43 @@ export function SavingTipsPage() {
     if (!user) return;
     let cancelled = false;
     async function load() {
-      const [all, bookmarked] = await Promise.allSettled([
-        tipsService.list(user!.id),
-        tipsService.listBookmarked(user!.id),
-      ]);
-      if (cancelled) return;
-      setTips(all.status === 'fulfilled' ? all.value : []);
-      setBookmarkedIds(new Set(bookmarked.status === 'fulfilled' ? bookmarked.value.map((t) => t.id) : []));
-      setIsLoading(false);
+      try {
+        const result = await tipsService.listWithMeta();
+        if (cancelled) return;
+        setTips(result.tips);
+        setDismissedCount(result.dismissedCount);
+        setBookmarkedIds(new Set(result.tips.filter((t) => t.isPinned).map((t) => t.id)));
+      } catch {
+        if (!cancelled) setTips([]);
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
     }
     void load();
     return () => { cancelled = true; };
   }, [user, refreshToken]);
 
-  function handleDismiss(id: string) {
+  async function handleDismiss(id: string) {
     if (!user) return;
-    tipsService.dismiss(user.id, id);
+    setTips((prev) => prev.filter((t) => t.id !== id));
+    setDismissedCount((n) => n + 1);
+    await tipsService.dismiss(user.id, id).catch(() => undefined);
     setRefreshToken((t) => t + 1);
   }
 
   async function handleToggleBookmark(id: string) {
     if (!user) return;
-    await tipsService.toggleBookmark(user.id, id);
+    const wasPinned = bookmarkedIds.has(id);
+    setBookmarkedIds((prev) => {
+      const next = new Set(prev);
+      if (wasPinned) next.delete(id); else next.add(id);
+      return next;
+    });
+    await tipsService.toggleBookmark(user.id, id, wasPinned).catch(() => setRefreshToken((t) => t + 1));
+  }
+
+  async function handleRestore() {
+    await tipsService.restoreDismissed().catch(() => undefined);
     setRefreshToken((t) => t + 1);
   }
 
@@ -66,15 +83,26 @@ export function SavingTipsPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-text-primary">Saving Tips</h1>
           <p className="mt-0.5 text-sm text-gray-500 dark:text-text-secondary">
-            Personalised tips based on your actual spending.
+            Personalised tips from your own spending, ranked by how much they could save — plus general advice.
           </p>
         </div>
+        <div className="flex flex-wrap gap-2">
+        {dismissedCount > 0 && (
+          <button
+            type="button"
+            onClick={() => void handleRestore()}
+            className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100 dark:text-text-secondary dark:hover:bg-white/5"
+          >
+            Restore {dismissedCount} dismissed
+          </button>
+        )}
         <Link
           to={STUDENT_ROUTES.bookmarks}
           className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3.5 py-2 text-sm font-semibold text-gray-700 shadow-btn transition-all hover:bg-gray-50 hover:border-gray-300 hover:-translate-y-px dark:border-white/10 dark:bg-surface dark:text-text-primary dark:hover:bg-white/5"
         >
-          <Bookmark className="h-4 w-4" /> Bookmarks
+          <Bookmark className="h-4 w-4" /> Pinned tips
         </Link>
+        </div>
       </div>
 
       {tips.length === 0 ? (
@@ -103,12 +131,24 @@ export function SavingTipsPage() {
                     <Icon className="h-5 w-5" />
                   </span>
                   <div className="min-w-0 flex-1">
+                    <div className="mb-1 flex flex-wrap items-center gap-1.5">
+                      {tip.kind === 'personal' ? (
+                        <span className="rounded-full bg-brand-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-brand-700 dark:bg-primary/15 dark:text-primary-accent">For you</span>
+                      ) : (
+                        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-gray-500 dark:bg-white/[0.08] dark:text-text-muted">General</span>
+                      )}
+                      {(tip.impact ?? 0) > 0 && (
+                        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700 dark:bg-amber-400/15 dark:text-amber-300">
+                          Could save ~{currency} {Math.round(tip.impact!).toLocaleString()}
+                        </span>
+                      )}
+                    </div>
                     <p className="font-semibold text-gray-900 dark:text-text-primary leading-snug">{tip.title}</p>
                     <p className="mt-1 text-sm text-gray-500 dark:text-text-secondary leading-relaxed">{tip.body}</p>
                   </div>
 
                   {/* Actions */}
-                  <div className="flex shrink-0 flex-col gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                  <div className="flex shrink-0 flex-col gap-1 transition-opacity sm:opacity-60 sm:group-hover:opacity-100">
                     <button
                       type="button"
                       onClick={() => void handleToggleBookmark(tip.id)}
@@ -116,9 +156,9 @@ export function SavingTipsPage() {
                         'flex h-7 w-7 items-center justify-center rounded-lg transition-colors',
                         isBookmarked
                           ? 'bg-brand-100 text-brand-600 dark:bg-primary/15 dark:text-primary-accent'
-                          : 'text-gray-300 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/[0.08] dark:hover:text-text-secondary',
+                          : 'text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:text-text-muted dark:hover:bg-white/[0.08] dark:hover:text-text-secondary',
                       )}
-                      aria-label={isBookmarked ? 'Remove bookmark' : 'Bookmark this tip'}
+                      aria-label={isBookmarked ? 'Unpin this tip' : 'Pin this tip'}
                       aria-pressed={isBookmarked}
                     >
                       <Bookmark className={cn('h-3.5 w-3.5', isBookmarked && 'fill-current')} />
@@ -126,7 +166,7 @@ export function SavingTipsPage() {
                     <button
                       type="button"
                       onClick={() => handleDismiss(tip.id)}
-                      className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-300 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400"
+                      className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-red-50 dark:text-text-muted hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400"
                       aria-label="Dismiss this tip"
                     >
                       <X className="h-3.5 w-3.5" />
@@ -135,7 +175,7 @@ export function SavingTipsPage() {
                 </div>
 
                 {/* Footer link */}
-                {tip.category && (
+                {tip.category && tip.category !== 'General' && (
                   <Link
                     to={STUDENT_ROUTES.reports}
                     className="self-start rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-600 transition-colors hover:bg-brand-50 hover:text-brand-700 dark:bg-white/[0.08] dark:text-text-secondary dark:hover:bg-primary/10 dark:hover:text-primary-accent"

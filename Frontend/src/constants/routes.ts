@@ -28,6 +28,7 @@ export const STUDENT_ROUTES = {
   profile: '/profile',
   settings: '/settings',
   notifications: '/notifications',
+  recurring: '/recurring',
 } as const;
 
 export const ADMIN_ROUTES = {

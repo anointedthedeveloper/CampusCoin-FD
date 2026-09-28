@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { EyeOff, Lightbulb, ListChecks, Sparkles, Wallet } from 'lucide-react';
 import { PUBLIC_ROUTES } from '@/constants/routes';
 import { assets } from '@/assets/images';
+import { QuickGuideVideo, WatchGuideButton } from '@/components/common';
 
 const values = [
   {
@@ -60,6 +61,7 @@ const steps = [
 export function AboutPage() {
   return (
     <div className="overflow-hidden">
+      <QuickGuideVideo />
       {/* ── Hero ── */}
       <section className="mx-auto grid max-w-[1200px] items-center gap-10 px-4 pb-14 pt-12 sm:px-6 sm:pb-20 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:pt-16">
         <div>
@@ -70,9 +72,12 @@ export function AboutPage() {
           <p className="mt-5 max-w-xl text-base leading-7 text-gray-600 dark:text-text-secondary">
             Most finance apps assume a fixed paycheck and a linked bank account. Campus Coin starts somewhere more familiar: allowance, gig work, scholarships, gifts, and the everyday costs of campus.
           </p>
-          <Link to={PUBLIC_ROUTES.features} className="mt-7 inline-flex items-center gap-2 border-b-2 border-[#1c8f53] pb-1 text-sm font-bold text-[#1c8f53] transition-colors hover:text-[#146b3d] dark:text-primary-accent dark:hover:text-white">
+          <div className="mt-7 flex flex-wrap items-center gap-6">
+          <Link to={PUBLIC_ROUTES.features} className="inline-flex items-center gap-2 border-b-2 border-[#1c8f53] pb-1 text-sm font-bold text-[#1c8f53] transition-colors hover:text-[#146b3d] dark:text-primary-accent dark:hover:text-white">
             Explore how it works <span aria-hidden="true">&rarr;</span>
           </Link>
+          <WatchGuideButton />
+          </div>
         </div>
         <figure className="relative min-h-[340px] overflow-hidden rounded-[28px] shadow-card dark:shadow-dark-card sm:min-h-[430px]">
           <span className="absolute left-6 top-6 z-10 inline-flex w-fit items-center gap-1.5 rounded-full bg-white/90 px-3 py-1 text-[11px] font-semibold text-[#1c8f53] shadow-sm dark:bg-white/10 dark:text-primary-accent">

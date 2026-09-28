@@ -10,4 +10,14 @@ export const reportsApi = {
     });
     return data.data;
   },
+
+  /** The server-rendered PDF of a month's report. */
+  async downloadMonthlyPdf(month: string): Promise<Blob> {
+    const { data } = await httpClient.get<Blob>('/reports/monthly/pdf', {
+      params: { month },
+      responseType: 'blob',
+      timeout: 30000,
+    });
+    return data;
+  },
 };

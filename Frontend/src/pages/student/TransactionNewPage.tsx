@@ -4,7 +4,10 @@ import { ArrowLeft, MoreHorizontal, Plus, Sparkles } from 'lucide-react';
 import { Button, Card } from '@/components/common';
 import { STUDENT_ROUTES } from '@/constants/routes';
 import { EXPENSE_CATEGORY_ICONS, INCOME_CATEGORY_ICONS } from '@/constants/categoryIcons';
-import { categoryService, transactionService } from '@/services';
+import { aiService, categoryService, transactionService } from '@/services';
+import { recurringApi, nextOccurrence } from '@/api/recurring.api';
+import { recordRecentTransaction } from '@/utils/recentTransactions';
+import type { RecurringFrequency } from '@/types/recurring';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/utils/cn';
 import { ApiError } from '@/types/api';
@@ -12,8 +15,11 @@ import type { Category, CategoryType } from '@/types/category';
 import { formatNumericInput, normalizeNumericInput } from '@/utils/number';
 
 function todayIso(): string {
-  return new Date().toISOString().slice(0, 10);
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 }
+
+const isCatchAllCategory = (name?: string) => /^(other|miscellaneous)$/i.test(name ?? '');
 
 const fieldCls = cn(
   'w-full rounded-lg border bg-white px-3.5 py-2.5 text-sm text-gray-900 shadow-inset',
@@ -37,6 +43,35 @@ export function TransactionNewPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError]           = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [repeat, setRepeat] = useState<'none' | RecurringFrequency>('none');
+  const [suggestion, setSuggestion] = useState<{ categoryId: string; source: string } | null>(null);
+  const [isSuggesting, setIsSuggesting] = useState(false);
+  const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null);
+  const aiEnabled = Boolean(user?.settings?.aiCategorizationEnabled);
+
+  // Suggest a category from the description (debounced). It is only ever a
+  // suggestion: the student applies it with a click and can pick anything else.
+  useEffect(() => {
+    const text = description.trim();
+    if (!aiEnabled || text.length < 3) {
+      setSuggestion(null);
+      return undefined;
+    }
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      setIsSuggesting(true);
+      aiService
+        .suggestCategory(text, undefined, type)
+        .then((result) => {
+          if (cancelled) return;
+          const match = result?.categoryId ? categories.find((c) => c.id === result.categoryId) : undefined;
+          setSuggestion(match ? { categoryId: match.id, source: result?.source ?? 'ai' } : null);
+        })
+        .catch(() => { if (!cancelled) setSuggestion(null); })
+        .finally(() => { if (!cancelled) setIsSuggesting(false); });
+    }, 700);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [description, type, aiEnabled, categories]);
 
   useEffect(() => {
     if (!user) return;
@@ -50,27 +85,43 @@ export function TransactionNewPage() {
     setCategoryId('');
   }
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
+  async function handleSubmit(e: FormEvent | null, confirmDuplicate = false) {
+    e?.preventDefault();
     if (!user) return;
     setError(null);
+    setDuplicateWarning(null);
     const parsed = Number(amount);
     if (!parsed || parsed <= 0) { setError('Enter an amount greater than zero.'); return; }
     if (!categoryId) { setError('Choose a category.'); return; }
     const selectedCategory = categories.find((category) => category.id === categoryId);
-    if (/^other$/i.test(selectedCategory?.name ?? '') && !description.trim()) {
+    if (isCatchAllCategory(selectedCategory?.name) && !description.trim()) {
       setError('Describe what this transaction was for.');
       return;
     }
     setIsSubmitting(true);
     try {
-      await transactionService.create(user.id, {
+      const created = await transactionService.create(user.id, {
         type, amount: parsed, categoryId,
         description: description.trim() || undefined,
         occurredAt: new Date(date).toISOString(),
+        confirmDuplicate,
       });
+      recordRecentTransaction(user.id, created, 'edited');
+      if (repeat !== 'none') {
+        // This entry is the first occurrence; the schedule starts at the next one.
+        await recurringApi.create({
+          type, amount: parsed, categoryId,
+          description: description.trim() || undefined,
+          frequency: repeat,
+          startDate: nextOccurrence(date, repeat),
+        });
+      }
       navigate(STUDENT_ROUTES.transactions);
     } catch (err) {
+      if (err instanceof ApiError && err.code === 'POSSIBLE_DUPLICATE') {
+        setDuplicateWarning(err.message);
+        return;
+      }
       setError(err instanceof ApiError ? err.message : 'Could not save this transaction. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -161,16 +212,34 @@ export function TransactionNewPage() {
             <div>
               <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-text-secondary mb-1.5">
                 Description
-                <span className="ml-1.5 text-xs font-normal text-gray-400 dark:text-text-muted">{/^other$/i.test(categories.find((category) => category.id === categoryId)?.name ?? '') ? 'required for Other' : 'optional'}</span>
+                <span className="ml-1.5 text-xs font-normal text-gray-400 dark:text-text-muted">{isCatchAllCategory(categories.find((category) => category.id === categoryId)?.name) ? 'required for this category' : 'optional'}</span>
               </label>
               <input
                 id="description"
                 type="text"
-                placeholder={/^other$/i.test(categories.find((category) => category.id === categoryId)?.name ?? '') ? 'Describe what this was for' : type === 'income' ? 'e.g. Monthly allowance from parents' : 'e.g. Campus Cafe lunch'}
+                placeholder={isCatchAllCategory(categories.find((category) => category.id === categoryId)?.name) ? 'Describe what this was for' : type === 'income' ? 'e.g. Monthly allowance from parents' : 'e.g. Campus Cafe lunch'}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 className={fieldCls}
               />
+              {aiEnabled && (isSuggesting || (suggestion && suggestion.categoryId !== categoryId)) && (
+                <div className="mt-2 flex flex-wrap items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-200">
+                  <Sparkles className="h-3.5 w-3.5 shrink-0" />
+                  {isSuggesting ? (
+                    <span>Finding a category…</span>
+                  ) : suggestion && (
+                    <>
+                      <span>
+                        Suggested: <strong>{categories.find((c) => c.id === suggestion.categoryId)?.name}</strong>
+                        {suggestion.source === 'history' ? ' (from your past entries)' : ' (AI suggestion — review before saving)'}
+                      </span>
+                      <button type="button" onClick={() => setCategoryId(suggestion.categoryId)} className="ml-auto rounded-md bg-amber-600 px-2.5 py-1 font-semibold text-white hover:bg-amber-700">
+                        Use it
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Date */}
@@ -187,6 +256,38 @@ export function TransactionNewPage() {
                 className={cn(fieldCls, 'dark:[color-scheme:dark]')}
               />
             </div>
+
+            {/* Repeat */}
+            <div>
+              <label htmlFor="repeat" className="block text-sm font-medium text-gray-700 dark:text-text-secondary mb-1.5">
+                Repeat
+              </label>
+              <select id="repeat" value={repeat} onChange={(e) => setRepeat(e.target.value as typeof repeat)} className={fieldCls}>
+                <option value="none">Does not repeat</option>
+                <option value="weekly">Every week</option>
+                <option value="monthly">Every month</option>
+                <option value="yearly">Every year</option>
+              </select>
+              {repeat !== 'none' && (
+                <p className="mt-1.5 text-xs text-gray-500 dark:text-text-muted">
+                  Future entries are logged automatically — manage them under <Link to={STUDENT_ROUTES.recurring} className="font-semibold text-brand-700 hover:underline dark:text-primary-accent">Recurring</Link>.
+                </p>
+              )}
+            </div>
+
+            {duplicateWarning && (
+              <div className="rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-3 text-sm text-amber-900 dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-200" role="alert">
+                <p>{duplicateWarning}</p>
+                <div className="mt-2 flex gap-2">
+                  <button type="button" onClick={() => void handleSubmit(null, true)} className="rounded-md bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700">
+                    Save anyway
+                  </button>
+                  <button type="button" onClick={() => setDuplicateWarning(null)} className="rounded-md px-3 py-1.5 text-xs font-semibold hover:bg-amber-100 dark:hover:bg-amber-400/10">
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Error */}
             {error && (

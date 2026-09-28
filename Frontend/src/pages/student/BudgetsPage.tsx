@@ -22,6 +22,7 @@ function monthForOffset(offset: number): string {
 
 export function BudgetsPage() {
   const { user } = useAuth();
+  const currency = user?.settings?.currency ?? DEFAULT_CURRENCY;
   const [monthOffset, setMonthOffset]   = useState(0);
   const [isFormOpen, setIsFormOpen]     = useState(false);
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
@@ -168,11 +169,11 @@ export function BudgetsPage() {
       {budgets.length > 0 && (
         <div className="grid grid-cols-3 gap-3">
           {[
-            { label: 'Budgeted', value: formatCurrency(totalBudgeted, DEFAULT_CURRENCY), color: 'text-gray-900 dark:text-text-primary' },
-            { label: 'Spent',    value: formatCurrency(totalSpent, DEFAULT_CURRENCY),    color: 'text-gray-900 dark:text-text-primary' },
+            { label: 'Budgeted', value: formatCurrency(totalBudgeted, currency), color: 'text-gray-900 dark:text-text-primary' },
+            { label: 'Spent',    value: formatCurrency(totalSpent, currency),    color: 'text-gray-900 dark:text-text-primary' },
             {
               label: totalRemaining >= 0 ? 'Remaining' : 'Over budget',
-              value: formatCurrency(Math.abs(totalRemaining), DEFAULT_CURRENCY),
+              value: formatCurrency(Math.abs(totalRemaining), currency),
               color: totalRemaining >= 0 ? 'text-brand-600 dark:text-primary-accent' : 'text-red-600 dark:text-red-400',
             },
           ].map(({ label, value, color }) => (

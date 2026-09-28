@@ -31,9 +31,18 @@ const NO_REFRESH_PATHS = [REFRESH_URL, '/auth/login', '/auth/register', '/auth/g
 
 let refreshPromise: Promise<string> | null = null;
 
-function clearSessionAndNotify(): void {
+export const LOGOUT_REASON_STORAGE_KEY = 'campus-coin.logoutReason';
+
+function clearSessionAndNotify(reason?: string): void {
   localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
   localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
+  if (reason) {
+    try {
+      sessionStorage.setItem(LOGOUT_REASON_STORAGE_KEY, reason);
+    } catch {
+      // ignore
+    }
+  }
   // AuthContext listens for this to clear its in-memory user — httpClient
   // has no React context of its own to update directly.
   window.dispatchEvent(new Event('auth:session-expired'));
@@ -88,6 +97,11 @@ httpClient.interceptors.response.use(
     }
 
     const body = error.response?.data;
+    // An admin suspended this account while it was signed in: end the
+    // session now instead of letting every page fail with 403s.
+    if (error.response?.status === 403 && body?.code === 'ACCOUNT_SUSPENDED' && localStorage.getItem(AUTH_TOKEN_STORAGE_KEY)) {
+      clearSessionAndNotify(body.message);
+    }
     throw new ApiError(body?.message ?? error.message ?? 'Unexpected network error', {
       code: body?.code,
       status: error.response?.status,

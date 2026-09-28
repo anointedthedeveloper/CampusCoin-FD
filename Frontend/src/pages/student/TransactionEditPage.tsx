@@ -11,6 +11,7 @@ import { ApiError } from '@/types/api';
 import type { Category, CategoryType } from '@/types/category';
 import type { Transaction } from '@/types/transaction';
 import { formatNumericInput, normalizeNumericInput } from '@/utils/number';
+import { recordRecentTransaction } from '@/utils/recentTransactions';
 
 export function TransactionEditPage() {
   const { id } = useParams<{ id: string }>();
@@ -72,18 +73,19 @@ export function TransactionEditPage() {
     if (!parsedAmount || parsedAmount <= 0) { setError('Enter an amount greater than zero.'); return; }
     if (!categoryId) { setError('Choose a category.'); return; }
     const selectedCategory = categories.find((category) => category.id === categoryId);
-    if (/^other$/i.test(selectedCategory?.name ?? '') && !description.trim()) {
+    if (/^(other|miscellaneous)$/i.test(selectedCategory?.name ?? '') && !description.trim()) {
       setError('Describe what this transaction was for.');
       return;
     }
 
     setIsSubmitting(true);
     try {
-      await transactionService.update(user.id, transaction.id, {
+      const updated = await transactionService.update(user.id, transaction.id, {
         type, amount: parsedAmount, categoryId,
         description: description.trim() || undefined,
         occurredAt: new Date(date).toISOString(),
       });
+      recordRecentTransaction(user.id, updated, 'edited');
       navigate(buildPath(STUDENT_ROUTES.transactionDetail, { id: transaction.id }));
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Could not save these changes. Please try again.');
@@ -122,7 +124,7 @@ export function TransactionEditPage() {
           </div>
 
           <div>
-            <label htmlFor="description" className="text-sm font-medium text-gray-700 dark:text-text-secondary">Description <span className="text-gray-400 dark:text-text-muted">{/^other$/i.test(categories.find((category) => category.id === categoryId)?.name ?? '') ? '(required for Other)' : '(optional)'}</span></label>
+            <label htmlFor="description" className="text-sm font-medium text-gray-700 dark:text-text-secondary">Description <span className="text-gray-400 dark:text-text-muted">{/^(other|miscellaneous)$/i.test(categories.find((category) => category.id === categoryId)?.name ?? '') ? '(required for this category)' : '(optional)'}</span></label>
             <input id="description" type="text" value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-border dark:bg-surface dark:text-text-primary dark:focus:border-primary-accent dark:focus:ring-primary-accent" />
           </div>
 

@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useLocation, useNavigate, useOutletContext } from 'react-router-dom';
 import { ArrowRight, Eye, EyeOff, Lock, LogIn, Mail } from 'lucide-react';
 import { Button, GoogleButton, Input } from '@/components/common';
@@ -9,6 +9,7 @@ import { isValidEmail } from '@/utils/validation';
 import { ApiError } from '@/types/api';
 import { cn } from '@/utils/cn';
 import type { AuthPageOutletContext } from './authOutletContext';
+import { LOGOUT_REASON_STORAGE_KEY } from '@/api/httpClient';
 
 export function LoginPage() {
   const { login, loginWithGoogle } = useAuth();
@@ -24,6 +25,23 @@ export function LoginPage() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const redirectFrom = (location.state as { from?: Location })?.from?.pathname;
+  // Why the previous session ended (e.g. the account was suspended). Read
+  // once, then cleared in an effect so it isn't shown again next time.
+  const [logoutReason] = useState(() => {
+    try {
+      return sessionStorage.getItem(LOGOUT_REASON_STORAGE_KEY);
+    } catch {
+      return null;
+    }
+  });
+  useEffect(() => {
+    try {
+      sessionStorage.removeItem(LOGOUT_REASON_STORAGE_KEY);
+    } catch {
+      // ignore
+    }
+  }, []);
+  const notice = (location.state as { notice?: string } | null)?.notice;
 
   async function handleGoogleLogin(idToken: string) {
     setError(null);
@@ -137,6 +155,18 @@ export function LoginPage() {
             </Link>
           </div>
         </div>
+
+        {logoutReason && !error && (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-3 text-sm text-amber-800 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-300" role="alert">
+            {logoutReason}
+          </div>
+        )}
+
+        {notice && !error && (
+          <div className="rounded-lg border border-brand-200 bg-brand-50 px-3.5 py-3 text-sm text-brand-800 dark:border-primary/30 dark:bg-primary/10 dark:text-primary-accent" role="status">
+            {notice}
+          </div>
+        )}
 
         {error && (
           <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3.5 py-3 dark:border-red-500/30 dark:bg-red-950/30">
