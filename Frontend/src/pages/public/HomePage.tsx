@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowRight,
@@ -19,6 +20,7 @@ import { Ripple, ScreenshotSlideshow } from '@/components/common';
 import { FeatureGrid } from '@/components/home/FeatureGrid';
 import { assets } from '@/assets/images';
 import { useRipple } from '@/hooks/useRipple';
+import { cn } from '@/utils/cn';
 
 const stats = [
   { value: '100%', label: 'Free to use' },
@@ -113,14 +115,36 @@ const appFeatureHighlights = [
 ];
 
 function HeroBackground() {
+  const slides = [assets.heroBackground, assets.heroSlideOne];
+  const [active, setActive] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+
+  useEffect(() => {
+    if (isPaused) return;
+    const timer = setInterval(() => {
+      setActive((current) => (current + 1) % slides.length);
+    }, 5500);
+    return () => clearInterval(timer);
+  }, [isPaused, slides.length]);
+
   return (
-    <>
-      <img
-        src={assets.heroBackground}
-        alt=""
-        aria-hidden="true"
-        className="absolute inset-0 z-0 h-full w-full object-cover object-[62%_center] sm:object-[26%_center] lg:object-[55%_center] dark:brightness-[0.55] dark:saturate-[0.9]"
-      />
+    <div
+      className="absolute inset-0 z-0"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+    >
+      {slides.map((slide, index) => (
+        <img
+          key={slide}
+          src={slide}
+          alt=""
+          aria-hidden="true"
+          className={cn(
+            'absolute inset-0 h-full w-full object-cover object-[62%_center] transition-opacity duration-1000 ease-in-out sm:object-[26%_center] lg:object-[55%_center] dark:brightness-[0.55] dark:saturate-[0.9]',
+            index === active ? 'opacity-100' : 'opacity-0',
+          )}
+        />
+      ))}
       <div
         aria-hidden="true"
         className="absolute inset-0 z-10 bg-gradient-to-b from-white/95 via-white/75 to-white/40 dark:hidden lg:bg-gradient-to-r lg:from-white/75 lg:via-white/25 lg:to-transparent"
@@ -129,7 +153,22 @@ function HeroBackground() {
         aria-hidden="true"
         className="absolute inset-0 z-10 hidden bg-gradient-to-b from-background/90 via-background/70 to-background/40 dark:block lg:bg-gradient-to-r lg:from-background/85 lg:via-background/25 lg:to-transparent"
       />
-    </>
+      <div className="absolute bottom-6 right-5 z-20 flex items-center gap-2 rounded-full bg-black/10 px-3 py-2 backdrop-blur-sm dark:bg-black/20">
+        {slides.map((slide, index) => (
+          <button
+            key={slide}
+            type="button"
+            onClick={() => setActive(index)}
+            aria-label={`Show hero slide ${index + 1}`}
+            aria-current={index === active}
+            className={cn(
+              'h-2 rounded-full transition-all duration-300',
+              index === active ? 'w-7 bg-[#1c8f53] dark:bg-primary-accent' : 'w-2 bg-white/70 hover:bg-white',
+            )}
+          />
+        ))}
+      </div>
+    </div>
   );
 }
 
