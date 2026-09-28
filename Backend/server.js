@@ -21,12 +21,9 @@ const recurringRoutes = require('./src/routes/recurring.routes');
 const aiRoutes = require('./src/routes/ai.routes');
 
 if (!process.env.JWT_SECRET) {
-  // Every access/refresh token and the auth middleware depend on this. Rather
-  // than silently signing tokens with `undefined` (jsonwebtoken throws on
-  // every login/register call, which just looks like the server is broken),
-  // fail loudly at startup so misconfiguration is obvious immediately.
-  console.error('FATAL: JWT_SECRET is not set. Set it in the environment before starting the server.');
-  if (process.env.NODE_ENV === 'production') process.exit(1);
+  const message = 'JWT_SECRET is not set. Set it in the environment before starting the server.';
+  if (process.env.NODE_ENV === 'production') throw new Error(message);
+  console.error(`FATAL: ${message}`);
 }
 
 const app = express();

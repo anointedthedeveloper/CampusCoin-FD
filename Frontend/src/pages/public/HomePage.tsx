@@ -26,7 +26,7 @@ const stats = [
   { value: '100%', label: 'Free to use' },
   { value: '0', label: 'Bank links required' },
   { value: '7+', label: 'Expense categories' },
-  { value: '6mo', label: 'Trend history' },
+  { value: 'CSV', label: 'Transaction import' },
 ];
 
 const steps = [

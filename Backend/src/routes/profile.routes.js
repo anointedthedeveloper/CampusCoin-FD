@@ -25,10 +25,12 @@ const SPENDING_CATEGORY_TO_CATEGORY = {
   other: { name: 'Other', icon: 'more-horizontal', color: '#94a3b8' },
 };
 
-async function ensureSpendingCategories(userId, spendingCategories) {
+async function ensureSpendingCategories(userId, spendingCategories, otherSpendingCategory) {
   await Promise.all(
     spendingCategories.map((value) => {
-      const mapped = SPENDING_CATEGORY_TO_CATEGORY[value];
+      const mapped = value === 'other' && otherSpendingCategory
+        ? { ...SPENDING_CATEGORY_TO_CATEGORY.other, name: otherSpendingCategory }
+        : SPENDING_CATEGORY_TO_CATEGORY[value];
       if (!mapped) return null;
       return Category.findOneAndUpdate(
         { userId, name: mapped.name, type: 'expense' },
@@ -45,10 +47,12 @@ async function ensureSpendingCategories(userId, spendingCategories) {
 // current month, split evenly across whichever spending categories the user
 // picked, so "Budget vs. Actual" on the dashboard is populated immediately
 // instead of showing "No budgets set" right after finishing setup.
-async function ensureMonthlyBudget(userId, monthlyBudget, spendingCategoryValues) {
+async function ensureMonthlyBudget(userId, monthlyBudget, spendingCategoryValues, otherSpendingCategory) {
   if (!monthlyBudget || monthlyBudget <= 0) return;
   const names = (spendingCategoryValues || [])
-    .map((value) => SPENDING_CATEGORY_TO_CATEGORY[value]?.name)
+    .map((value) => value === 'other' && otherSpendingCategory
+      ? otherSpendingCategory
+      : SPENDING_CATEGORY_TO_CATEGORY[value]?.name)
     .filter(Boolean);
   if (names.length === 0) return;
 
@@ -117,9 +121,37 @@ router.patch('/onboarding', async (req, res) => {
     const stepFields = ['currentStep', 'incomeSources', 'incomeFrequency', 'spendingCategories', 'goals'];
     const updates = {};
 
+    for (const key of ['incomeSources', 'spendingCategories']) {
+      if (req.body[key] !== undefined && !Array.isArray(req.body[key])) {
+        return res.status(400).json({ message: `${key} must be an array` });
+      }
+    }
+
+    for (const key of ['otherIncomeSource', 'otherSpendingCategory']) {
+      if (req.body[key] === undefined) continue;
+      if (typeof req.body[key] !== 'string' || req.body[key].trim().length > 60) {
+        return res.status(400).json({ message: `${key} must be 60 characters or fewer` });
+      }
+      updates[`onboarding.${key}`] = req.body[key].trim();
+    }
+
     stepFields.forEach((key) => {
       if (req.body[key] !== undefined) updates[`onboarding.${key}`] = req.body[key];
     });
+
+    const incomeSources = req.body.incomeSources ?? req.user.onboarding?.incomeSources ?? [];
+    const spendingCategories = req.body.spendingCategories ?? req.user.onboarding?.spendingCategories ?? [];
+    const otherIncomeSource = req.body.otherIncomeSource ?? req.user.onboarding?.otherIncomeSource ?? '';
+    const otherSpendingCategory = req.body.otherSpendingCategory ?? req.user.onboarding?.otherSpendingCategory ?? '';
+
+    if ((req.body.incomeSources !== undefined || req.body.otherIncomeSource !== undefined) &&
+        incomeSources.includes('other') && !otherIncomeSource.trim()) {
+      return res.status(400).json({ message: 'Please name your other income source' });
+    }
+    if ((req.body.spendingCategories !== undefined || req.body.otherSpendingCategory !== undefined) &&
+        spendingCategories.includes('other') && !otherSpendingCategory.trim()) {
+      return res.status(400).json({ message: 'Please name your other spending category' });
+    }
 
     if (req.body.status !== undefined) {
       const allowedStatuses = ['not_started', 'in_progress', 'completed', 'skipped'];
@@ -146,14 +178,11 @@ router.patch('/onboarding', async (req, res) => {
     }
 
     if (req.body.spendingCategories !== undefined) {
-      await ensureSpendingCategories(req.user._id, req.body.spendingCategories);
+      await ensureSpendingCategories(req.user._id, req.body.spendingCategories, otherSpendingCategory);
     }
 
     if (req.body.monthlyBudget !== undefined) {
-      const categoryValues = req.body.spendingCategories !== undefined
-        ? req.body.spendingCategories
-        : req.user.onboarding?.spendingCategories ?? [];
-      await ensureMonthlyBudget(req.user._id, Number(req.body.monthlyBudget), categoryValues);
+      await ensureMonthlyBudget(req.user._id, Number(req.body.monthlyBudget), spendingCategories, otherSpendingCategory);
     }
 
     const user = await User.findByIdAndUpdate(req.user._id, { $set: updates }, { returnDocument: 'after' });

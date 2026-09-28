@@ -129,10 +129,14 @@ export function DashboardPage() {
   const setupIncomplete = onboardingStatus !== 'completed';
   const incomeSourceLabels = INCOME_SOURCE_OPTIONS
     .filter((option) => user.onboarding?.incomeSources?.includes(option.value))
-    .map((option) => option.label);
+    .map((option) => option.value === 'other'
+      ? user.onboarding?.otherIncomeSource || option.label
+      : option.label);
   const spendingCategoryLabels = SPENDING_CATEGORY_OPTIONS
     .filter((option) => user.onboarding?.spendingCategories?.includes(option.value))
-    .map((option) => option.label);
+    .map((option) => option.value === 'other'
+      ? user.onboarding?.otherSpendingCategory || option.label
+      : option.label);
   const goalLabels = FINANCIAL_GOAL_OPTIONS
     .filter((option) => user.onboarding?.goals?.includes(option.value))
     .map((option) => option.label);

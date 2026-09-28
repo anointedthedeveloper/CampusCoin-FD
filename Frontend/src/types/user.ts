@@ -7,8 +7,10 @@ export interface OnboardingProfile {
   status: OnboardingStatus;
   currentStep: number;
   incomeSources: string[];
+  otherIncomeSource?: string;
   incomeFrequency?: IncomeFrequency;
   spendingCategories: string[];
+  otherSpendingCategory?: string;
   goals: string[];
   completedAt?: string;
 }
@@ -17,8 +19,10 @@ export interface OnboardingUpdate {
   status?: OnboardingStatus;
   currentStep?: number;
   incomeSources?: string[];
+  otherIncomeSource?: string;
   incomeFrequency?: IncomeFrequency;
   spendingCategories?: string[];
+  otherSpendingCategory?: string;
   goals?: string[];
   monthlyAllowanceBaseline?: number;
   savingsGoalAmount?: number;

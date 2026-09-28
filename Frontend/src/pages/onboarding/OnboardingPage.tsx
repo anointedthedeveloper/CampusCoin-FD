@@ -160,9 +160,11 @@ export function OnboardingPage() {
   }, [isCreatingWallet]);
 
   const [incomeSources,      setIncomeSources]      = useState<string[]>([]);
+  const [otherIncomeSource, setOtherIncomeSource] = useState('');
   const [incomeAmount,       setIncomeAmount]        = useState('');
   const [incomeFrequency,    setIncomeFrequency]     = useState<IncomeFrequency | ''>('');
   const [spendingCategories, setSpendingCategories]  = useState<string[]>([]);
+  const [otherSpendingCategory, setOtherSpendingCategory] = useState('');
   const [goals,              setGoals]               = useState<string[]>([]);
   const [monthlyBudget,      setMonthlyBudget]       = useState('');
   const [savingsTarget,      setSavingsTarget]       = useState('');
@@ -176,8 +178,10 @@ export function OnboardingPage() {
       return;
     }
     setIncomeSources(user.onboarding?.incomeSources ?? []);
+    setOtherIncomeSource(user.onboarding?.otherIncomeSource ?? '');
     setIncomeFrequency(user.onboarding?.incomeFrequency ?? '');
     setSpendingCategories(user.onboarding?.spendingCategories ?? []);
+    setOtherSpendingCategory(user.onboarding?.otherSpendingCategory ?? '');
     setGoals(user.onboarding?.goals ?? []);
     setIncomeAmount(user.monthlyAllowanceBaseline !== undefined ? String(user.monthlyAllowanceBaseline) : '');
     setSavingsTarget(user.savingsGoalAmount !== undefined ? String(user.savingsGoalAmount) : '');
@@ -233,6 +237,18 @@ export function OnboardingPage() {
   // Step 3 — spending
   function step3IsBlank() {
     return spendingCategories.length === 0;
+  }
+
+  function toggleIncomeSource(value: string) {
+    if (value === 'other' && incomeSources.includes('other')) setOtherIncomeSource('');
+    setIncomeSources((previous) => toggleValue(previous, value));
+    setError(null);
+  }
+
+  function toggleSpendingCategory(value: string) {
+    if (value === 'other' && spendingCategories.includes('other')) setOtherSpendingCategory('');
+    setSpendingCategories((previous) => toggleValue(previous, value));
+    setError(null);
   }
 
   // Step 4 — goals
@@ -594,10 +610,30 @@ export function OnboardingPage() {
                       icon={option.icon}
                       label={option.label}
                       selected={incomeSources.includes(option.value)}
-                      onToggle={() => setIncomeSources((prev) => toggleValue(prev, option.value))}
+                      onToggle={() => toggleIncomeSource(option.value)}
                     />
                   ))}
                 </div>
+
+                {incomeSources.includes('other') && (
+                  <div className="space-y-1.5">
+                    <label htmlFor="other-income-source" className="text-sm font-medium text-gray-700 dark:text-text-secondary">
+                      Name the other income source <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      id="other-income-source"
+                      type="text"
+                      value={otherIncomeSource}
+                      onChange={(event) => { setOtherIncomeSource(event.target.value); setError(null); }}
+                      maxLength={60}
+                      required
+                      aria-invalid={Boolean(error && !otherIncomeSource.trim())}
+                      className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/20 dark:border-border dark:bg-surface dark:text-text-primary"
+                      placeholder="e.g. Freelance design"
+                    />
+                    {!otherIncomeSource.trim() && <p className="text-xs text-gray-500 dark:text-text-muted">Enter a name before continuing.</p>}
+                  </div>
+                )}
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <FormattedNumberInput
@@ -642,9 +678,11 @@ export function OnboardingPage() {
                     size="lg"
                     onClick={() => void goToStep(3, {
                       incomeSources,
+                      otherIncomeSource: incomeSources.includes('other') ? otherIncomeSource.trim() : '',
                       incomeFrequency: incomeFrequency || undefined,
                       monthlyAllowanceBaseline: incomeAmount ? Number(incomeAmount) : undefined,
                     }, step2IsBlank())}
+                    disabled={incomeSources.includes('other') && !otherIncomeSource.trim()}
                     isLoading={isSaving}
                   >
                     Next
@@ -679,10 +717,30 @@ export function OnboardingPage() {
                       icon={option.icon}
                       label={option.label}
                       selected={spendingCategories.includes(option.value)}
-                      onToggle={() => setSpendingCategories((prev) => toggleValue(prev, option.value))}
+                      onToggle={() => toggleSpendingCategory(option.value)}
                     />
                   ))}
                 </div>
+
+                {spendingCategories.includes('other') && (
+                  <div className="space-y-1.5">
+                    <label htmlFor="other-spending-category" className="text-sm font-medium text-gray-700 dark:text-text-secondary">
+                      Name the other spending category <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      id="other-spending-category"
+                      type="text"
+                      value={otherSpendingCategory}
+                      onChange={(event) => { setOtherSpendingCategory(event.target.value); setError(null); }}
+                      maxLength={60}
+                      required
+                      aria-invalid={Boolean(error && !otherSpendingCategory.trim())}
+                      className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/20 dark:border-border dark:bg-surface dark:text-text-primary"
+                      placeholder="e.g. Pet care"
+                    />
+                    {!otherSpendingCategory.trim() && <p className="text-xs text-gray-500 dark:text-text-muted">Enter a name before continuing.</p>}
+                  </div>
+                )}
 
                 {step3IsBlank() && (
                   <p className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400">
@@ -696,7 +754,11 @@ export function OnboardingPage() {
                 <div className="flex items-center gap-4">
                   <Button
                     size="lg"
-                    onClick={() => void goToStep(4, { spendingCategories }, step3IsBlank())}
+                    onClick={() => void goToStep(4, {
+                      spendingCategories,
+                      otherSpendingCategory: spendingCategories.includes('other') ? otherSpendingCategory.trim() : '',
+                    }, step3IsBlank())}
+                    disabled={spendingCategories.includes('other') && !otherSpendingCategory.trim()}
                     isLoading={isSaving}
                   >
                     Next
@@ -897,7 +959,7 @@ export function OnboardingPage() {
                 ) : (
                   <div className="space-y-2">
                     {selectedIncomeOptions.map((opt) => (
-                      <PreviewRow key={opt.value} icon={opt.icon} label={opt.label} />
+                      <PreviewRow key={opt.value} icon={opt.icon} label={opt.value === 'other' ? otherIncomeSource || opt.label : opt.label} />
                     ))}
                   </div>
                 )}
@@ -912,7 +974,7 @@ export function OnboardingPage() {
                 ) : (
                   <div className="space-y-2">
                     {selectedCategoryOptions.map((opt) => (
-                      <PreviewRow key={opt.value} icon={opt.icon} label={opt.label} />
+                      <PreviewRow key={opt.value} icon={opt.icon} label={opt.value === 'other' ? otherSpendingCategory || opt.label : opt.label} />
                     ))}
                   </div>
                 )}
