@@ -24,11 +24,11 @@ export function RegisterPage() {
   const [isSubmitting, setIsSubmitting]       = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
-  async function handleGoogleSignup() {
+  async function handleGoogleSignup(idToken: string) {
     setError(null);
     setIsGoogleLoading(true);
     try {
-      const signedUpUser = await loginWithGoogle();
+      const signedUpUser = await loginWithGoogle(idToken);
       const onboardingStatus = signedUpUser.onboarding?.status ?? 'not_started';
       const needsOnboarding = onboardingStatus === 'not_started' || onboardingStatus === 'in_progress';
       navigate(needsOnboarding ? STUDENT_ROUTES.onboarding : STUDENT_ROUTES.dashboard, { replace: true });
@@ -69,7 +69,7 @@ export function RegisterPage() {
 
       {/* Google first */}
       <GoogleButton
-        onClick={() => void handleGoogleSignup()}
+        onCredential={(idToken) => void handleGoogleSignup(idToken)}
         isLoading={isGoogleLoading}
         label="Sign up with Google"
       />

@@ -25,11 +25,11 @@ export function LoginPage() {
 
   const redirectFrom = (location.state as { from?: Location })?.from?.pathname;
 
-  async function handleGoogleLogin() {
+  async function handleGoogleLogin(idToken: string) {
     setError(null);
     setIsGoogleLoading(true);
     try {
-      const loggedInUser = await loginWithGoogle();
+      const loggedInUser = await loginWithGoogle(idToken);
       if (loggedInUser.role === 'admin') {
         navigate(redirectFrom ?? ADMIN_ROUTES.dashboard, { replace: true });
         return;
@@ -78,7 +78,7 @@ export function LoginPage() {
 
       {/* Google first — research shows social login gets more clicks at the top */}
       <GoogleButton
-        onClick={() => void handleGoogleLogin()}
+        onCredential={(idToken) => void handleGoogleLogin(idToken)}
         isLoading={isGoogleLoading}
         label="Continue with Google"
       />

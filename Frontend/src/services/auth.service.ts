@@ -1,5 +1,4 @@
 import { authApi } from '@/api/auth.api';
-import { requestGoogleIdToken } from '@/lib/googleIdentity';
 import { tokenService } from './token.service';
 import type {
   AuthResponse,
@@ -22,8 +21,7 @@ export const authService = {
     return result;
   },
 
-  async loginWithGoogle(): Promise<AuthResponse> {
-    const idToken = await requestGoogleIdToken();
+  async loginWithGoogle(idToken: string): Promise<AuthResponse> {
     const result = await authApi.loginWithGoogle(idToken);
     tokenService.setTokens(result.accessToken, result.refreshToken);
     return result;
