@@ -204,7 +204,7 @@ export function InsightsPage() {
                 className={cn(
                   'flex-1 rounded-xl border bg-gray-50 px-4 py-2 text-sm text-gray-900',
                   'border-gray-100 focus:border-brand-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-400/20',
-                  'dark:border-white/8 dark:bg-surface dark:text-text-primary dark:focus:border-primary-accent/70',
+                  'dark:border-white/[0.08] dark:bg-surface dark:text-text-primary dark:focus:border-primary-accent/70',
                 )}
               />
               <button
@@ -236,7 +236,7 @@ export function InsightsPage() {
                     className={cn(
                       'w-full rounded-lg border px-3.5 py-2.5 text-left text-sm font-medium transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-50',
                       'border-gray-100 text-gray-700 hover:border-brand-200 hover:bg-brand-50 hover:text-brand-700',
-                      'dark:border-white/5 dark:text-text-secondary dark:hover:border-primary/30 dark:hover:bg-primary/8 dark:hover:text-primary-accent',
+                      'dark:border-white/5 dark:text-text-secondary dark:hover:border-primary/30 dark:hover:bg-primary/[0.08] dark:hover:text-primary-accent',
                     )}
                   >
                     {question}
@@ -245,7 +245,7 @@ export function InsightsPage() {
               </div>
             </Card>
 
-            <Card className="border-brand-100 bg-gradient-to-br from-brand-50 to-blue-50 dark:border-primary/15 dark:from-primary/8 dark:to-blue-400/8">
+            <Card className="border-brand-100 bg-gradient-to-br from-brand-50 to-blue-50 dark:border-primary/15 dark:from-primary/[0.08] dark:to-blue-400/[0.08]">
               <div className="flex items-start gap-3">
                 <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-brand-100 text-brand-600 dark:bg-primary/20 dark:text-primary-accent">
                   <Sparkles className="h-4 w-4" />

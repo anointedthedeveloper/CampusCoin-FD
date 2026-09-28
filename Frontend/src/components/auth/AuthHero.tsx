@@ -74,8 +74,8 @@ export function AuthHero() {
       <div className="relative flex h-full w-full items-center overflow-hidden">
         <HeroBackground />
         <Link to={PUBLIC_ROUTES.home} className="relative flex min-w-0 items-center gap-3 px-4">
-          <Logo iconClassName="h-9 w-9" showWordmark={false} />
-          <div className="min-w-0">
+          <Logo iconClassName="h-9 w-9 drop-shadow-md" showWordmark={false} />
+          <div className="auth-hero-text min-w-0">
             <p className="truncate text-sm font-bold text-[#1d3d2d] dark:text-white">Campus Coin</p>
             <p className="truncate text-xs text-gray-600 dark:text-white/70">Smart Finance for a Brighter Campus Life</p>
           </div>
@@ -94,10 +94,10 @@ export function AuthHero() {
         <HeroBackground />
       </div>
 
-      <div className="relative flex h-full flex-col justify-between gap-3 p-6 sm:p-8 lg:gap-0 lg:p-10 xl:p-14">
+      <div className="auth-hero-text relative flex h-full flex-col justify-between gap-3 p-6 sm:p-8 lg:gap-0 lg:p-10 xl:p-14">
         <Link to={PUBLIC_ROUTES.home} className="animate-fade-in-up">
           <Logo
-            iconClassName="h-9 w-9 lg:h-11 lg:w-11"
+            iconClassName="h-9 w-9 drop-shadow-md lg:h-11 lg:w-11"
             wordmarkClassName="text-base text-[#1d3d2d] dark:text-white lg:text-lg"
             showTagline={false}
           />

@@ -60,7 +60,7 @@ export function AdminLayout() {
           <button
             type="button"
             onClick={() => setIsSidebarOpen(false)}
-            className="flex h-7 w-7 items-center justify-center rounded-md text-gray-400 hover:bg-white/8 hover:text-white transition-colors lg:hidden"
+            className="flex h-7 w-7 items-center justify-center rounded-md text-gray-400 hover:bg-white/[0.08] hover:text-white transition-colors lg:hidden"
             aria-label="Close menu"
           >
             <X className="h-4 w-4" />
@@ -80,7 +80,7 @@ export function AdminLayout() {
                 cn(
                   'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium',
                   'text-gray-400 transition-all duration-150',
-                  'hover:bg-white/6 hover:text-gray-100',
+                  'hover:bg-white/[0.06] hover:text-gray-100',
                   isActive && 'bg-amber-500/15 text-amber-300 font-semibold',
                 )
               }
@@ -112,7 +112,7 @@ export function AdminLayout() {
             </div>
             <button
               onClick={() => void logout()}
-              className="shrink-0 rounded-md p-1.5 text-gray-500 hover:bg-white/8 hover:text-gray-200 transition-colors"
+              className="shrink-0 rounded-md p-1.5 text-gray-500 hover:bg-white/[0.08] hover:text-gray-200 transition-colors"
               aria-label="Log out"
             >
               <LogOut className="h-3.5 w-3.5" />
@@ -135,7 +135,7 @@ export function AdminLayout() {
             <button
               type="button"
               onClick={() => setIsSidebarOpen(true)}
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors dark:hover:bg-white/8 dark:text-text-secondary"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors dark:hover:bg-white/[0.08] dark:text-text-secondary"
               aria-label="Open menu"
             >
               <Menu className="h-5 w-5" />

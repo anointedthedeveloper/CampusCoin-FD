@@ -27,6 +27,7 @@ const groups = [
     accent: 'text-[#1c8f53] dark:text-primary-accent',
     chip: 'bg-[#d7f0d1] text-[#1c8f53] dark:bg-white/10 dark:text-primary-accent',
     image: assets.screenshots.dashboard,
+    imageDark: assets.screenshots.dashboardDark,
     imageAlt: 'Campus Coin dashboard showing stat cards, spending breakdown, and recent transactions',
     reverse: false,
     items: [
@@ -56,6 +57,7 @@ const groups = [
     accent: 'text-blue-600 dark:text-blue-400',
     chip: 'bg-blue-100 text-blue-600 dark:bg-blue-400/15 dark:text-blue-400',
     image: assets.screenshots.budgets,
+    imageDark: assets.screenshots.budgetsDark,
     imageAlt: 'Campus Coin budgets page showing category limits and progress bars',
     reverse: true,
     items: [
@@ -85,6 +87,7 @@ const groups = [
     accent: 'text-amber-600 dark:text-amber-400',
     chip: 'bg-amber-100 text-amber-600 dark:bg-amber-400/15 dark:text-amber-400',
     image: assets.screenshots.reports,
+    imageDark: assets.screenshots.reportsDark,
     imageAlt: 'Campus Coin reports page showing income vs expense trend and category charts',
     reverse: false,
     items: [
@@ -114,6 +117,7 @@ const groups = [
     accent: 'text-purple-600 dark:text-purple-400',
     chip: 'bg-purple-100 text-purple-600 dark:bg-purple-400/15 dark:text-purple-400',
     image: assets.screenshots.aiAssistant,
+    imageDark: assets.screenshots.aiAssistantDark,
     imageAlt: 'Campus Coin AI assistant page with saving tips and chat',
     reverse: true,
     items: [
@@ -192,7 +196,7 @@ export function FeaturesPage() {
         </figure>
       </section>
 
-      {groups.map(({ key, eyebrow, title, description, accent, chip, image, imageAlt, reverse, items }, index) => (
+      {groups.map(({ key, eyebrow, title, description, accent, chip, image, imageDark, imageAlt, reverse, items }, index) => (
         <section
           key={key}
           id={key}
@@ -219,7 +223,7 @@ export function FeaturesPage() {
               </ul>
             </div>
 
-            <BrowserFrame src={image} alt={imageAlt} />
+            <BrowserFrame src={image} darkSrc={imageDark} alt={imageAlt} />
           </div>
         </section>
       ))}

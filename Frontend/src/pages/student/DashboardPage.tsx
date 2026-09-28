@@ -58,7 +58,7 @@ function TxIcon({ type }: { type: 'income' | 'expense' }) {
       'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl',
       type === 'income'
         ? 'bg-brand-100 text-brand-600 dark:bg-primary/15 dark:text-primary-accent'
-        : 'bg-gray-100 text-gray-500 dark:bg-white/8 dark:text-text-secondary',
+        : 'bg-gray-100 text-gray-500 dark:bg-white/[0.08] dark:text-text-secondary',
     )}>
       {type === 'income'
         ? <ArrowUpRight className="h-4 w-4" />
@@ -232,7 +232,7 @@ export function DashboardPage() {
 
       {/* Unread notifications banner */}
       {unreadNotifications.length > 0 && (
-        <div className="flex flex-wrap items-center gap-3 rounded-xl border border-amber-100 bg-amber-50 px-4 py-3 dark:border-amber-400/20 dark:bg-amber-400/8">
+        <div className="flex flex-wrap items-center gap-3 rounded-xl border border-amber-100 bg-amber-50 px-4 py-3 dark:border-amber-400/20 dark:bg-amber-400/[0.08]">
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-600 dark:bg-amber-400/15 dark:text-amber-400">
             <AlertTriangle className="h-4 w-4" />
           </span>
@@ -290,7 +290,7 @@ export function DashboardPage() {
                   {Math.min(Math.round((Math.max(balance, 0) / user.savingsGoalAmount) * 100), 100)}%
                 </span>
               </div>
-              <div className="mt-2.5 h-2 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-white/8">
+              <div className="mt-2.5 h-2 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-white/[0.08]">
                 <div
                   className="h-full rounded-full bg-teal-500 dark:bg-teal-400 transition-all duration-700"
                   style={{ width: `${Math.min((Math.max(balance, 0) / user.savingsGoalAmount) * 100, 100)}%` }}
@@ -338,7 +338,7 @@ export function DashboardPage() {
                   {getBudgetUtilization(topBudget)}%
                 </span>
               </div>
-              <div className="mt-2.5 h-2 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-white/8">
+              <div className="mt-2.5 h-2 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-white/[0.08]">
                 <div
                   className={cn('h-full rounded-full transition-all duration-700',
                     getBudgetUtilization(topBudget) >= 100 ? 'bg-red-500'
@@ -410,7 +410,7 @@ export function DashboardPage() {
 
       {/* AI insight */}
       {insight && (
-        <div className="flex items-start gap-4 rounded-xl border border-blue-100 bg-blue-50 p-4 dark:border-blue-400/15 dark:bg-blue-400/8">
+        <div className="flex items-start gap-4 rounded-xl border border-blue-100 bg-blue-50 p-4 dark:border-blue-400/15 dark:bg-blue-400/[0.08]">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-600 dark:bg-blue-400/15 dark:text-blue-400">
             <Sparkles className="h-4 w-4" />
           </span>
@@ -423,7 +423,7 @@ export function DashboardPage() {
 
       {/* Saving tip */}
       {topTip && (
-        <div className="flex flex-col gap-4 rounded-xl border border-brand-100 bg-brand-50 p-4 dark:border-primary/15 dark:bg-primary/8 sm:flex-row sm:items-center">
+        <div className="flex flex-col gap-4 rounded-xl border border-brand-100 bg-brand-50 p-4 dark:border-primary/15 dark:bg-primary/[0.08] sm:flex-row sm:items-center">
           <div className="flex items-start gap-3 flex-1">
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-100 text-brand-600 dark:bg-primary/20 dark:text-primary-accent">
               <Lightbulb className="h-4 w-4" />

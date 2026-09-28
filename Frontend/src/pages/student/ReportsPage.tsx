@@ -149,7 +149,7 @@ export function ReportsPage() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setMonthOffset((v) => v - 1)}
-            className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 shadow-btn transition-all hover:bg-gray-50 hover:text-gray-900 dark:border-white/8 dark:bg-surface dark:text-text-secondary dark:hover:bg-white/5"
+            className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 shadow-btn transition-all hover:bg-gray-50 hover:text-gray-900 dark:border-white/[0.08] dark:bg-surface dark:text-text-secondary dark:hover:bg-white/5"
             aria-label="Previous month"
           >
             <ChevronLeft className="h-4 w-4" />
@@ -159,7 +159,7 @@ export function ReportsPage() {
           </span>
           <button
             onClick={() => setMonthOffset((v) => v + 1)}
-            className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 shadow-btn transition-all hover:bg-gray-50 hover:text-gray-900 dark:border-white/8 dark:bg-surface dark:text-text-secondary dark:hover:bg-white/5"
+            className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 shadow-btn transition-all hover:bg-gray-50 hover:text-gray-900 dark:border-white/[0.08] dark:bg-surface dark:text-text-secondary dark:hover:bg-white/5"
             aria-label="Next month"
           >
             <ChevronRight className="h-4 w-4" />
@@ -169,7 +169,7 @@ export function ReportsPage() {
         <select
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
-          className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-btn focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/20 dark:border-white/8 dark:bg-surface dark:text-text-primary dark:focus:border-primary-accent/70"
+          className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-btn focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/20 dark:border-white/[0.08] dark:bg-surface dark:text-text-primary dark:focus:border-primary-accent/70"
         >
           <option value="all">All categories</option>
           {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -214,7 +214,7 @@ export function ReportsPage() {
               return (
                 <div key={week.label} className="flex items-center gap-3">
                   <span className="w-14 shrink-0 text-xs font-medium text-gray-500 dark:text-text-secondary">{week.label}</span>
-                  <div className="flex-1 h-2.5 overflow-hidden rounded-full bg-gray-100 dark:bg-white/8">
+                  <div className="flex-1 h-2.5 overflow-hidden rounded-full bg-gray-100 dark:bg-white/[0.08]">
                     <div
                       className="h-full rounded-full bg-brand-500 dark:bg-primary-accent transition-all duration-700"
                       style={{ width: `${pct}%` }}
@@ -288,7 +288,7 @@ export function ReportsPage() {
               <div key={item.categoryId} className="flex items-center gap-4 px-5 py-3">
                 <span className="flex-1 text-sm font-medium text-gray-900 dark:text-text-primary">{item.categoryName}</span>
                 {/* Mini progress bar */}
-                <div className="hidden w-24 h-1.5 overflow-hidden rounded-full bg-gray-100 dark:bg-white/8 sm:block">
+                <div className="hidden w-24 h-1.5 overflow-hidden rounded-full bg-gray-100 dark:bg-white/[0.08] sm:block">
                   <div
                     className="h-full rounded-full bg-brand-500 dark:bg-primary-accent"
                     style={{ width: `${item.percentage}%` }}

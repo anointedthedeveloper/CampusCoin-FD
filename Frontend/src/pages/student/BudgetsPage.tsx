@@ -140,7 +140,7 @@ export function BudgetsPage() {
         <button
           onClick={() => { setMonthOffset((v) => v - 1); closeForm(); }}
           aria-label="Previous month"
-          className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 shadow-btn transition-all hover:bg-gray-50 hover:text-gray-900 dark:border-white/8 dark:bg-surface dark:text-text-secondary dark:hover:bg-white/5 dark:hover:text-text-primary"
+          className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 shadow-btn transition-all hover:bg-gray-50 hover:text-gray-900 dark:border-white/[0.08] dark:bg-surface dark:text-text-secondary dark:hover:bg-white/5 dark:hover:text-text-primary"
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
@@ -150,7 +150,7 @@ export function BudgetsPage() {
         <button
           onClick={() => { setMonthOffset((v) => v + 1); closeForm(); }}
           aria-label="Next month"
-          className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 shadow-btn transition-all hover:bg-gray-50 hover:text-gray-900 dark:border-white/8 dark:bg-surface dark:text-text-secondary dark:hover:bg-white/5 dark:hover:text-text-primary"
+          className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 shadow-btn transition-all hover:bg-gray-50 hover:text-gray-900 dark:border-white/[0.08] dark:bg-surface dark:text-text-secondary dark:hover:bg-white/5 dark:hover:text-text-primary"
         >
           <ChevronRight className="h-4 w-4" />
         </button>
@@ -202,7 +202,7 @@ export function BudgetsPage() {
                 className={cn(
                   'w-full rounded-lg border bg-white px-3.5 py-2.5 text-sm text-gray-900 shadow-inset',
                   'border-gray-200 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/20',
-                  'dark:border-white/8 dark:bg-surface dark:text-text-primary dark:focus:border-primary-accent/70',
+                  'dark:border-white/[0.08] dark:bg-surface dark:text-text-primary dark:focus:border-primary-accent/70',
                   'disabled:opacity-60 disabled:cursor-not-allowed',
                 )}
               >
@@ -234,7 +234,7 @@ export function BudgetsPage() {
                   className={cn(
                     'w-full rounded-lg border bg-white py-2.5 pl-8 pr-3.5 text-sm text-gray-900 shadow-inset',
                     'border-gray-200 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/20',
-                    'dark:border-white/8 dark:bg-surface dark:text-text-primary dark:focus:border-primary-accent/70',
+                    'dark:border-white/[0.08] dark:bg-surface dark:text-text-primary dark:focus:border-primary-accent/70',
                   )}
                 />
               </div>
@@ -277,7 +277,7 @@ export function BudgetsPage() {
                   <button
                     type="button"
                     onClick={() => openEditForm(budget)}
-                    className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors dark:hover:bg-white/8 dark:hover:text-text-primary"
+                    className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors dark:hover:bg-white/[0.08] dark:hover:text-text-primary"
                     aria-label={`Edit ${categoryNameFor(budget.categoryId)} budget`}
                   >
                     <Pencil className="h-3.5 w-3.5" />

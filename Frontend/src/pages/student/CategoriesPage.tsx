@@ -135,7 +135,7 @@ export function CategoriesPage() {
 
       {/* Notice */}
       {notice && (
-        <p className="rounded-lg border border-brand-100 bg-brand-50 px-4 py-2.5 text-sm font-medium text-brand-700 dark:border-primary/20 dark:bg-primary/8 dark:text-primary-accent">
+        <p className="rounded-lg border border-brand-100 bg-brand-50 px-4 py-2.5 text-sm font-medium text-brand-700 dark:border-primary/20 dark:bg-primary/[0.08] dark:text-primary-accent">
           {notice}
         </p>
       )}
@@ -159,13 +159,13 @@ export function CategoriesPage() {
                 className={cn(
                   'w-full rounded-lg border bg-white px-3.5 py-2.5 text-sm text-gray-900 shadow-inset',
                   'border-gray-200 hover:border-gray-300 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/20',
-                  'dark:border-white/8 dark:bg-surface dark:text-text-primary dark:focus:border-primary-accent/70',
+                  'dark:border-white/[0.08] dark:bg-surface dark:text-text-primary dark:focus:border-primary-accent/70',
                 )}
               />
             </div>
             <div>
               <span className="block text-sm font-medium text-gray-700 dark:text-text-secondary mb-1.5">Type</span>
-              <div className="inline-flex rounded-lg bg-gray-100 p-1 dark:bg-white/8">
+              <div className="inline-flex rounded-lg bg-gray-100 p-1 dark:bg-white/[0.08]">
                 {(['expense', 'income'] as CategoryType[]).map((t) => (
                   <button
                     key={t}
@@ -199,7 +199,7 @@ export function CategoriesPage() {
           <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-text-muted">
             Expense
           </h2>
-          <span className="rounded-full bg-gray-100 px-2 py-0.5 text-2xs font-semibold text-gray-500 dark:bg-white/8 dark:text-text-muted">
+          <span className="rounded-full bg-gray-100 px-2 py-0.5 text-2xs font-semibold text-gray-500 dark:bg-white/[0.08] dark:text-text-muted">
             {expenseCategories.length}
           </span>
         </div>
@@ -212,7 +212,7 @@ export function CategoriesPage() {
           <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-text-muted">
             Income
           </h2>
-          <span className="rounded-full bg-gray-100 px-2 py-0.5 text-2xs font-semibold text-gray-500 dark:bg-white/8 dark:text-text-muted">
+          <span className="rounded-full bg-gray-100 px-2 py-0.5 text-2xs font-semibold text-gray-500 dark:bg-white/[0.08] dark:text-text-muted">
             {incomeCategories.length}
           </span>
         </div>

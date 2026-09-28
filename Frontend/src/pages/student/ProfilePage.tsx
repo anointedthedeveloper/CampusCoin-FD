@@ -251,7 +251,7 @@ export function ProfilePage() {
                     className="flex w-full items-center justify-between py-3 text-left text-sm font-medium text-gray-700 transition-colors hover:text-brand-700 dark:text-text-secondary dark:hover:text-primary-accent"
                   >
                     <span className="flex items-center gap-3">
-                      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gray-100 text-gray-500 dark:bg-white/8 dark:text-text-muted">
+                      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gray-100 text-gray-500 dark:bg-white/[0.08] dark:text-text-muted">
                         <Icon className="h-3.5 w-3.5" />
                       </span>
                       {label}
@@ -277,7 +277,7 @@ export function ProfilePage() {
               to={PUBLIC_ROUTES.faq}
               className="flex w-full items-center gap-3 py-3 text-sm font-medium text-gray-700 transition-colors hover:text-brand-700 dark:text-text-secondary dark:hover:text-primary-accent"
             >
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gray-100 text-gray-500 dark:bg-white/8 dark:text-text-muted">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gray-100 text-gray-500 dark:bg-white/[0.08] dark:text-text-muted">
                 <HelpCircle className="h-3.5 w-3.5" />
               </span>
               Help &amp; FAQ
