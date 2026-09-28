@@ -21,7 +21,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           <label
             htmlFor={inputId}
             className={cn(
-              'select-none font-medium text-gray-700 dark:text-text-secondary',
+              'select-none font-semibold text-gray-800 dark:text-text-secondary',
               compact ? 'text-xs' : 'text-sm',
             )}
           >
@@ -37,7 +37,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             <span
               className={cn(
                 'pointer-events-none absolute inset-y-0 left-0 flex items-center text-gray-400 transition-colors duration-150',
-                'group-focus-within:text-brand-500 dark:text-text-muted dark:group-focus-within:text-primary-accent',
+                'group-focus-within:text-brand-600 dark:text-text-muted dark:group-focus-within:text-primary-accent',
                 compact ? 'pl-3 [&>svg]:h-3.5 [&>svg]:w-3.5' : 'pl-3.5 [&>svg]:h-4 [&>svg]:w-4',
               )}
             >
@@ -50,32 +50,34 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             className={cn(
               // Base
-              'w-full rounded-lg border bg-white text-gray-900 shadow-inset',
-              'placeholder:text-gray-400/70 placeholder:font-normal',
+              'w-full rounded-lg border bg-white text-gray-900 font-medium',
+              'placeholder:text-gray-400 placeholder:font-normal',
               'transition-all duration-150',
               // Dark
-              'dark:bg-surface dark:text-text-primary dark:placeholder:text-text-muted/60 dark:shadow-none',
+              'dark:bg-surface dark:text-text-primary dark:placeholder:text-text-muted/70 dark:shadow-none',
               // Sizing
               compact ? 'py-1.5 text-sm' : 'py-2.5 text-sm',
               'px-3.5',
-              icon && (compact ? 'pl-9' : 'pl-10'),
+              icon    && (compact ? 'pl-9' : 'pl-10'),
               trailing && 'pr-10',
               // Error vs normal border
               error
                 ? [
-                    'border-red-300 bg-red-50/40',
+                    'border-red-400 bg-red-50/40',
                     'focus:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-400/20',
                     'dark:border-red-500/50 dark:bg-red-950/20',
                     'dark:focus:border-red-400 dark:focus:ring-red-400/20',
                   ]
                 : [
-                    'border-gray-200 hover:border-gray-300',
-                    'focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/20',
-                    'dark:border-white/[0.08] dark:hover:border-white/15',
+                    // Light mode: clearly visible border with strong hover/focus
+                    'border-gray-300 hover:border-gray-400',
+                    'focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20',
+                    // Dark mode
+                    'dark:border-white/[0.10] dark:hover:border-white/20',
                     'dark:focus:border-primary-accent/70 dark:focus:ring-primary-accent/20',
                   ],
               // Disabled
-              'disabled:cursor-not-allowed disabled:opacity-60',
+              'disabled:cursor-not-allowed disabled:opacity-60 disabled:bg-gray-50',
               className,
             )}
             {...props}
@@ -96,7 +98,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         )}
 
         {hint && !error && (
-          <p className="text-xs text-gray-400 dark:text-text-muted leading-relaxed">{hint}</p>
+          <p className="text-xs text-gray-500 dark:text-text-muted leading-relaxed">{hint}</p>
         )}
       </div>
     );

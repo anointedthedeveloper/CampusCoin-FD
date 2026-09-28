@@ -41,11 +41,11 @@ function HeroBackground() {
         className="absolute inset-0 h-full w-full animate-slow-zoom object-cover object-center saturate-[1.15]"
         aria-hidden="true"
       />
-      {/* Light mode keeps the photo's own bright daylight look, with just a
-          whisper of wash for text legibility. Dark mode keeps the deep
-          brand-green wash it always had. */}
+      {/* Light mode: a stronger bottom-to-top gradient that keeps the photo
+          vivid in the upper section but gives the text area real contrast.
+          Dark mode: keeps the existing deep brand-green wash. */}
       <div
-        className="absolute inset-0 bg-gradient-to-b from-white/60 via-white/50 to-white/65 dark:from-brand-950/90 dark:via-brand-950/75 dark:to-brand-950/95"
+        className="absolute inset-0 bg-gradient-to-b from-white/30 via-white/55 to-white/80 dark:from-brand-950/90 dark:via-brand-950/75 dark:to-brand-950/95"
         aria-hidden="true"
       />
       {/* Warm golden-hour glow, bottom-right — dark mode only; the light

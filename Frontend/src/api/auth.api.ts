@@ -36,6 +36,10 @@ export const authApi = {
     await httpClient.post('/auth/reset-password', payload);
   },
 
+  async changePassword(payload: { currentPassword: string; newPassword: string }): Promise<void> {
+    await httpClient.patch('/auth/change-password', payload);
+  },
+
   async refreshToken(refreshToken: string): Promise<AuthResponse> {
     const { data } = await httpClient.post<ApiSuccess<AuthResponse>>('/auth/refresh', {
       refreshToken,

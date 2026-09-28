@@ -51,8 +51,9 @@ export const authService = {
     return Boolean(tokenService.getAccessToken());
   },
 
-  // changePassword is not exposed by the backend yet — kept as a stub.
-  async changePassword(_userId: string, _currentPassword: string, _newPassword: string): Promise<void> {
-    throw new Error('Change password is not yet supported via the API.');
+  // changePassword requires the current password for verification.
+  // Google-only accounts (no passwordHash) may omit currentPassword.
+  async changePassword(_userId: string, currentPassword: string, newPassword: string): Promise<void> {
+    await authApi.changePassword({ currentPassword, newPassword });
   },
 };

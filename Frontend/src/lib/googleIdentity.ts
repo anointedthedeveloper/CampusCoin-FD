@@ -109,31 +109,37 @@ export async function requestGoogleIdToken(): Promise<string> {
     await ensureInitialized(clientId);
   }
 
+  // GSI renders the button asynchronously after renderButton() returns.
+  // Poll for the clickable element for up to 5 s before giving up.
+  const getClickable = (): HTMLElement | null =>
+    hiddenButtonEl?.querySelector<HTMLElement>('div[role="button"]') ?? null;
+
+  if (!getClickable()) {
+    await new Promise<void>((resolve, reject) => {
+      const deadline = Date.now() + 5000;
+      const interval = setInterval(() => {
+        if (getClickable()) { clearInterval(interval); resolve(); return; }
+        if (Date.now() >= deadline) { clearInterval(interval); reject(new Error('Google sign-in button failed to render. Please try again.')); }
+      }, 80);
+    });
+  }
+
   return new Promise((resolve, reject) => {
-    // The button-triggered flow has no "popup closed without choosing an
-    // account" callback, so without a timeout a cancelled sign-in would
-    // leave the caller's loading state stuck forever.
     const timeout = window.setTimeout(() => {
       pending = null;
       reject(new Error('Google sign-in was closed or timed out. Please try again.'));
     }, 60_000);
 
     pending = {
-      resolve: (token) => {
-        window.clearTimeout(timeout);
-        resolve(token);
-      },
-      reject: (err) => {
-        window.clearTimeout(timeout);
-        reject(err);
-      },
+      resolve: (token) => { window.clearTimeout(timeout); resolve(token); },
+      reject:  (err)   => { window.clearTimeout(timeout); reject(err); },
     };
 
-    const clickable = hiddenButtonEl?.querySelector<HTMLElement>('div[role="button"]');
+    const clickable = getClickable();
     if (!clickable) {
       window.clearTimeout(timeout);
       pending = null;
-      reject(new Error('Google sign-in button failed to render.'));
+      reject(new Error('Google sign-in button failed to render. Please try again.'));
       return;
     }
     clickable.click();

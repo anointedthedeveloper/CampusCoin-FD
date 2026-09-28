@@ -6,29 +6,32 @@
   /*
    * Channel triplets so Tailwind can apply opacity modifiers.
    * --border keeps a baked-in alpha as it is never opacity-modified.
+   *
+   * Light mode: clean whites with just enough green warmth to feel
+   * "on-brand" without washing the UI green.
    */
   :root {
-    --background:    248 250 248;   /* #f8faf8 — very light green-tinted white */
-    --surface:       255 255 255;   /* #ffffff */
-    --surface-elevated: 255 255 255;
-    --border:        rgba(15, 40, 30, 0.07);
-    --text-primary:  17 24 20;      /* #111814 */
-    --text-secondary:72 90 80;     /* #485a50 */
-    --text-muted:    110 128 118;   /* #6e8076 */
-    --primary:       22 163 74;     /* #16a34a */
-    --primary-accent:20 184 66;    /* #14b842 */
+    --background:       248 250 248;   /* #f8faf8 — very light green-tinted white */
+    --surface:          255 255 255;   /* #ffffff */
+    --surface-elevated: 255 255 255;   /* #ffffff */
+    --border:           rgba(15, 40, 30, 0.10);   /* slightly stronger than before */
+    --text-primary:     15  23  18;    /* #0f1712 — rich near-black */
+    --text-secondary:   55  71  62;    /* #37473e — deep slate-green */
+    --text-muted:       100 118 108;   /* #64766c */
+    --primary:          22  163  74;   /* #16a34a */
+    --primary-accent:   20  184  66;   /* #14b842 */
   }
 
   :root.dark {
-    --background:    9 18 13;       /* #09120d */
-    --surface:       14 26 19;      /* #0e1a13 */
-    --surface-elevated: 19 36 26;  /* #13241a */
+    --background:    9  18  13;        /* #09120d */
+    --surface:       14 26  19;        /* #0e1a13 */
+    --surface-elevated: 19 36  26;     /* #13241a */
     --border:        rgba(255, 255, 255, 0.07);
-    --text-primary:  242 248 244;   /* #f2f8f4 */
-    --text-secondary:162 182 170;  /* #a2b6aa */
-    --text-muted:    112 134 122;   /* #70867a */
-    --primary:       22 163 74;     /* #16a34a */
-    --primary-accent:34 197 94;    /* #22c55e */
+    --text-primary:  242 248 244;      /* #f2f8f4 */
+    --text-secondary:162 182 170;      /* #a2b6aa */
+    --text-muted:    112 134 122;      /* #70867a */
+    --primary:       22  163  74;      /* #16a34a */
+    --primary-accent:34  197  94;      /* #22c55e */
   }
 
   html {
@@ -47,11 +50,6 @@
     transition-property: background-color, border-color, color, box-shadow, fill, stroke, opacity;
     transition-duration: 150ms;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  /* But don't transition transforms — those are for intentional micro-interactions */
-  .no-color-transition, .no-color-transition * {
-    transition: none !important;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -190,16 +188,34 @@
   @apply text-xs font-semibold uppercase tracking-widest text-text-muted;
 }
 
-/* ── Utility: auth hero text shadow ───────────────────────────────────
-   Guarantees legibility for the logo/headline/copy sitting directly on
-   the auth hero photo, independent of what's behind any given line —
-   the wash gradient alone can't promise contrast everywhere the photo's
-   own content varies (e.g. dense foliage behind a word). Dark mode gets
-   a stronger, more neutral shadow since its wash is already doing most
-   of the work; light mode's is doing more of the work on its own. */
+/* ── Auth hero text — legible on top of the hero photo ────────────────
+   Text shadow gives contrast independent of what the photo shows behind
+   each word. Light mode needs less shadow since the overlay is already
+   doing heavy lifting; dark mode goes stronger. */
 .auth-hero-text {
-  text-shadow: 0 1px 2px rgba(17, 24, 20, 0.18), 0 2px 14px rgba(17, 24, 20, 0.14);
+  text-shadow:
+    0 1px 3px rgba(255,255,255,0.65),
+    0 2px 12px rgba(255,255,255,0.40);
 }
 :root.dark .auth-hero-text {
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45), 0 2px 18px rgba(0, 0, 0, 0.35);
+  text-shadow:
+    0 1px 3px rgba(0,0,0,0.55),
+    0 2px 18px rgba(0,0,0,0.40);
+}
+
+/* ── Light mode: extra colour overrides that Tailwind utilities alone
+   can't cleanly express (mainly to keep the design clean on white) ─── */
+
+/* Sidebar — force dark brand background even in light mode */
+.sidebar-dark {
+  background-color: #052e16;   /* brand-950 */
+  color: #d1fae5;
+}
+
+/* Card shadow upgrade in light mode for better definition on white */
+:root:not(.dark) .card-light-definition {
+  box-shadow:
+    0 1px 3px rgba(0,0,0,0.08),
+    0 1px 2px rgba(0,0,0,0.05),
+    0 0 0 1px rgba(15,40,30,0.06);
 }
