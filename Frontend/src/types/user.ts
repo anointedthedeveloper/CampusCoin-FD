@@ -56,7 +56,7 @@ export interface UserProfileUpdate {
 
 export interface UserSettings {
   currency: string;
-  monthlyIncomeGoal?: number;
+  monthlyIncomeGoal?: number | null;
   budgetAlertThreshold: number; // percentage, e.g. 80 = warn at 80% of budget
   emailNotifications: boolean;
   pushNotifications: boolean;

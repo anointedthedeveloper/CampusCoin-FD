@@ -211,7 +211,7 @@ router.post('/categorize', async (req, res) => {
     let selectedCategory = null;
     let confidence = 0.4;
 
-    if (hasAiProvider() && categories.length) {
+    if (req.user.settings?.aiCategorizationEnabled !== false && hasAiProvider() && categories.length) {
       const categoryList = categories
         .map((c) => `${c._id} | ${c.name} | ${c.type}`)
         .join('\n');
@@ -285,7 +285,7 @@ router.post('/insights/generate', async (req, res) => {
     let body;
     let isAiGenerated = false;
 
-    if (hasAiProvider()) {
+    if (req.user.settings?.aiInsightsEnabled !== false && hasAiProvider()) {
       try {
         const raw = await callAI(
           [
@@ -451,7 +451,7 @@ router.post('/affordability', async (req, res) => {
     // Return the structured data immediately; add Gemini explanation if available
     let explanation = null;
 
-    if (hasAiProvider()) {
+    if (req.user.settings?.aiInsightsEnabled !== false && hasAiProvider()) {
       try {
         const prompt =
           `The student wants to know if they can afford ${itemName} costing ${formatAmount(amount, currency)}` +
@@ -506,7 +506,7 @@ router.get('/spending-trend', async (req, res) => {
 
     let narrative = null;
 
-    if (hasAiProvider()) {
+    if (req.user.settings?.aiInsightsEnabled !== false && hasAiProvider()) {
       try {
         const prompt =
           `Explain the student's spending trend in 2-4 friendly sentences. ` +
@@ -569,7 +569,7 @@ router.get('/saving-suggestions', async (req, res) => {
 
     let suggestions = null;
 
-    if (hasAiProvider()) {
+    if (req.user.settings?.aiInsightsEnabled !== false && hasAiProvider()) {
       try {
         const prompt =
           `Generate 3-5 specific, actionable, non-judgmental saving suggestions for this student. ` +
@@ -649,7 +649,7 @@ router.get('/budget-status', async (req, res) => {
 
     let commentary = null;
 
-    if (hasAiProvider()) {
+    if (req.user.settings?.aiInsightsEnabled !== false && hasAiProvider()) {
       try {
         const prompt =
           `Summarise the student's budget health in 2-4 sentences. ` +
@@ -758,7 +758,7 @@ router.post('/savings-scenario', async (req, res) => {
 
     let explanation = null;
 
-    if (hasAiProvider()) {
+    if (req.user.settings?.aiInsightsEnabled !== false && hasAiProvider()) {
       try {
         const prompt =
           `Explain this savings scenario to the student in 2-3 friendly sentences. ` +

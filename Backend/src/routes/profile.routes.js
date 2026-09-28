@@ -188,6 +188,34 @@ router.patch('/settings', async (req, res) => {
       if (req.body[key] !== undefined) updates[`settings.${key}`] = req.body[key];
     });
 
+    if (updates['settings.currency'] !== undefined) {
+      const currency = String(updates['settings.currency']).trim().toUpperCase();
+      if (!/^[A-Z]{3}$/.test(currency)) {
+        return res.status(400).json({ message: 'Currency must be a 3-letter code' });
+      }
+      updates['settings.currency'] = currency;
+    }
+
+    for (const key of ['monthlyIncomeGoal', 'budgetAlertThreshold']) {
+      const value = updates[`settings.${key}`];
+      if (value === undefined) continue;
+      if (key === 'monthlyIncomeGoal' && value === null) continue;
+      if (typeof value !== 'number' || !Number.isFinite(value) || value < 0 || (key === 'budgetAlertThreshold' && (value < 1 || value > 100))) {
+        return res.status(400).json({
+          message: key === 'budgetAlertThreshold'
+            ? 'Budget alert threshold must be between 1 and 100'
+            : 'Monthly income goal must be a non-negative number',
+        });
+      }
+    }
+
+    for (const key of ['emailNotifications', 'pushNotifications', 'aiCategorizationEnabled', 'aiInsightsEnabled']) {
+      const value = updates[`settings.${key}`];
+      if (value !== undefined && typeof value !== 'boolean') {
+        return res.status(400).json({ message: `${key} must be a boolean` });
+      }
+    }
+
     const user = await User.findByIdAndUpdate(req.user._id, { $set: updates }, { returnDocument: 'after' });
     res.json({ data: user.settings });
   } catch (err) {

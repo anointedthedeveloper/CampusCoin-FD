@@ -10,7 +10,6 @@ import {
   Heart,
   Home,
   Laptop,
-  Minus,
   PiggyBank,
   Plane,
   Plus,
