@@ -3,8 +3,22 @@ import { ArrowLeft } from 'lucide-react';
 import { PUBLIC_ROUTES } from '@/constants/routes';
 import { AUTH_HERO_DETAIL_QUERY, AuthHero } from '@/components/auth';
 import { useMediaQuery } from '@/hooks/useMinHeight';
+import { assets } from '@/assets/images';
 import { cn } from '@/utils/cn';
 import type { AuthPageOutletContext } from '@/pages/auth/authOutletContext';
+
+// At lg+ (where the hero and form sit side by side) the hero photo extends
+// the full width of the layout instead of stopping at a hard seam into a
+// flat-colored form panel — the photo fades into a solid, theme-appropriate
+// backdrop by the time it reaches the form column. Written as plain CSS
+// gradients (not Tailwind's from-/via-/to- utilities) so the exact stop
+// positions are unambiguous and don't depend on Tailwind's opacity-scale
+// lookup for those utilities, which silently no-ops for values outside its
+// preset scale.
+const AUTH_BACKDROP_LIGHT =
+  'linear-gradient(to right, rgba(5,46,22,0.88) 0%, rgba(5,46,22,0.84) 32%, rgba(5,46,22,0.9) 50%, rgba(248,250,248,0.55) 62%, #f8faf8 76%, #f8faf8 100%)';
+const AUTH_BACKDROP_DARK =
+  'linear-gradient(to right, rgba(5,46,22,0.88) 0%, rgba(5,46,22,0.84) 32%, rgba(5,46,22,0.9) 50%, rgba(9,18,13,0.85) 62%, #09120d 76%, #09120d 100%)';
 
 export function AuthLayout() {
   const hasRoomForDetails = useMediaQuery(AUTH_HERO_DETAIL_QUERY);
@@ -21,17 +35,34 @@ export function AuthLayout() {
   const glowDirection = pathname === PUBLIC_ROUTES.register ? 'auth-glow-cw' : 'auth-glow-ccw';
 
   return (
-    <div className="flex h-[100dvh] flex-col overflow-hidden bg-brand-50/60 dark:bg-background lg:flex-row">
+    <div className="relative flex h-[100dvh] flex-col overflow-hidden bg-brand-50/60 dark:bg-background lg:flex-row">
+      {/* Full-bleed background, lg+ only — see AUTH_BACKDROP_* above. Below
+          lg the two columns stack and each keeps its own background
+          (AuthHero's own photo up top, this container's flat color below). */}
+      <div className="absolute inset-0 z-0 hidden lg:block" aria-hidden="true">
+        <img
+          src={assets.authHero}
+          alt=""
+          className="absolute inset-0 h-full w-full animate-slow-zoom object-cover object-center saturate-[1.15]"
+        />
+        <div className="absolute inset-0 dark:hidden" style={{ backgroundImage: AUTH_BACKDROP_LIGHT }} />
+        <div className="absolute inset-0 hidden dark:block" style={{ backgroundImage: AUTH_BACKDROP_DARK }} />
+        <div
+          className="absolute inset-0"
+          style={{ backgroundImage: 'radial-gradient(ellipse 60% 65% at 12% 100%, rgba(217,167,45,0.18), transparent 60%)' }}
+        />
+      </div>
+
       <div
         className={cn(
-          'relative w-full shrink-0 lg:h-full lg:max-h-none lg:w-[55%] xl:w-[58%]',
+          'relative z-10 w-full shrink-0 lg:h-full lg:max-h-none lg:w-[55%] xl:w-[58%]',
           hasRoomForDetails ? 'h-[460px] sm:h-[500px]' : 'h-[110px] max-h-[110px] min-h-[110px]',
         )}
       >
         <AuthHero />
       </div>
 
-      <div className="flex flex-1 flex-col overflow-y-auto">
+      <div className="relative z-10 flex flex-1 flex-col overflow-y-auto">
         <div
           className={cn(
             'flex min-h-full flex-1 items-center justify-center px-4 sm:px-6',
