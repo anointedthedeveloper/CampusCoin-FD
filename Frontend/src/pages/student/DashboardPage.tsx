@@ -29,6 +29,7 @@ import { budgetService, categoryService, getBudgetUtilization, transactionServic
 import { reportsApi } from '@/api/reports.api';
 import { insightsApi } from '@/api/insights.api';
 import { notificationsApi } from '@/api/notifications.api';
+import { FINANCIAL_GOAL_OPTIONS, INCOME_FREQUENCY_OPTIONS, INCOME_SOURCE_OPTIONS, SPENDING_CATEGORY_OPTIONS } from '@/constants/onboarding';
 import { cn } from '@/utils/cn';
 import type { Transaction } from '@/types/transaction';
 import type { BudgetSummary } from '@/types/budget';
@@ -123,6 +124,21 @@ export function DashboardPage() {
   const hasBudgets = (budgetSummary?.budgets.length ?? 0) > 0;
   const onboardingStatus = user.onboarding?.status ?? 'not_started';
   const setupIncomplete = onboardingStatus !== 'completed';
+  const incomeSourceLabels = INCOME_SOURCE_OPTIONS
+    .filter((option) => user.onboarding?.incomeSources?.includes(option.value))
+    .map((option) => option.label);
+  const spendingCategoryLabels = SPENDING_CATEGORY_OPTIONS
+    .filter((option) => user.onboarding?.spendingCategories?.includes(option.value))
+    .map((option) => option.label);
+  const goalLabels = FINANCIAL_GOAL_OPTIONS
+    .filter((option) => user.onboarding?.goals?.includes(option.value))
+    .map((option) => option.label);
+  const incomeFrequencyLabel = INCOME_FREQUENCY_OPTIONS
+    .find((option) => option.value === user.onboarding?.incomeFrequency)?.label;
+  const hasOnboardingData = Boolean(
+    user.monthlyAllowanceBaseline || user.savingsGoalAmount || incomeSourceLabels.length ||
+    spendingCategoryLabels.length || goalLabels.length || incomeFrequencyLabel,
+  );
   const balance = transactions.reduce((sum, t) => sum + (t.type === 'income' ? t.amount : -t.amount), 0);
   const unreadNotifications = notifications.filter((n) => !n.isRead);
   const topBudget = budgetSummary?.budgets.slice().sort((a, b) => getBudgetUtilization(b) - getBudgetUtilization(a))[0];
@@ -168,7 +184,7 @@ export function DashboardPage() {
   }
 
   // ── Empty state (onboarding done, but no transactions/budgets yet) ──
-  if (!hasAnyTransactions && !hasBudgets) {
+  if (!hasAnyTransactions && !hasBudgets && !hasOnboardingData) {
     return (
       <div className="space-y-6">
         <div>
@@ -257,6 +273,56 @@ export function DashboardPage() {
         <StatCard icon={Wallet}         label="Balance"  value={formatCurrency(balance, DEFAULT_CURRENCY)}                        hint="All time"                tone="blue" />
         <StatCard icon={PiggyBank}      label="Saved"    value={formatCurrency(report?.netSavings ?? 0, DEFAULT_CURRENCY)}        hint={formatMonthLabel(month)} tone="amber" />
       </div>
+
+      {hasOnboardingData && (
+        <Card>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-text-primary">Your starting plan</h2>
+              <p className="mt-0.5 text-xs text-gray-500 dark:text-text-muted">Details you shared during setup, alongside your live transaction totals.</p>
+            </div>
+            <Link to={`${STUDENT_ROUTES.onboarding}?edit=1`} className="text-xs font-semibold text-brand-600 hover:text-brand-700 dark:text-primary-accent">Edit plan</Link>
+          </div>
+          <div className="mt-4 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
+            {user.monthlyAllowanceBaseline !== undefined && (
+              <div>
+                <p className="text-xs text-gray-500 dark:text-text-muted">Monthly income baseline</p>
+                <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-text-primary">{formatCurrency(user.monthlyAllowanceBaseline, DEFAULT_CURRENCY)}</p>
+              </div>
+            )}
+            {user.savingsGoalAmount !== undefined && (
+              <div>
+                <p className="text-xs text-gray-500 dark:text-text-muted">Savings target</p>
+                <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-text-primary">{formatCurrency(user.savingsGoalAmount, DEFAULT_CURRENCY)}</p>
+              </div>
+            )}
+            {(incomeSourceLabels.length > 0 || incomeFrequencyLabel) && (
+              <div>
+                <p className="text-xs text-gray-500 dark:text-text-muted">Income plan</p>
+                <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-text-primary">{incomeSourceLabels.join(', ')}{incomeFrequencyLabel ? ` · ${incomeFrequencyLabel}` : ''}</p>
+              </div>
+            )}
+            {spendingCategoryLabels.length > 0 && (
+              <div>
+                <p className="text-xs text-gray-500 dark:text-text-muted">Planned spending categories</p>
+                <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-text-primary">{spendingCategoryLabels.join(', ')}</p>
+              </div>
+            )}
+            {goalLabels.length > 0 && (
+              <div>
+                <p className="text-xs text-gray-500 dark:text-text-muted">Financial goals</p>
+                <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-text-primary">{goalLabels.join(', ')}</p>
+              </div>
+            )}
+            {budgetSummary && budgetSummary.totalBudgeted > 0 && (
+              <div>
+                <p className="text-xs text-gray-500 dark:text-text-muted">Current month budget plan</p>
+                <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-text-primary">{formatCurrency(budgetSummary.totalBudgeted, DEFAULT_CURRENCY)}</p>
+              </div>
+            )}
+          </div>
+        </Card>
+      )}
 
       {/* Savings goal + budget overview */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

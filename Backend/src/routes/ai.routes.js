@@ -114,8 +114,16 @@ router.post('/answer', async (req, res) => {
   try {
     const currency = req.user.settings?.currency || 'NGN';
     const summary = await getMonthlySummary(req.user._id, currency);
+    const studentPlan = {
+      monthlyIncomeBaseline: req.user.monthlyAllowanceBaseline ?? null,
+      savingsGoalAmount: req.user.savingsGoalAmount ?? null,
+      incomeSources: req.user.onboarding?.incomeSources ?? [],
+      incomeFrequency: req.user.onboarding?.incomeFrequency ?? null,
+      spendingCategories: req.user.onboarding?.spendingCategories ?? [],
+      goals: req.user.onboarding?.goals ?? [],
+    };
     const sysInstruction =
-      SYSTEM_INSTRUCTION + '\nMonthly summary: ' + JSON.stringify(summary);
+      SYSTEM_INSTRUCTION + '\nMonthly summary and student-provided plan: ' + JSON.stringify({ summary, studentPlan });
 
     const answer = await callGemini(
       [

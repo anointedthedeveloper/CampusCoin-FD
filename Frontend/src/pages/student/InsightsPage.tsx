@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Bot, Check, Send, Sparkles, Zap } from 'lucide-react';
+import { Bot, Check, MessageSquarePlus, Send, Sparkles, Trash2, Zap } from 'lucide-react';
 import { Card, PageSpinner, Spinner } from '@/components/common';
 import { aiService, transactionService, categoryService } from '@/services';
 import { useAuth } from '@/hooks/useAuth';
@@ -25,6 +25,16 @@ const QUICK_QUESTIONS = [
   'How do I add a transaction?',
 ];
 
+const WELCOME_MESSAGE_ID = 'welcome';
+
+function welcomeMessage(): ChatMessage {
+  return {
+    id: WELCOME_MESSAGE_ID,
+    role: 'assistant',
+    text: "Hi! I'm your Campus Coin Assistant. Ask about your budget or spending, or describe a purchase and I'll suggest a category.",
+  };
+}
+
 function monthKey() {
   return new Date().toISOString().slice(0, 7);
 }
@@ -40,12 +50,10 @@ export function InsightsPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([{
-    id: 'welcome',
-    role: 'assistant',
-    text: "Hi! I'm your Campus Coin Assistant. Ask about your budget or spending, or describe a purchase and I'll suggest a category.",
-  }]);
+  const [messages, setMessages] = useState<ChatMessage[]>([welcomeMessage()]);
   const [draft, setDraft] = useState('');
+  const [purchaseItem, setPurchaseItem] = useState('');
+  const [purchasePrice, setPurchasePrice] = useState('');
   const [loggedIds, setLoggedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -69,7 +77,7 @@ export function InsightsPage() {
     if (!trimmedText || isSending) return;
 
     const history = messages
-      .filter((message) => message.id !== 'welcome')
+      .filter((message) => message.id !== WELCOME_MESSAGE_ID)
       .slice(-8)
       .map(({ role, text: turnText }) => ({ role, text: turnText }));
     setMessages((previous) => [...previous, {
@@ -128,6 +136,26 @@ export function InsightsPage() {
     void sendMessage(draft);
   }
 
+  function handlePurchaseQuestion(event: FormEvent) {
+    event.preventDefault();
+    const item = purchaseItem.trim();
+    const price = Number(purchasePrice);
+    if (!item || !Number.isFinite(price) || price <= 0) return;
+    setPurchaseItem('');
+    setPurchasePrice('');
+    void sendMessage(`Can I buy ${item} for ₦${price.toLocaleString()}?`);
+  }
+
+  function handleNewChat() {
+    setMessages([welcomeMessage()]);
+    setLoggedIds(new Set());
+  }
+
+  function handleClearChat() {
+    setMessages([]);
+    setLoggedIds(new Set());
+  }
+
   return (
     <div className="space-y-5">
       <div>
@@ -146,16 +174,25 @@ export function InsightsPage() {
               <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-600 text-white dark:bg-primary">
                 <Bot className="h-4 w-4" />
               </span>
-              <div>
+              <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-gray-900 dark:text-text-primary">Campus Coin Assistant</p>
                 <div className="flex items-center gap-1.5">
                   <span className="h-1.5 w-1.5 rounded-full bg-brand-500 dark:bg-primary-accent" />
                   <p className="text-xs text-gray-400 dark:text-text-muted">Gemini · grounded in your monthly totals</p>
                 </div>
               </div>
+              <div className="flex shrink-0 items-center gap-1">
+                <button type="button" onClick={handleNewChat} disabled={isSending} title="New chat" aria-label="New chat" className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-900 disabled:opacity-50 dark:text-text-secondary dark:hover:bg-white/8 dark:hover:text-text-primary">
+                  <MessageSquarePlus className="h-4 w-4" />
+                </button>
+                <button type="button" onClick={handleClearChat} disabled={isSending || messages.length === 0} title="Clear chat" aria-label="Clear chat" className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 hover:bg-red-50 hover:text-red-600 disabled:opacity-50 dark:text-text-secondary dark:hover:bg-red-400/10 dark:hover:text-red-400">
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
             </div>
 
             <div className="flex-1 space-y-3 overflow-y-auto px-5 py-4">
+              {messages.length === 0 && <p className="py-8 text-center text-sm text-gray-400 dark:text-text-muted">Chat cleared. Start a new conversation below.</p>}
               {messages.map((message) => (
                 <div key={message.id} className={cn('flex', message.role === 'user' ? 'justify-end' : 'justify-start')}>
                   <div className={cn(
@@ -219,6 +256,44 @@ export function InsightsPage() {
           </Card>
 
           <div className="flex flex-col gap-4">
+            <Card>
+              <div className="mb-3 flex items-center gap-2">
+                <span className="flex h-6 w-6 items-center justify-center rounded-md bg-teal-100 text-teal-700 dark:bg-teal-400/15 dark:text-teal-400">
+                  <Sparkles className="h-3.5 w-3.5" />
+                </span>
+                <h2 className="text-sm font-semibold text-gray-900 dark:text-text-primary">Can I buy...?</h2>
+              </div>
+              <form onSubmit={handlePurchaseQuestion} className="space-y-2.5">
+                <input
+                  value={purchaseItem}
+                  onChange={(event) => setPurchaseItem(event.target.value)}
+                  disabled={isSending}
+                  required
+                  maxLength={120}
+                  placeholder="What do you want to buy?"
+                  aria-label="Item you want to buy"
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/20 dark:border-white/10 dark:bg-surface dark:text-text-primary"
+                />
+                <div className="flex gap-2">
+                  <span className="flex h-10 items-center rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm text-gray-500 dark:border-white/10 dark:bg-surface dark:text-text-muted">₦</span>
+                  <input
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    value={purchasePrice}
+                    onChange={(event) => setPurchasePrice(event.target.value)}
+                    disabled={isSending}
+                    required
+                    placeholder="Price"
+                    aria-label="Price"
+                    className="min-w-0 flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/20 dark:border-white/10 dark:bg-surface dark:text-text-primary"
+                  />
+                </div>
+                <button type="submit" disabled={isSending || !purchaseItem.trim() || !purchasePrice || Number(purchasePrice) <= 0} className="w-full rounded-lg bg-brand-600 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-primary dark:hover:bg-primary-accent">
+                  Ask about this purchase
+                </button>
+              </form>
+            </Card>
             <Card>
               <div className="mb-3 flex items-center gap-2">
                 <span className="flex h-6 w-6 items-center justify-center rounded-md bg-amber-100 text-amber-600 dark:bg-amber-400/15 dark:text-amber-400">

@@ -92,49 +92,62 @@ async function callGemini(
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new Error('GEMINI_NOT_CONFIGURED');
 
-  const model = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
+  const primaryModel = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
+  const fallbackModels = process.env.GEMINI_FALLBACK_MODELS || 'gemini-3.8-flash-lite';
+  const models = [...new Set([
+    primaryModel,
+    ...fallbackModels.split(',').map((modelName) => modelName.trim()).filter(Boolean),
+  ])];
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-goog-api-key': apiKey,
-    },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: systemInstruction }] },
-      contents,
-      generationConfig: {
-        temperature: 0.4,
-        maxOutputTokens: 600,
-        ...generationConfig,
+  for (let index = 0; index < models.length; index += 1) {
+    const model = models[index];
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': apiKey,
       },
-    }),
-    signal: AbortSignal.timeout(GEMINI_TIMEOUT_MS),
-  });
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: systemInstruction }] },
+        contents,
+        generationConfig: {
+          temperature: 0.4,
+          maxOutputTokens: 600,
+          ...generationConfig,
+        },
+      }),
+      signal: AbortSignal.timeout(GEMINI_TIMEOUT_MS),
+    });
 
-  let result;
-  try {
-    result = await response.json();
-  } catch {
-    result = {};
+    let result;
+    try {
+      result = await response.json();
+    } catch {
+      result = {};
+    }
+
+    if (!response.ok) {
+      const message = result?.error?.message || '(no message)';
+      const canFailOver = index < models.length - 1 && (
+        [404, 429, 500, 503, 504].includes(response.status) ||
+        /high demand|overloaded|temporarily unavailable|resource exhausted/i.test(message)
+      );
+      console.error(`Gemini model ${model} HTTP ${response.status}:`, message);
+      if (canFailOver) continue;
+      throw new Error('GEMINI_REQUEST_FAILED');
+    }
+
+    const text = result.candidates?.[0]?.content?.parts
+      ?.map((part) => part.text || '')
+      .join('')
+      .trim();
+
+    if (!text) throw new Error('GEMINI_EMPTY_RESPONSE');
+    return text;
   }
 
-  if (!response.ok) {
-    console.error(
-      `Gemini HTTP ${response.status}:`,
-      result?.error?.message || '(no message)',
-    );
-    throw new Error('GEMINI_REQUEST_FAILED');
-  }
-
-  const text = result.candidates?.[0]?.content?.parts
-    ?.map((p) => p.text || '')
-    .join('')
-    .trim();
-
-  if (!text) throw new Error('GEMINI_EMPTY_RESPONSE');
-  return text;
+  throw new Error('GEMINI_REQUEST_FAILED');
 }
 
 /**
