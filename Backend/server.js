@@ -53,10 +53,42 @@ if (process.env.NODE_ENV !== 'production' && !allowedOrigins.includes('http://lo
   allowedOrigins.push('http://localhost:5173');
 }
 
+function isLocalFrontendOrigin(origin) {
+  if (process.env.NODE_ENV === 'production') return false;
+
+  let parsedOrigin;
+  try {
+    parsedOrigin = new URL(origin);
+  } catch {
+    return false;
+  }
+
+  const port = Number(parsedOrigin.port);
+  if (parsedOrigin.protocol !== 'http:' || port < 5173 || port > 5200) {
+    return false;
+  }
+
+  const hostname = parsedOrigin.hostname.toLowerCase();
+  if (hostname === 'localhost' || hostname === '127.0.0.1') return true;
+
+  const octets = hostname.split('.').map(Number);
+  if (octets.length !== 4 || octets.some((octet) => !Number.isInteger(octet) || octet < 0 || octet > 255)) {
+    return false;
+  }
+
+  return (
+    octets[0] === 10 ||
+    (octets[0] === 172 && octets[1] >= 16 && octets[1] <= 31) ||
+    (octets[0] === 192 && octets[1] === 168)
+  );
+}
+
 app.use(cors({
   origin: (origin, callback) => {
     // Allow non-browser requests (no Origin header, e.g. curl/health checks)
-    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    if (!origin || allowedOrigins.includes(origin) || isLocalFrontendOrigin(origin)) {
+      return callback(null, true);
+    }
     return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
@@ -66,7 +98,13 @@ app.use(express.json());
 // ── Health check ──────────────────────────────────────────────────────
 app.get('/', (_req, res) => res.json({ message: 'CampusCoin API is running' }));
 
+const databaseIndependentRoutes = new Set([
+  '/api/v1/auth/google/config',
+  '/api/ccoin/auth/google/config',
+]);
+
 app.use(async (_req, res, next) => {
+  if (databaseIndependentRoutes.has(_req.path)) return next();
   if (await connectDB()) return next();
   return res.status(503).json({ message: 'Database is unavailable. Please try again shortly.' });
 });
