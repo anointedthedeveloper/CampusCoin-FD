@@ -7,17 +7,17 @@ export const insightsApi = {
     const { data } = await httpClient.get<ApiSuccess<Insight[]>>('/insights', {
       params: params?.month ? { month: params.month } : undefined,
     });
-    return data.data;
+    return data.data ?? [];
   },
 
   async listSavingTips(): Promise<SavingTip[]> {
     const { data } = await httpClient.get<ApiSuccess<SavingTip[]>>('/saving-tips');
-    return data.data;
+    return data.data ?? [];
   },
 
   async listBookmarks(): Promise<Bookmark[]> {
     const { data } = await httpClient.get<ApiSuccess<Bookmark[]>>('/bookmarks');
-    return data.data;
+    return data.data ?? [];
   },
 
   async addBookmark(payload: { targetType: BookmarkTargetType; targetId: string }): Promise<Bookmark> {

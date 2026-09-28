@@ -62,7 +62,7 @@ export function ImportPage() {
 
   useEffect(() => {
     if (!user) return;
-    void categoryService.list(user.id, importType).then(setCategories);
+    void categoryService.list(user.id, importType).then(setCategories).catch(() => setCategories([]));
   }, [user, importType]);
 
   function handleFile(file: File) {

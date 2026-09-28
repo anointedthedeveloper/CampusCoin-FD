@@ -41,16 +41,21 @@ export function BudgetsPage() {
   useEffect(() => {
     if (!user) return;
     setIsLoading(true);
+    let cancelled = false;
     async function load() {
-      const [cats, buds] = await Promise.all([
+      // allSettled: one failing request shows an empty section instead of
+      // leaving the whole page stuck on its loader.
+      const [cats, buds] = await Promise.allSettled([
         categoryService.list(user!.id, 'expense'),
         budgetService.list(user!.id, month),
       ]);
-      setExpenseCategories(cats);
-      setBudgets(buds);
+      if (cancelled) return;
+      setExpenseCategories(cats.status === 'fulfilled' ? cats.value : []);
+      setBudgets(buds.status === 'fulfilled' ? buds.value ?? [] : []);
       setIsLoading(false);
     }
     void load();
+    return () => { cancelled = true; };
   }, [user, month, refreshToken]);
 
   const categoryNameFor       = (id: string) => expenseCategories.find((c) => c.id === id)?.name ?? 'Other';

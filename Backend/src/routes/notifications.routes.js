@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const Notification = require('../models/Notification');
+const Announcement = require('../models/Announcement');
 const { protect } = require('../middleware/auth');
 const { validateIdParam } = require('../utils/objectId');
 
@@ -29,6 +30,33 @@ router.get('/', async (req, res) => {
       isDismissed: { $ne: true },
     }).sort({ createdAt: -1 }).limit(50);
     res.json({ data: notifications.map(formatNotif) });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// GET /api/v1/notifications/announcements
+// Published announcements visible to the caller's role. Students must not use
+// /admin/announcements (admin-only, returns 403) to read these.
+router.get('/announcements', async (req, res) => {
+  try {
+    const audiences = req.user.role === 'admin' ? ['all', 'students', 'admins'] : ['all', 'students'];
+    const anns = await Announcement.find({
+      audience: { $in: audiences },
+      publishedAt: { $ne: null },
+    }).sort({ publishedAt: -1 }).limit(50);
+    res.json({
+      data: anns.map((a) => ({
+        id: a._id.toString(),
+        title: a.title,
+        body: a.body,
+        audience: a.audience,
+        publishedAt: a.publishedAt,
+        createdAt: a.createdAt,
+        updatedAt: a.updatedAt,
+      })),
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });

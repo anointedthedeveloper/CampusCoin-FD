@@ -26,7 +26,12 @@ export function BookmarksPage() {
 
   useEffect(() => {
     if (!user) return;
-    void tipsService.listBookmarked(user.id).then((tips) => { setBookmarkedTips(tips); setIsLoading(false); });
+    let cancelled = false;
+    tipsService.listBookmarked(user.id)
+      .then((tips) => { if (!cancelled) setBookmarkedTips(tips); })
+      .catch(() => { if (!cancelled) setBookmarkedTips([]); })
+      .finally(() => { if (!cancelled) setIsLoading(false); });
+    return () => { cancelled = true; };
   }, [user, refreshToken]);
 
   async function handleRemove(ruleId: string) {

@@ -1,5 +1,6 @@
-import { lazy, Suspense } from 'react';
-import { Route, Routes } from 'react-router-dom';
+import { Suspense } from 'react';
+import { lazyWithRetry } from '@/utils/lazyWithRetry';
+import { Route, Routes, useLocation } from 'react-router-dom';
 import { PublicLayout } from '@/layouts/PublicLayout';
 import { AuthLayout } from '@/layouts/AuthLayout';
 import { StudentLayout } from '@/layouts/StudentLayout';
@@ -9,129 +10,131 @@ import { RoleRoute } from './RoleRoute';
 import { PUBLIC_ROUTES, STUDENT_ROUTES, ADMIN_ROUTES } from '@/constants/routes';
 import { ErrorBoundary, PageLoader } from '@/components/common';
 
-const AboutPage = lazy(() =>
+const AboutPage = lazyWithRetry(() =>
   import('@/pages/public/AboutPage').then((page) => ({ default: page.AboutPage })),
 );
-const FaqPage = lazy(() =>
+const FaqPage = lazyWithRetry(() =>
   import('@/pages/public/FaqPage').then((page) => ({ default: page.FaqPage })),
 );
-const FeaturesPage = lazy(() =>
+const FeaturesPage = lazyWithRetry(() =>
   import('@/pages/public/FeaturesPage').then((page) => ({ default: page.FeaturesPage })),
 );
-const HomePage = lazy(() =>
+const HomePage = lazyWithRetry(() =>
   import('@/pages/public/HomePage').then((page) => ({ default: page.HomePage })),
 );
-const NotFoundPage = lazy(() =>
+const NotFoundPage = lazyWithRetry(() =>
   import('@/pages/public/NotFoundPage').then((page) => ({ default: page.NotFoundPage })),
 );
 
-const AdminLoginPage = lazy(() =>
+const AdminLoginPage = lazyWithRetry(() =>
   import('@/pages/auth/AdminLoginPage').then((page) => ({ default: page.AdminLoginPage })),
 );
-const ForgotPasswordPage = lazy(() =>
+const ForgotPasswordPage = lazyWithRetry(() =>
   import('@/pages/auth/ForgotPasswordPage').then((page) => ({ default: page.ForgotPasswordPage })),
 );
-const LoginPage = lazy(() =>
+const LoginPage = lazyWithRetry(() =>
   import('@/pages/auth/LoginPage').then((page) => ({ default: page.LoginPage })),
 );
-const RegisterPage = lazy(() =>
+const RegisterPage = lazyWithRetry(() =>
   import('@/pages/auth/RegisterPage').then((page) => ({ default: page.RegisterPage })),
 );
 
-const OnboardingPage = lazy(() =>
+const OnboardingPage = lazyWithRetry(() =>
   import('@/pages/onboarding').then((page) => ({ default: page.OnboardingPage })),
 );
 
-const BookmarksPage = lazy(() =>
+const BookmarksPage = lazyWithRetry(() =>
   import('@/pages/student/BookmarksPage').then((page) => ({ default: page.BookmarksPage })),
 );
-const BudgetsPage = lazy(() =>
+const BudgetsPage = lazyWithRetry(() =>
   import('@/pages/student/BudgetsPage').then((page) => ({ default: page.BudgetsPage })),
 );
-const CategoriesPage = lazy(() =>
+const CategoriesPage = lazyWithRetry(() =>
   import('@/pages/student/CategoriesPage').then((page) => ({ default: page.CategoriesPage })),
 );
-const DashboardPage = lazy(() =>
+const DashboardPage = lazyWithRetry(() =>
   import('@/pages/student/DashboardPage').then((page) => ({ default: page.DashboardPage })),
 );
-const ImportPage = lazy(() =>
+const ImportPage = lazyWithRetry(() =>
   import('@/pages/student/ImportPage').then((page) => ({ default: page.ImportPage })),
 );
-const InsightsPage = lazy(() =>
+const InsightsPage = lazyWithRetry(() =>
   import('@/pages/student/InsightsPage').then((page) => ({ default: page.InsightsPage })),
 );
-const MonthlyReportPage = lazy(() =>
+const MonthlyReportPage = lazyWithRetry(() =>
   import('@/pages/student/MonthlyReportPage').then((page) => ({ default: page.MonthlyReportPage })),
 );
-const NotificationsPage = lazy(() =>
+const NotificationsPage = lazyWithRetry(() =>
   import('@/pages/student/NotificationsPage').then((page) => ({ default: page.NotificationsPage })),
 );
-const ProfilePage = lazy(() =>
+const ProfilePage = lazyWithRetry(() =>
   import('@/pages/student/ProfilePage').then((page) => ({ default: page.ProfilePage })),
 );
-const ReportsPage = lazy(() =>
+const ReportsPage = lazyWithRetry(() =>
   import('@/pages/student/ReportsPage').then((page) => ({ default: page.ReportsPage })),
 );
-const SavingTipsPage = lazy(() =>
+const SavingTipsPage = lazyWithRetry(() =>
   import('@/pages/student/SavingTipsPage').then((page) => ({ default: page.SavingTipsPage })),
 );
-const SavingsGoalsPage = lazy(() =>
+const SavingsGoalsPage = lazyWithRetry(() =>
   import('@/pages/student/SavingsGoalsPage').then((page) => ({ default: page.SavingsGoalsPage })),
 );
-const SettingsPage = lazy(() =>
+const SettingsPage = lazyWithRetry(() =>
   import('@/pages/student/SettingsPage').then((page) => ({ default: page.SettingsPage })),
 );
-const TransactionDetailPage = lazy(() =>
+const TransactionDetailPage = lazyWithRetry(() =>
   import('@/pages/student/TransactionDetailPage').then((page) => ({
     default: page.TransactionDetailPage,
   })),
 );
-const TransactionEditPage = lazy(() =>
+const TransactionEditPage = lazyWithRetry(() =>
   import('@/pages/student/TransactionEditPage').then((page) => ({
     default: page.TransactionEditPage,
   })),
 );
-const TransactionNewPage = lazy(() =>
+const TransactionNewPage = lazyWithRetry(() =>
   import('@/pages/student/TransactionNewPage').then((page) => ({
     default: page.TransactionNewPage,
   })),
 );
-const TransactionsListPage = lazy(() =>
+const TransactionsListPage = lazyWithRetry(() =>
   import('@/pages/student/TransactionsListPage').then((page) => ({
     default: page.TransactionsListPage,
   })),
 );
 
-const AdminAnnouncementsPage = lazy(() =>
+const AdminAnnouncementsPage = lazyWithRetry(() =>
   import('@/pages/admin/AdminAnnouncementsPage').then((page) => ({
     default: page.AdminAnnouncementsPage,
   })),
 );
-const AdminCategoriesPage = lazy(() =>
+const AdminCategoriesPage = lazyWithRetry(() =>
   import('@/pages/admin/AdminCategoriesPage').then((page) => ({
     default: page.AdminCategoriesPage,
   })),
 );
-const AdminDashboardPage = lazy(() =>
+const AdminDashboardPage = lazyWithRetry(() =>
   import('@/pages/admin/AdminDashboardPage').then((page) => ({ default: page.AdminDashboardPage })),
 );
-const AdminStatisticsPage = lazy(() =>
+const AdminStatisticsPage = lazyWithRetry(() =>
   import('@/pages/admin/AdminStatisticsPage').then((page) => ({
     default: page.AdminStatisticsPage,
   })),
 );
-const AdminUserDetailPage = lazy(() =>
+const AdminUserDetailPage = lazyWithRetry(() =>
   import('@/pages/admin/AdminUserDetailPage').then((page) => ({
     default: page.AdminUserDetailPage,
   })),
 );
-const AdminUsersPage = lazy(() =>
+const AdminUsersPage = lazyWithRetry(() =>
   import('@/pages/admin/AdminUsersPage').then((page) => ({ default: page.AdminUsersPage })),
 );
 
 export function AppRoutes() {
+  const location = useLocation();
   return (
-    <ErrorBoundary>
+    // resetKey clears a caught error on navigation so it doesn't stick to other pages.
+    <ErrorBoundary resetKey={location.pathname}>
       <Suspense fallback={<PageLoader />}>
       <Routes>
         {/* Public marketing + informational pages */}

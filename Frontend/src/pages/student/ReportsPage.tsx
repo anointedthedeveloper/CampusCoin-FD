@@ -82,18 +82,21 @@ export function ReportsPage() {
   useEffect(() => {
     if (!user) return;
     setIsLoading(true);
+    let cancelled = false;
     async function load() {
-      const [cats, rep, trendData] = await Promise.all([
+      const [cats, rep, trendData] = await Promise.allSettled([
         categoryService.list(user!.id, 'expense'),
         reportService.getMonthlyReport(user!.id, month, { categoryId: categoryFilter === 'all' ? undefined : categoryFilter }),
         reportService.getSixMonthTrend(user!.id, month),
       ]);
-      setCategories(cats);
-      setReport(rep);
-      setTrend(trendData);
+      if (cancelled) return;
+      setCategories(cats.status === 'fulfilled' ? cats.value : []);
+      setReport(rep.status === 'fulfilled' ? rep.value : null);
+      setTrend(trendData.status === 'fulfilled' ? trendData.value : []);
       setIsLoading(false);
     }
     void load();
+    return () => { cancelled = true; };
   }, [user, month, categoryFilter]);
 
   const weeklySpend   = useMemo(() => (report ? groupIntoWeeks(report.dailySpend) : []), [report]);

@@ -12,27 +12,30 @@ import { useEffect, useRef, useState } from 'react';
  * @param minMs      Minimum time (ms) to show the loader — default 800
  */
 export function useMinLoadTime(isLoading: boolean, minMs = 800): boolean {
-  // Track whether the minimum time has elapsed since loading began
   const [minElapsed, setMinElapsed] = useState(!isLoading);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // Track whether we've ever started a load so we skip the delay on the
-  // very first render when isLoading is already false (page navigations that
-  // land on pre-cached data should not sit frozen for 3 s).
-  const hasLoadedRef = useRef(false);
+  const startedAtRef = useRef<number | null>(isLoading ? Date.now() : null);
 
   useEffect(() => {
     if (isLoading) {
-      // A new load started — reset the gate and start the minimum timer
-      hasLoadedRef.current = true;
+      // A new load started — reset the gate and remember when it began.
+      if (startedAtRef.current === null) startedAtRef.current = Date.now();
       setMinElapsed(false);
-      if (timerRef.current) clearTimeout(timerRef.current);
-      timerRef.current = setTimeout(() => setMinElapsed(true), minMs);
+      return undefined;
     }
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
+
+    // Load finished: wait only for whatever is left of the minimum window.
+    // (Previously the timer was cleared as soon as isLoading flipped to
+    // false, so any request faster than minMs left the loader up forever.)
+    const startedAt = startedAtRef.current;
+    startedAtRef.current = null;
+    const remaining = startedAt === null ? 0 : minMs - (Date.now() - startedAt);
+    if (remaining <= 0) {
+      setMinElapsed(true);
+      return undefined;
+    }
+    const timer = setTimeout(() => setMinElapsed(true), remaining);
+    return () => clearTimeout(timer);
   }, [isLoading, minMs]);
 
-  // Show the loader if the real load is still running OR the minimum hasn't elapsed
   return isLoading || !minElapsed;
 }

@@ -2,6 +2,7 @@ import { createContext, useCallback, useEffect, useMemo, useState, type ReactNod
 import { authService, profileService, tokenService } from '@/services';
 import type { LoginCredentials, RegisterPayload } from '@/types/auth';
 import type { User } from '@/types/user';
+import { ApiError } from '@/types/api';
 
 interface AuthContextValue {
   user: User | null;
@@ -26,11 +27,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null);
       return;
     }
+    const isAuthRejection = (error: unknown) => {
+      const status = error instanceof ApiError ? error.status : undefined;
+      return status === 401 || status === 403;
+    };
     try {
-      const profile = await profileService.getProfile();
+      let profile: User;
+      try {
+        profile = await profileService.getProfile();
+      } catch (firstError) {
+        // One retry for transient failures (serverless cold start, the API's
+        // 503 while MongoDB connects, a dropped connection).
+        if (isAuthRejection(firstError)) throw firstError;
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+        profile = await profileService.getProfile();
+      }
       setUser(profile);
-    } catch {
-      tokenService.clearTokens();
+    } catch (error) {
+      // Only drop the stored session when the server actually rejected it.
+      // A timeout, network error or 5xx (API cold start, database briefly
+      // unavailable) used to wipe valid tokens here and bounce the user to
+      // the login page on an ordinary slow reload.
+      if (isAuthRejection(error) || !tokenService.getRefreshToken()) {
+        tokenService.clearTokens();
+      }
       setUser(null);
     }
   }, []);

@@ -5,7 +5,7 @@ import type { Category, CategoryPayload } from '@/types/category';
 export const categoriesApi = {
   async list(): Promise<Category[]> {
     const { data } = await httpClient.get<ApiSuccess<Category[]>>('/categories');
-    return data.data;
+    return data.data ?? [];
   },
 
   async create(payload: CategoryPayload): Promise<Category> {

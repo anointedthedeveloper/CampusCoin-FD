@@ -22,13 +22,13 @@ export function getBudgetStatus(
 export const budgetService = {
   async list(_userId?: string, month?: string): Promise<Budget[]> {
     const summary = await budgetsApi.getSummary(month ?? new Date().toISOString().slice(0, 7));
-    return summary.budgets;
+    return summary?.budgets ?? [];
   },
 
   async getById(_userId: string, id: string): Promise<Budget | undefined> {
     const month = new Date().toISOString().slice(0, 7);
     const summary = await budgetsApi.getSummary(month);
-    return summary.budgets.find((b) => b.id === id);
+    return summary?.budgets?.find((b) => b.id === id);
   },
 
   async create(_userId: string, payload: BudgetPayload): Promise<Budget> {

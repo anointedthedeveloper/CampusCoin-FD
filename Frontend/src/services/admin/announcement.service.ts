@@ -1,4 +1,5 @@
 import { adminAnnouncementsApi } from '@/api/admin/announcements.api';
+import { notificationsApi } from '@/api/notifications.api';
 import type { Announcement, AnnouncementAudience, AnnouncementPayload } from '@/types/admin';
 
 export const adminAnnouncementService = {
@@ -7,7 +8,7 @@ export const adminAnnouncementService = {
   },
 
   async listPublishedFor(_audience: Exclude<AnnouncementAudience, 'admins'>): Promise<Announcement[]> {
-    const all = await adminAnnouncementsApi.list();
+    const all = await notificationsApi.listAnnouncements();
     return all.filter((a) => a.publishedAt && (a.audience === 'all' || a.audience === _audience));
   },
 

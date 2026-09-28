@@ -52,7 +52,7 @@ function NotificationSettingsPanel() {
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  useEffect(() => { profileService.getSettings().then(setSettings); }, []);
+  useEffect(() => { profileService.getSettings().then(setSettings).catch(() => undefined); }, []);
 
   async function handleToggle(key: 'emailNotifications' | 'pushNotifications') {
     if (!settings) return;
@@ -131,7 +131,9 @@ export function ProfilePage() {
   const [currency, setCurrency] = useState(DEFAULT_CURRENCY);
 
   useEffect(() => {
-    profileService.getSettings().then((settings) => setCurrency(settings.currency || DEFAULT_CURRENCY));
+    profileService.getSettings()
+      .then((settings) => setCurrency(settings?.currency || DEFAULT_CURRENCY))
+      .catch(() => undefined);
   }, []);
 
   async function handleSave(e: FormEvent) {

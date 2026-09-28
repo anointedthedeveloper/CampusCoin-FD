@@ -16,18 +16,27 @@ export function AdminStatisticsPage() {
 
   useEffect(() => {
     async function load() {
-      const [stats, users] = await Promise.all([
+      const [statsResult, usersResult] = await Promise.allSettled([
         adminStatisticsService.getStatistics(),
         adminUserService.listUsers(),
       ]);
-      setStatistics(stats);
+      const users = usersResult.status === 'fulfilled' ? usersResult.value ?? [] : [];
+      if (statsResult.status === 'fulfilled') setStatistics(statsResult.value);
       setTopUsers([...users].sort((a, b) => b.transactionCount - a.transactionCount).slice(0, 10));
       setIsLoading(false);
     }
     void load();
   }, []);
 
-  if (showLoader || !statistics) return <PageSpinner label="Loading statistics…" />;
+  if (showLoader) return <PageSpinner label="Loading statistics…" />;
+  if (!statistics) {
+    return (
+      <EmptyState
+        title="Statistics unavailable"
+        description="System statistics could not be loaded right now. Refresh the page to try again."
+      />
+    );
+  }
 
   const maxTransactions = Math.max(...topUsers.map((u) => u.transactionCount), 1);
 

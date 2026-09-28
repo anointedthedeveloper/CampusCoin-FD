@@ -24,7 +24,7 @@ export function AdminAnnouncementsPage() {
   const [refreshToken, setRefreshToken] = useState(0);
 
   useEffect(() => {
-    void adminAnnouncementService.list().then(setAnnouncements);
+    void adminAnnouncementService.list().then(setAnnouncements).catch(() => setAnnouncements([]));
   }, [refreshToken]);
 
   async function handleDelete(id: string) {
