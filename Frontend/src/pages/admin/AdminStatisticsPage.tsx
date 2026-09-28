@@ -1,16 +1,18 @@
 import { useEffect, useState } from 'react';
 import { Activity, ListTree, Receipt, Users } from 'lucide-react';
-import { Card, EmptyState, Spinner } from '@/components/common';
+import { Card, EmptyState, PageSpinner } from '@/components/common';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { adminStatisticsService, adminUserService } from '@/services';
 import { DEFAULT_CURRENCY } from '@/constants/config';
 import { formatCurrency, formatDate } from '@/utils/format';
+import { useMinLoadTime } from '@/hooks/useMinLoadTime';
 import type { SystemStatistics, AdminUserSummary } from '@/types/admin';
 
 export function AdminStatisticsPage() {
   const [statistics, setStatistics] = useState<SystemStatistics | null>(null);
   const [topUsers, setTopUsers] = useState<AdminUserSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const showLoader = useMinLoadTime(isLoading);
 
   useEffect(() => {
     async function load() {
@@ -25,7 +27,7 @@ export function AdminStatisticsPage() {
     void load();
   }, []);
 
-  if (isLoading || !statistics) return <div className="flex justify-center py-20"><Spinner /></div>;
+  if (showLoader || !statistics) return <PageSpinner label="Loading statistics…" />;
 
   const maxTransactions = Math.max(...topUsers.map((u) => u.transactionCount), 1);
 

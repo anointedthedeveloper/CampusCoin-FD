@@ -59,6 +59,7 @@ export function InsightsPage() {
   const month = monthKey();
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const showLoader = useMinLoadTime(isLoading);
   const [isSending, setIsSending] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([welcomeMessage()]);
   const [draft, setDraft] = useState('');
@@ -223,8 +224,8 @@ export function InsightsPage() {
         </p>
       </div>
 
-      {isLoading ? (
-        <PageSpinner />
+      {showLoader ? (
+        <PageSpinner label="Loading AI Assistant…" />
       ) : (
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           <Card noPadding className="flex h-[580px] flex-col lg:col-span-2">

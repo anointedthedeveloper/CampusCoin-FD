@@ -79,6 +79,8 @@ export function DashboardPage() {
 
   const [data, setData] = useState<DashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  // Must be called unconditionally before any early returns
+  const showLoader = useMinLoadTime(isLoading);
 
   useEffect(() => {
     if (!user) return;
@@ -114,7 +116,6 @@ export function DashboardPage() {
   }, [user?.id, month]);
 
   if (!user) return null;
-  const showLoader = useMinLoadTime(isLoading);
   if (showLoader) return <PageSpinner label="Loading your dashboard…" />;
 
   const { transactions, categories, budgetSummary, report, notifications, tips, insight } = data!;

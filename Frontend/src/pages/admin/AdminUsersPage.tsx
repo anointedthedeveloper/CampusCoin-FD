@@ -6,6 +6,7 @@ import { ADMIN_ROUTES, buildPath } from '@/constants/routes';
 import { adminUserService } from '@/services';
 import { formatDate } from '@/utils/format';
 import { cn } from '@/utils/cn';
+import { useMinLoadTime } from '@/hooks/useMinLoadTime';
 import type { AdminUserSummary } from '@/types/admin';
 
 export function AdminUsersPage() {
@@ -14,6 +15,7 @@ export function AdminUsersPage() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'suspended'>('all');
   const [users,        setUsers]        = useState<AdminUserSummary[]>([]);
   const [isLoading,    setIsLoading]    = useState(true);
+  const showLoader = useMinLoadTime(isLoading);
   const [refreshToken, setRefreshToken] = useState(0);
 
   useEffect(() => {
@@ -43,7 +45,7 @@ export function AdminUsersPage() {
     setRefreshToken((t) => t + 1);
   }
 
-  if (isLoading) return <PageSpinner />;
+  if (showLoader) return <PageSpinner label="Loading users…" />;
 
   return (
     <div className="space-y-5">

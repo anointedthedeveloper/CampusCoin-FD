@@ -23,6 +23,7 @@ const typeConfig: Record<NotificationType, {
 export function NotificationsPage() {
   const { notifications, unreadCount, isLoading, markAsRead, markAllAsRead } = useNotifications();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const showLoader = useMinLoadTime(isLoading);
 
   useEffect(() => {
     void adminAnnouncementService.listPublishedFor('students').then(setAnnouncements);
@@ -53,8 +54,8 @@ export function NotificationsPage() {
         )}
       </div>
 
-      {isLoading ? (
-        <PageSpinner />
+      {showLoader ? (
+        <PageSpinner label="Loading notifications…" />
       ) : !hasAny ? (
         <EmptyState
           icon={BellOff}

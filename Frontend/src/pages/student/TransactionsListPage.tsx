@@ -29,6 +29,7 @@ export function TransactionsListPage() {
   const [categories, setCategories]       = useState<Category[]>([]);
   const [transactions, setTransactions]   = useState<Transaction[]>([]);
   const [isLoading, setIsLoading]         = useState(true);
+  const showLoader = useMinLoadTime(isLoading);
 
   const categoryNameFor = (id: string) => categories.find((c) => c.id === id)?.name ?? 'Other';
 
@@ -150,8 +151,8 @@ export function TransactionsListPage() {
 
       {/* Transactions list */}
       <Card noPadding>
-        {isLoading ? (
-          <div className="flex justify-center py-16"><PageSpinner /></div>
+        {showLoader ? (
+          <div className="flex justify-center py-16"><PageSpinner label="Loading transactions…" /></div>
         ) : transactions.length === 0 ? (
           <div className="p-6">
             <EmptyState

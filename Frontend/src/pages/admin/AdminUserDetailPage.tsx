@@ -1,17 +1,19 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, Calendar, GraduationCap, Mail, Receipt, Users } from 'lucide-react';
-import { Avatar, Badge, Card, EmptyState, Spinner } from '@/components/common';
+import { Avatar, Badge, Card, EmptyState, PageSpinner } from '@/components/common';
 import { ADMIN_ROUTES } from '@/constants/routes';
 import { adminUserService } from '@/services';
 import { formatDate } from '@/utils/format';
 import { cn } from '@/utils/cn';
+import { useMinLoadTime } from '@/hooks/useMinLoadTime';
 import type { AdminUserSummary } from '@/types/admin';
 
 export function AdminUserDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [user, setUser] = useState<AdminUserSummary | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(true);
+  const showLoader = useMinLoadTime(isLoading);
   const [refreshToken, setRefreshToken] = useState(0);
 
   useEffect(() => {
@@ -25,7 +27,7 @@ export function AdminUserDetailPage() {
     void load();
   }, [id, refreshToken]);
 
-  if (isLoading) return <div className="flex justify-center py-20"><Spinner /></div>;
+  if (showLoader) return <PageSpinner label="Loading user…" />;
 
   if (!user) {
     return (

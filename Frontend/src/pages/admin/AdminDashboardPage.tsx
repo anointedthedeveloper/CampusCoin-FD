@@ -6,6 +6,7 @@ import { StatCard } from '@/components/dashboard/StatCard';
 import { ADMIN_ROUTES, buildPath } from '@/constants/routes';
 import { formatDate } from '@/utils/format';
 import { adminStatisticsService, adminUserService } from '@/services';
+import { useMinLoadTime } from '@/hooks/useMinLoadTime';
 import type { SystemStatistics, AdminUserSummary } from '@/types/admin';
 
 const quickActions = [
@@ -18,6 +19,7 @@ export function AdminDashboardPage() {
   const [statistics,   setStatistics]   = useState<SystemStatistics | null>(null);
   const [recentUsers,  setRecentUsers]  = useState<AdminUserSummary[]>([]);
   const [isLoading,    setIsLoading]    = useState(true);
+  const showLoader = useMinLoadTime(isLoading);
 
   useEffect(() => {
     async function load() {
@@ -36,7 +38,7 @@ export function AdminDashboardPage() {
     void load();
   }, []);
 
-  if (isLoading || !statistics) return <PageSpinner />;
+  if (showLoader || !statistics) return <PageSpinner label="Loading admin dashboard…" />;
 
   const stats = [
     { label: 'Total Users',         value: statistics.totalUsers.toLocaleString(),            icon: Users,      tone: 'brand'  as const },
