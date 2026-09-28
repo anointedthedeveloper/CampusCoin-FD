@@ -1,6 +1,6 @@
 const router = require('express').Router();
 
-const RecurringTransaction = require('../models/RecurringTransaction');
+const MoneyRoutine = require('../models/MoneyRoutine');
 const Transaction = require('../models/Transaction');
 const Category = require('../models/Category');
 const { protect } = require('../middleware/auth');
@@ -51,10 +51,10 @@ function getNextRunDate(date, frequency, interval) {
   return next;
 }
 
-// GET /api/v1/recurring-transactions
+// GET /api/v1/money-routines
 router.get('/', async (req, res) => {
   try {
-    const items = await RecurringTransaction.find({
+    const items = await MoneyRoutine.find({
       user: req.user._id,
     }).sort({ nextRunAt: 1 });
 
@@ -65,7 +65,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// POST /api/v1/recurring-transactions
+// POST /api/v1/money-routines
 router.post('/', async (req, res) => {
   try {
     const {
@@ -108,7 +108,7 @@ router.post('/', async (req, res) => {
 
     const firstRun = new Date(startDate);
 
-    const recurring = await RecurringTransaction.create({
+    const recurring = await MoneyRoutine.create({
       user: req.user._id,
       category: categoryId,
       amount: Number(amount),
@@ -129,10 +129,10 @@ router.post('/', async (req, res) => {
   }
 });
 
-// PATCH /api/v1/recurring-transactions/:id
+// PATCH /api/v1/money-routines/:id
 router.patch('/:id', async (req, res) => {
   try {
-    const recurring = await RecurringTransaction.findOne({
+    const recurring = await MoneyRoutine.findOne({
       _id: req.params.id,
       user: req.user._id,
     });
@@ -166,10 +166,10 @@ router.patch('/:id', async (req, res) => {
   }
 });
 
-// DELETE /api/v1/recurring-transactions/:id
+// DELETE /api/v1/money-routines/:id
 router.delete('/:id', async (req, res) => {
   try {
-    const recurring = await RecurringTransaction.findOne({
+    const recurring = await MoneyRoutine.findOne({
       _id: req.params.id,
       user: req.user._id,
     });
@@ -192,7 +192,7 @@ router.delete('/:id', async (req, res) => {
 async function processDueRecurringTransactions() {
   const now = new Date();
 
-  const dueItems = await RecurringTransaction.find({
+  const dueItems = await MoneyRoutine.find({
     isActive: true,
     nextRunAt: { $lte: now },
     $or: [{ endDate: null }, { endDate: { $gte: now } }],
@@ -232,7 +232,7 @@ async function processDueRecurringTransactions() {
 async function processDueRecurringTransactionsForUser(userId) {
   const now = new Date();
 
-  const dueItems = await RecurringTransaction.find({
+  const dueItems = await MoneyRoutine.find({
     user: userId,
     isActive: true,
     nextRunAt: { $lte: now },
@@ -272,7 +272,7 @@ async function processDueRecurringTransactionsForUser(userId) {
   return processed;
 }
 
-// POST /api/v1/recurring-transactions/process
+// POST /api/v1/money-routines/process
 // Manually trigger processing for the authenticated user (useful for testing)
 router.post('/process', async (req, res) => {
   try {

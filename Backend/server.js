@@ -87,6 +87,8 @@ function registerRoutes(prefix) {
   app.use(`${prefix}/admin`, adminRoutes);
   app.use(`${prefix}/dashboard`, dashboardRoutes);
   app.use(`${prefix}/my-money`, myMoneyRoutes);
+  app.use(`${prefix}/money-routines`, recurringRoutes.router);
+  // Keep the previous prefix available for existing clients during migration.
   app.use(`${prefix}/recurring-transactions`, recurringRoutes.router);
 }
 
