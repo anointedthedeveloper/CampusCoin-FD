@@ -5,6 +5,7 @@ import { assets } from '@/assets/images';
 
 interface Slide {
   src: string;
+  darkSrc: string;
   alt: string;
   title: string;
   description: string;
@@ -13,24 +14,28 @@ interface Slide {
 const slides: Slide[] = [
   {
     src: assets.screenshots.dashboard,
+    darkSrc: assets.screenshots.dashboardDark,
     alt: 'Campus Coin dashboard with balance, spending breakdown, and recent transactions',
     title: 'One dashboard, the full picture',
     description: 'Balance, budgets, and spending breakdown at a glance the moment you log in.',
   },
   {
     src: assets.screenshots.budgets,
+    darkSrc: assets.screenshots.budgetsDark,
     alt: 'Campus Coin budgets page with category limits and progress bars',
     title: 'Budgets that track themselves',
     description: 'Set a limit per category and watch the progress bar update as you spend.',
   },
   {
     src: assets.screenshots.reports,
+    darkSrc: assets.screenshots.reportsDark,
     alt: 'Campus Coin reports page with income vs expense trend chart',
     title: 'Reports that actually explain something',
     description: 'See the trend between what came in and what went out, month over month.',
   },
   {
     src: assets.screenshots.aiAssistant,
+    darkSrc: assets.screenshots.aiAssistantDark,
     alt: 'Campus Coin AI assistant page with saving tips and chat',
     title: 'Saving tips from your own habits',
     description: 'Plain-language suggestions generated from your transactions, not a generic template.',
@@ -66,7 +71,18 @@ export function ScreenshotSlideshow() {
             src={slide.src}
             alt={slide.alt}
             className={cn(
-              'absolute inset-0 h-full w-full object-cover object-top transition-opacity duration-700 ease-in-out',
+              'absolute inset-0 h-full w-full object-cover object-top transition-opacity duration-700 ease-in-out dark:hidden',
+              index === active ? 'opacity-100' : 'opacity-0',
+            )}
+          />
+        ))}
+        {slides.map((slide, index) => (
+          <img
+            key={slide.darkSrc}
+            src={slide.darkSrc}
+            alt={slide.alt}
+            className={cn(
+              'absolute inset-0 hidden h-full w-full object-cover object-top transition-opacity duration-700 ease-in-out dark:block',
               index === active ? 'opacity-100' : 'opacity-0',
             )}
           />

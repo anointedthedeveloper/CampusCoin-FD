@@ -99,14 +99,14 @@ export function TransactionsListPage() {
                 'w-full rounded-lg border bg-white py-2 pl-9 pr-3 text-sm text-gray-900',
                 'border-gray-200 hover:border-gray-300',
                 'focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/20',
-                'dark:border-white/8 dark:bg-surface dark:text-text-primary dark:placeholder:text-text-muted',
+                'dark:border-white/[0.08] dark:bg-surface dark:text-text-primary dark:placeholder:text-text-muted',
                 'dark:hover:border-white/15 dark:focus:border-primary-accent/70 dark:focus:ring-primary-accent/20',
               )}
             />
           </div>
 
           {/* Type toggle */}
-          <div className="inline-flex shrink-0 rounded-lg bg-gray-100 p-1 dark:bg-white/8">
+          <div className="inline-flex shrink-0 rounded-lg bg-gray-100 p-1 dark:bg-white/[0.08]">
             {TYPE_OPTIONS.map(({ value, label }) => (
               <button
                 key={value}
@@ -134,7 +134,7 @@ export function TransactionsListPage() {
                 'rounded-lg border bg-white py-2 pl-8 pr-8 text-sm text-gray-900 appearance-none',
                 'border-gray-200 hover:border-gray-300',
                 'focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/20',
-                'dark:border-white/8 dark:bg-surface dark:text-text-primary',
+                'dark:border-white/[0.08] dark:bg-surface dark:text-text-primary',
                 'dark:hover:border-white/15 dark:focus:border-primary-accent/70',
               )}
             >
@@ -192,7 +192,7 @@ export function TransactionsListPage() {
                       'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl',
                       txn.type === 'income'
                         ? 'bg-brand-100 text-brand-600 dark:bg-primary/15 dark:text-primary-accent'
-                        : 'bg-gray-100 text-gray-500 dark:bg-white/8 dark:text-text-secondary',
+                        : 'bg-gray-100 text-gray-500 dark:bg-white/[0.08] dark:text-text-secondary',
                     )}>
                       {txn.type === 'income'
                         ? <ArrowUpRight className="h-4 w-4" />

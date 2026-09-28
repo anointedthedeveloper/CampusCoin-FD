@@ -43,7 +43,7 @@ function parseCsv(text: string): { rows: CsvImportRow[]; invalidRows: number; to
 const selectCls = cn(
   'w-full rounded-lg border bg-white px-3.5 py-2.5 text-sm text-gray-900 shadow-inset',
   'border-gray-200 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/20',
-  'dark:border-white/8 dark:bg-surface dark:text-text-primary dark:focus:border-primary-accent/70',
+  'dark:border-white/[0.08] dark:bg-surface dark:text-text-primary dark:focus:border-primary-accent/70',
 );
 
 export function ImportPage() {
@@ -165,7 +165,7 @@ export function ImportPage() {
             'flex flex-col items-center gap-4 rounded-xl border-2 border-dashed p-14 text-center',
             'border-gray-200 bg-gray-50/40 transition-colors duration-200',
             'hover:border-brand-300 hover:bg-brand-50/30',
-            'dark:border-white/8 dark:bg-white/[0.015] dark:hover:border-primary/40 dark:hover:bg-primary/[0.03]',
+            'dark:border-white/[0.08] dark:bg-white/[0.015] dark:hover:border-primary/40 dark:hover:bg-primary/[0.03]',
           )}
         >
           <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-100 text-brand-600 dark:bg-primary/15 dark:text-primary-accent">
@@ -184,9 +184,9 @@ export function ImportPage() {
           />
           <p className="text-xs text-gray-400 dark:text-text-muted">
             Expected columns:{' '}
-            <code className="rounded bg-gray-100 px-1.5 py-0.5 dark:bg-white/8">date</code>{', '}
-            <code className="rounded bg-gray-100 px-1.5 py-0.5 dark:bg-white/8">description</code>{', '}
-            <code className="rounded bg-gray-100 px-1.5 py-0.5 dark:bg-white/8">amount</code>
+            <code className="rounded bg-gray-100 px-1.5 py-0.5 dark:bg-white/[0.08]">date</code>{', '}
+            <code className="rounded bg-gray-100 px-1.5 py-0.5 dark:bg-white/[0.08]">description</code>{', '}
+            <code className="rounded bg-gray-100 px-1.5 py-0.5 dark:bg-white/[0.08]">amount</code>
           </p>
         </div>
       )}
@@ -263,7 +263,7 @@ export function ImportPage() {
               <span className="block text-sm font-medium text-gray-700 dark:text-text-secondary mb-1.5">
                 Import as
               </span>
-              <div className="inline-flex rounded-lg bg-gray-100 p-1 dark:bg-white/8">
+              <div className="inline-flex rounded-lg bg-gray-100 p-1 dark:bg-white/[0.08]">
                 {(['income', 'expense'] as CategoryType[]).map((t) => (
                   <button
                     key={t}

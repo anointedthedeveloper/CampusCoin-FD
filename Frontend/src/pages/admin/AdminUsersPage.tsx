@@ -70,14 +70,14 @@ export function AdminUsersPage() {
                 'w-full rounded-lg border bg-white py-2 pl-9 pr-3 text-sm text-gray-900',
                 'border-gray-200 hover:border-gray-300',
                 'focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/20',
-                'dark:border-white/8 dark:bg-surface dark:text-text-primary dark:placeholder:text-text-muted',
+                'dark:border-white/[0.08] dark:bg-surface dark:text-text-primary dark:placeholder:text-text-muted',
                 'dark:hover:border-white/15 dark:focus:border-primary-accent/70',
               )}
             />
           </div>
 
           {/* Role filter */}
-          <div className="inline-flex shrink-0 rounded-lg bg-gray-100 p-1 dark:bg-white/8">
+          <div className="inline-flex shrink-0 rounded-lg bg-gray-100 p-1 dark:bg-white/[0.08]">
             {(['all', 'student', 'admin'] as const).map((r) => (
               <button
                 key={r}
@@ -96,7 +96,7 @@ export function AdminUsersPage() {
           </div>
 
           {/* Status filter */}
-          <div className="inline-flex shrink-0 rounded-lg bg-gray-100 p-1 dark:bg-white/8">
+          <div className="inline-flex shrink-0 rounded-lg bg-gray-100 p-1 dark:bg-white/[0.08]">
             {(['all', 'active', 'suspended'] as const).map((s) => (
               <button
                 key={s}
@@ -183,8 +183,8 @@ export function AdminUsersPage() {
                     className={cn(
                       'shrink-0 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-all duration-150 hover:-translate-y-px',
                       u.isActive
-                        ? 'border-red-100 text-red-600 hover:bg-red-50 dark:border-red-500/20 dark:text-red-400 dark:hover:bg-red-500/8'
-                        : 'border-brand-100 text-brand-700 hover:bg-brand-50 dark:border-primary/20 dark:text-primary-accent dark:hover:bg-primary/8',
+                        ? 'border-red-100 text-red-600 hover:bg-red-50 dark:border-red-500/20 dark:text-red-400 dark:hover:bg-red-500/[0.08]'
+                        : 'border-brand-100 text-brand-700 hover:bg-brand-50 dark:border-primary/20 dark:text-primary-accent dark:hover:bg-primary/[0.08]',
                     )}
                   >
                     {u.isActive ? 'Suspend' : 'Activate'}

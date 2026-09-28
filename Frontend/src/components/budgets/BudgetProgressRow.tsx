@@ -59,7 +59,7 @@ export function BudgetProgressRow({ categoryName, budget }: BudgetProgressRowPro
           </div>
 
           {/* Progress bar */}
-          <div className="relative h-2 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-white/8">
+          <div className="relative h-2 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-white/[0.08]">
             <div
               className={cn('h-full rounded-full transition-all duration-700 ease-spring', statusBar[status])}
               style={{ width: `${Math.min(utilization, 100)}%` }}

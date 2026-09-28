@@ -33,7 +33,7 @@ const variantStyles: Record<ButtonVariant, string> = {
     'text-gray-700 ' +
     'hover:bg-gray-100 hover:text-gray-900 ' +
     'active:bg-gray-200 ' +
-    'dark:text-text-secondary dark:hover:bg-white/8 dark:hover:text-text-primary',
+    'dark:text-text-secondary dark:hover:bg-white/[0.08] dark:hover:text-text-primary',
   danger:
     'bg-red-600 text-white shadow-btn ' +
     'hover:bg-red-700 hover:shadow-md ' +

@@ -358,7 +358,7 @@ export function FaqPage() {
                     />
                   </button>
                   {isOpen && (
-                    <div className="border-t border-[#1d3d2d]/8 bg-white px-5 dark:border-white/8 dark:bg-transparent">
+                    <div className="border-t border-[#1d3d2d]/8 bg-white px-5 dark:border-white/[0.08] dark:bg-transparent">
                       {faqs.map(({ question, answer }) => (
                         <FaqItem key={question} question={question} answer={answer} />
                       ))}

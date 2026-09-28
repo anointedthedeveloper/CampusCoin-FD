@@ -62,7 +62,7 @@ export function AdminDashboardPage() {
 
       {/* Avg monthly spend highlight */}
       {statistics.averageMonthlySpendPerUser > 0 && (
-        <div className="flex items-center gap-4 rounded-xl border border-brand-100 bg-brand-50 px-5 py-4 dark:border-primary/15 dark:bg-primary/8">
+        <div className="flex items-center gap-4 rounded-xl border border-brand-100 bg-brand-50 px-5 py-4 dark:border-primary/15 dark:bg-primary/[0.08]">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-100 text-brand-600 dark:bg-primary/20 dark:text-primary-accent">
             <TrendingUp className="h-5 w-5" />
           </span>
@@ -136,10 +136,10 @@ export function AdminDashboardPage() {
                   'border-gray-100 text-gray-700 transition-all duration-150',
                   'hover:-translate-y-px hover:border-amber-200 hover:bg-amber-50 hover:text-amber-800',
                   'dark:border-white/5 dark:text-text-secondary',
-                  'dark:hover:border-amber-400/25 dark:hover:bg-amber-400/8 dark:hover:text-amber-300',
+                  'dark:hover:border-amber-400/25 dark:hover:bg-amber-400/[0.08] dark:hover:text-amber-300',
                 ].join(' ')}
               >
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-500 transition-colors dark:bg-white/8 dark:text-text-muted">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-500 transition-colors dark:bg-white/[0.08] dark:text-text-muted">
                   <Icon className="h-4 w-4" />
                 </span>
                 <div className="min-w-0">

@@ -71,7 +71,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
                 : [
                     'border-gray-200 hover:border-gray-300',
                     'focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/20',
-                    'dark:border-white/8 dark:hover:border-white/15',
+                    'dark:border-white/[0.08] dark:hover:border-white/15',
                     'dark:focus:border-primary-accent/70 dark:focus:ring-primary-accent/20',
                   ],
               // Disabled

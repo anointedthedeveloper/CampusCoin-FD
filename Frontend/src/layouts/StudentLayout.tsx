@@ -120,7 +120,7 @@ export function StudentLayout() {
           <button
             type="button"
             onClick={() => setIsSidebarOpen(false)}
-            className="flex h-7 w-7 items-center justify-center rounded-md text-gray-400 hover:bg-white/8 hover:text-white transition-colors lg:hidden"
+            className="flex h-7 w-7 items-center justify-center rounded-md text-gray-400 hover:bg-white/[0.08] hover:text-white transition-colors lg:hidden"
             aria-label="Close menu"
           >
             <X className="h-4 w-4" />
@@ -145,7 +145,7 @@ export function StudentLayout() {
                 return cn(
                   'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium',
                   'text-gray-400 transition-all duration-150',
-                  'hover:bg-white/6 hover:text-gray-100',
+                  'hover:bg-white/[0.06] hover:text-gray-100',
                   active
                     ? 'bg-brand-600/20 text-brand-400 font-semibold dark:bg-primary/15 dark:text-primary-accent'
                     : '',
@@ -190,7 +190,7 @@ export function StudentLayout() {
               className={({ isActive }) =>
                 cn(
                   'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-400',
-                  'hover:bg-white/6 hover:text-gray-100 transition-all duration-150',
+                  'hover:bg-white/[0.06] hover:text-gray-100 transition-all duration-150',
                   isActive && 'bg-brand-600/20 text-brand-400 font-semibold',
                 )
               }
@@ -205,7 +205,7 @@ export function StudentLayout() {
               className={({ isActive }) =>
                 cn(
                   'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-400',
-                  'hover:bg-white/6 hover:text-gray-100 transition-all duration-150',
+                  'hover:bg-white/[0.06] hover:text-gray-100 transition-all duration-150',
                   isActive && 'bg-brand-600/20 text-brand-400 font-semibold',
                 )
               }
@@ -228,7 +228,7 @@ export function StudentLayout() {
             </div>
             <button
               onClick={() => void logout()}
-              className="shrink-0 rounded-md p-1.5 text-gray-500 hover:bg-white/8 hover:text-gray-200 transition-colors"
+              className="shrink-0 rounded-md p-1.5 text-gray-500 hover:bg-white/[0.08] hover:text-gray-200 transition-colors"
               aria-label="Log out"
             >
               <LogOut className="h-3.5 w-3.5" />
@@ -287,7 +287,7 @@ export function StudentLayout() {
             <button
               type="button"
               onClick={() => setIsSidebarOpen(true)}
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors dark:hover:bg-white/8 dark:text-text-secondary"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors dark:hover:bg-white/[0.08] dark:text-text-secondary"
               aria-label="Open menu"
             >
               <Menu className="h-5 w-5" />
@@ -309,8 +309,8 @@ export function StudentLayout() {
                 cn(
                   'relative flex h-8 w-8 items-center justify-center rounded-lg transition-colors',
                   'text-gray-500 hover:bg-gray-100 hover:text-gray-900',
-                  'dark:text-text-secondary dark:hover:bg-white/8 dark:hover:text-text-primary',
-                  isActive && 'bg-gray-100 text-gray-900 dark:bg-white/8 dark:text-text-primary',
+                  'dark:text-text-secondary dark:hover:bg-white/[0.08] dark:hover:text-text-primary',
+                  isActive && 'bg-gray-100 text-gray-900 dark:bg-white/[0.08] dark:text-text-primary',
                 )
               }
               aria-label="Notifications"
@@ -330,8 +330,8 @@ export function StudentLayout() {
                 cn(
                   'flex h-8 w-8 items-center justify-center rounded-lg transition-colors',
                   'text-gray-500 hover:bg-gray-100 hover:text-gray-900',
-                  'dark:text-text-secondary dark:hover:bg-white/8 dark:hover:text-text-primary',
-                  isActive && 'bg-gray-100 text-gray-900 dark:bg-white/8 dark:text-text-primary',
+                  'dark:text-text-secondary dark:hover:bg-white/[0.08] dark:hover:text-text-primary',
+                  isActive && 'bg-gray-100 text-gray-900 dark:bg-white/[0.08] dark:text-text-primary',
                 )
               }
               aria-label="AI Assistant"
@@ -339,7 +339,7 @@ export function StudentLayout() {
               <Sparkles className="h-4 w-4" />
             </NavLink>
 
-            <div className="mx-1.5 h-4 w-px bg-gray-200 dark:bg-white/8" />
+            <div className="mx-1.5 h-4 w-px bg-gray-200 dark:bg-white/[0.08]" />
 
             {/* Account dropdown */}
             <div
@@ -353,8 +353,8 @@ export function StudentLayout() {
                 className={({ isActive }) =>
                   cn(
                     'flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors',
-                    'hover:bg-gray-100 dark:hover:bg-white/8',
-                    isActive && 'bg-gray-100 dark:bg-white/8',
+                    'hover:bg-gray-100 dark:hover:bg-white/[0.08]',
+                    isActive && 'bg-gray-100 dark:bg-white/[0.08]',
                   )
                 }
               >
@@ -372,7 +372,7 @@ export function StudentLayout() {
                   className={cn(
                     'animate-scale-in absolute right-0 top-full mt-1.5 z-20',
                     'w-52 rounded-xl border border-gray-100 bg-white p-1.5',
-                    'shadow-panel dark:border-white/8 dark:bg-surface-elevated dark:shadow-dark-panel',
+                    'shadow-panel dark:border-white/[0.08] dark:bg-surface-elevated dark:shadow-dark-panel',
                   )}
                 >
                   <div className="px-3 py-2 border-b border-gray-50 dark:border-white/5 mb-1">
@@ -398,7 +398,7 @@ export function StudentLayout() {
                   <button
                     type="button"
                     onClick={() => void logout().then(() => navigate('/'))}
-                    className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm font-medium text-red-600 hover:bg-red-50 transition-colors dark:text-red-400 dark:hover:bg-red-500/8"
+                    className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm font-medium text-red-600 hover:bg-red-50 transition-colors dark:text-red-400 dark:hover:bg-red-500/[0.08]"
                   >
                     <LogOut className="h-4 w-4" />
                     Log Out

@@ -17,7 +17,7 @@ const categoryStyle: Record<string, { icon: LucideIcon; cls: string }> = {
   General:         { icon: Lightbulb, cls: 'bg-amber-100  text-amber-600  dark:bg-amber-400/15  dark:text-amber-400' },
 };
 
-const fallback = { icon: Lightbulb, cls: 'bg-gray-100 text-gray-500 dark:bg-white/8 dark:text-text-secondary' };
+const fallback = { icon: Lightbulb, cls: 'bg-gray-100 text-gray-500 dark:bg-white/[0.08] dark:text-text-secondary' };
 
 export function SavingTipsPage() {
   const { user }                     = useAuth();
@@ -111,7 +111,7 @@ export function SavingTipsPage() {
                         'flex h-7 w-7 items-center justify-center rounded-lg transition-colors',
                         isBookmarked
                           ? 'bg-brand-100 text-brand-600 dark:bg-primary/15 dark:text-primary-accent'
-                          : 'text-gray-300 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/8 dark:hover:text-text-secondary',
+                          : 'text-gray-300 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/[0.08] dark:hover:text-text-secondary',
                       )}
                       aria-label={isBookmarked ? 'Remove bookmark' : 'Bookmark this tip'}
                       aria-pressed={isBookmarked}
@@ -133,7 +133,7 @@ export function SavingTipsPage() {
                 {tip.category && (
                   <Link
                     to={STUDENT_ROUTES.reports}
-                    className="self-start rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-600 transition-colors hover:bg-brand-50 hover:text-brand-700 dark:bg-white/8 dark:text-text-secondary dark:hover:bg-primary/10 dark:hover:text-primary-accent"
+                    className="self-start rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-600 transition-colors hover:bg-brand-50 hover:text-brand-700 dark:bg-white/[0.08] dark:text-text-secondary dark:hover:bg-primary/10 dark:hover:text-primary-accent"
                   >
                     View {tip.category} in Reports →
                   </Link>

@@ -18,7 +18,7 @@ const fieldCls = cn(
   'w-full rounded-lg border bg-white px-3.5 py-2.5 text-sm text-gray-900 shadow-inset',
   'border-gray-200 hover:border-gray-300',
   'focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/20',
-  'dark:border-white/8 dark:bg-surface dark:text-text-primary',
+  'dark:border-white/[0.08] dark:bg-surface dark:text-text-primary',
   'dark:hover:border-white/15 dark:focus:border-primary-accent/70 dark:focus:ring-primary-accent/20',
 );
 
@@ -95,7 +95,7 @@ export function TransactionNewPage() {
         {/* ── Main form ── */}
         <Card className="md:col-span-2">
           {/* Income / Expense toggle */}
-          <div className="mb-5 inline-flex rounded-lg bg-gray-100 p-1 dark:bg-white/8">
+          <div className="mb-5 inline-flex rounded-lg bg-gray-100 p-1 dark:bg-white/[0.08]">
             {(['income', 'expense'] as CategoryType[]).map((t) => (
               <button
                 key={t}
@@ -233,7 +233,7 @@ export function TransactionNewPage() {
                     'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors',
                     isSelected
                       ? (quick?.badgeClassName ?? 'bg-brand-100 text-brand-600')
-                      : 'bg-gray-100 text-gray-500 dark:bg-white/8 dark:text-text-secondary',
+                      : 'bg-gray-100 text-gray-500 dark:bg-white/[0.08] dark:text-text-secondary',
                   )}>
                     <Icon className="h-4 w-4" />
                   </span>
@@ -247,7 +247,7 @@ export function TransactionNewPage() {
 
             <Link
               to={STUDENT_ROUTES.categories}
-              className="flex w-full items-center gap-3 rounded-lg border border-dashed border-gray-200 px-3 py-2.5 text-left text-sm font-medium text-gray-400 transition-colors hover:border-brand-200 hover:text-brand-600 dark:border-white/8 dark:text-text-muted dark:hover:border-primary-accent/30 dark:hover:text-primary-accent"
+              className="flex w-full items-center gap-3 rounded-lg border border-dashed border-gray-200 px-3 py-2.5 text-left text-sm font-medium text-gray-400 transition-colors hover:border-brand-200 hover:text-brand-600 dark:border-white/[0.08] dark:text-text-muted dark:hover:border-primary-accent/30 dark:hover:text-primary-accent"
             >
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gray-50 text-gray-400 dark:bg-white/5">
                 <Plus className="h-4 w-4" />

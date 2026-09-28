@@ -17,7 +17,7 @@ export function EmptyState({ icon: Icon, title, description, action, className, 
       className={cn(
         'flex flex-col items-center justify-center text-center',
         compact ? 'gap-2 py-8 px-4' : 'gap-3 py-12 px-6',
-        'rounded-xl border border-dashed border-gray-200 dark:border-white/8',
+        'rounded-xl border border-dashed border-gray-200 dark:border-white/[0.08]',
         className,
       )}
     >
