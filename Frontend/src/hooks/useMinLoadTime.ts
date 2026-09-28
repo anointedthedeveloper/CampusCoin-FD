@@ -9,9 +9,9 @@ import { useEffect, useRef, useState } from 'react';
  * visible duration the transition always feels intentional.
  *
  * @param isLoading  The real loading flag from your data-fetch
- * @param minMs      Minimum time (ms) to show the loader — default 3000
+ * @param minMs      Minimum time (ms) to show the loader — default 800
  */
-export function useMinLoadTime(isLoading: boolean, minMs = 3000): boolean {
+export function useMinLoadTime(isLoading: boolean, minMs = 800): boolean {
   // Track whether the minimum time has elapsed since loading began
   const [minElapsed, setMinElapsed] = useState(!isLoading);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);

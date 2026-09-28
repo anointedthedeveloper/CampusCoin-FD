@@ -4,6 +4,10 @@ import { ApiError, type ApiErrorBody } from '@/types/api';
 
 export const httpClient = axios.create({
   baseURL: API_BASE_URL,
+  // Fail fast instead of hanging indefinitely — without this, a slow or
+  // unreachable backend keeps isLoading=true in AuthContext forever, which
+  // holds every ProtectedRoute in a permanent loader state.
+  timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },
