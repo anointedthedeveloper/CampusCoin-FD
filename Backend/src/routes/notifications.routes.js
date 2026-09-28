@@ -13,7 +13,10 @@ function formatNotif(n) {
     type: n.type,
     title: n.title,
     message: n.message,
+    severity: n.severity,
     isRead: n.isRead,
+    isDismissed: n.isDismissed,
+    meta: n.meta,
     createdAt: n.createdAt,
   };
 }
@@ -21,7 +24,10 @@ function formatNotif(n) {
 // GET /api/v1/notifications
 router.get('/', async (req, res) => {
   try {
-    const notifications = await Notification.find({ userId: req.user._id }).sort({ createdAt: -1 }).limit(50);
+    const notifications = await Notification.find({
+      userId: req.user._id,
+      isDismissed: { $ne: true },
+    }).sort({ createdAt: -1 }).limit(50);
     res.json({ data: notifications.map(formatNotif) });
   } catch (err) {
     console.error(err);
@@ -48,6 +54,20 @@ router.patch('/read-all', async (req, res) => {
   try {
     await Notification.updateMany({ userId: req.user._id, isRead: false }, { isRead: true });
     res.json({ data: null, message: 'All notifications marked as read' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// PATCH /api/v1/notifications/:id/dismiss
+router.patch('/:id/dismiss', async (req, res) => {
+  try {
+    const notif = await Notification.findOne({ _id: req.params.id, userId: req.user._id });
+    if (!notif) return res.status(404).json({ message: 'Notification not found' });
+    notif.isDismissed = true;
+    await notif.save();
+    res.json({ data: formatNotif(notif) });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });

@@ -16,6 +16,8 @@ const insightsRoutes = require('./src/routes/insights.routes');
 const notificationsRoutes = require('./src/routes/notifications.routes');
 const adminRoutes = require('./src/routes/admin.routes');
 const dashboardRoutes = require('./src/routes/dashboard.routes');
+const myMoneyRoutes = require('./src/routes/my-money.routes');
+const recurringRoutes = require('./src/routes/recurring.routes');
 const aiRoutes = require('./src/routes/ai.routes');
 
 if (!process.env.JWT_SECRET) {
@@ -29,7 +31,7 @@ if (!process.env.JWT_SECRET) {
 
 const app = express();
 
-// Trust Vercel's / any reverse proxy's X-Forwarded-For so req.ip (used by the
+// Trust any reverse proxy's X-Forwarded-For so req.ip (used by the
 // rate limiter) reflects the real client instead of the proxy.
 app.set('trust proxy', 1);
 
@@ -70,19 +72,31 @@ app.use(async (_req, res, next) => {
 });
 
 // ── Routes ────────────────────────────────────────────────────────────
+// Register all routes under a given prefix
+function registerRoutes(prefix) {
+  app.use(`${prefix}/auth`, authRoutes);
+  app.use(`${prefix}/profile`, profileRoutes);
+  app.use(`${prefix}/categories`, categoriesRoutes);
+  app.use(`${prefix}/transactions`, transactionsRoutes);
+  app.use(`${prefix}/budgets`, budgetsRoutes);
+  app.use(`${prefix}/reports`, reportsRoutes);
+  app.use(`${prefix}/ai`, aiRoutes);
+  // insights.routes handles /insights, /saving-tips, /money-moves, /bookmarks
+  app.use(`${prefix}`, insightsRoutes);
+  app.use(`${prefix}/notifications`, notificationsRoutes);
+  app.use(`${prefix}/admin`, adminRoutes);
+  app.use(`${prefix}/dashboard`, dashboardRoutes);
+  app.use(`${prefix}/my-money`, myMoneyRoutes);
+  app.use(`${prefix}/recurring-transactions`, recurringRoutes.router);
+}
+
+// Primary API prefix
 const API = '/api/v1';
-app.use(`${API}/auth`, authRoutes);
-app.use(`${API}/profile`, profileRoutes);
-app.use(`${API}/categories`, categoriesRoutes);
-app.use(`${API}/transactions`, transactionsRoutes);
-app.use(`${API}/budgets`, budgetsRoutes);
-app.use(`${API}/reports`, reportsRoutes);
-// insights.routes handles /insights, /saving-tips, /bookmarks
-app.use(`${API}`, insightsRoutes);
-app.use(`${API}/notifications`, notificationsRoutes);
-app.use(`${API}/admin`, adminRoutes);
-app.use(`${API}/dashboard`, dashboardRoutes);
-app.use(`${API}/ai`, aiRoutes);
+registerRoutes(API);
+
+// New CampusCoin prefix — same routes, keeps both working
+const CCOIN_API = '/api/ccoin';
+registerRoutes(CCOIN_API);
 
 // ── 404 fallback ──────────────────────────────────────────────────────
 app.use((_req, res) => res.status(404).json({ message: 'Route not found' }));

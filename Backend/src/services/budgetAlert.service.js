@@ -31,8 +31,9 @@ async function checkBudgetAfterTransaction(userId, categoryId, occurredAt) {
     const percentage = budget.limitAmount > 0 ? (totalSpent / budget.limitAmount) * 100 : 0;
 
     let type = null;
-    if (percentage >= 100) type = 'budget-exceeded';
-    else if (percentage >= 80) type = 'budget-warning';
+    let severity = null;
+    if (percentage >= 100) { type = 'budget-exceeded'; severity = 'high'; }
+    else if (percentage >= 80) { type = 'budget-near'; severity = 'medium'; }
     if (!type) return null;
 
     // Avoid re-notifying on every subsequent transaction once a threshold has
@@ -60,6 +61,7 @@ async function checkBudgetAfterTransaction(userId, categoryId, occurredAt) {
       type,
       title,
       message,
+      severity,
       meta: {
         budgetId: budget._id,
         categoryId,

@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const Insight = require('../models/Insight');
 const SavingTip = require('../models/SavingTip');
+const MoneyMove = require('../models/MoneyMove');
 const Bookmark = require('../models/Bookmark');
 const { protect } = require('../middleware/auth');
 const { validateIdParam, isValidObjectId } = require('../utils/objectId');
@@ -76,6 +77,28 @@ router.get('/saving-tips', protect, async (req, res) => {
       ]);
     }
     const tips = await SavingTip.find().sort({ createdAt: -1 });
+    res.json({ data: tips.map(formatTip) });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// GET /api/v1/money-moves  (alias that uses the MoneyMove model / 'savingtips' collection)
+router.get('/money-moves', protect, async (req, res) => {
+  try {
+    const count = await MoneyMove.countDocuments();
+    if (count === 0) {
+      await MoneyMove.insertMany([
+        { title: 'Cook at home', body: 'Making your own meals instead of eating out can reduce food spending.', category: 'Food & Drinks' },
+        { title: 'Use student discounts', body: 'Carry your student ID and check for student discounts before paying.', category: 'Shopping' },
+        { title: 'Track every naira', body: 'Recording small expenses helps you identify spending patterns.', category: 'General' },
+        { title: 'Set weekly spending limits', body: 'Breaking your monthly budget into weekly targets can help you detect overspending early.', category: 'General' },
+        { title: 'Buy used or digital textbooks', body: 'Second-hand books or digital textbooks can reduce education costs.', category: 'Education' },
+        { title: 'Walk or cycle short distances', body: 'Reducing transport costs on short trips can add up to meaningful savings.', category: 'Transport' },
+      ]);
+    }
+    const tips = await MoneyMove.find().sort({ createdAt: -1 });
     res.json({ data: tips.map(formatTip) });
   } catch (err) {
     console.error(err);

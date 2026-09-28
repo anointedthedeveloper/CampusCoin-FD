@@ -9,12 +9,16 @@ const transactionSchema = new mongoose.Schema(
     description: { type: String, trim: true },
     merchant: { type: String, trim: true },
     occurredAt: { type: Date, required: true },
-    source: { type: String, enum: ['manual', 'csv-import', 'ai-suggested'], default: 'manual' },
+    source: { type: String, enum: ['manual', 'csv-import', 'recurring', 'ai-suggested'], default: 'manual' },
+    // Populated when AI categorization suggests a category name (stored for
+    // audit/display even after the user accepts/overrides the suggestion)
+    aiSuggestedCategory: { type: String, trim: true },
   },
   { timestamps: true },
 );
 
 transactionSchema.index({ userId: 1, occurredAt: -1 });
 transactionSchema.index({ userId: 1, categoryId: 1 });
+transactionSchema.index({ userId: 1, type: 1, occurredAt: -1 });
 
 module.exports = mongoose.model('Transaction', transactionSchema);
