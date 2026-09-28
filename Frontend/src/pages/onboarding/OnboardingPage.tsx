@@ -941,8 +941,8 @@ export function OnboardingPage() {
             {step === 2 && (
               <PreviewCard initial={avatarInitial} title="Track your income" description="Record allowances, scholarships and side-hustle income.">
                 {incomeAmount && (
-                  <div className="mb-3 rounded-xl bg-brand-50 p-4 dark:bg-white/5">
-                    <p className="text-xs text-gray-500 dark:text-text-muted">
+                  <div className="mb-3 rounded-xl border border-brand-100 bg-brand-50 p-4 dark:border-white/5 dark:bg-white/5">
+                    <p className="text-xs font-medium text-gray-500 dark:text-text-muted">
                       {incomeFrequency
                         ? `Income · ${INCOME_FREQUENCY_OPTIONS.find((o) => o.value === incomeFrequency)?.label}`
                         : 'Income'}
