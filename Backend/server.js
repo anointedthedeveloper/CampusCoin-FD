@@ -39,13 +39,15 @@ app.set('trust proxy', 1);
 // regardless of the CORS headers below.
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 
-// CLIENT_URL may be a single origin or a comma-separated list (e.g. local dev
-// + the deployed frontend), so both can call the API without relaxing CORS
-// to "*".
-const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:5173')
-  .split(',')
-  .map((origin) => origin.trim())
-  .filter(Boolean);
+// CLIENT_URL may be a single origin or a comma-separated list. Keep the
+// deployed frontend available even when the hosting environment omits it.
+const allowedOrigins = [
+  'https://campuscoin-topaz.vercel.app',
+  ...(process.env.CLIENT_URL || 'http://localhost:5173')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean),
+];
 if (process.env.NODE_ENV !== 'production' && !allowedOrigins.includes('http://localhost:5173')) {
   allowedOrigins.push('http://localhost:5173');
 }
