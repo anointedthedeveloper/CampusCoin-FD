@@ -31,7 +31,9 @@ export function TransactionEditPage() {
   // Load the transaction once
   useEffect(() => {
     if (!user || !id) return;
+    let cancelled = false;
     transactionService.getById(user.id, id).then((tx) => {
+      if (cancelled) return;
       if (tx) {
         setTransaction(tx);
         setType(tx.type);
@@ -40,8 +42,8 @@ export function TransactionEditPage() {
         setDescription(tx.description ?? '');
         setDate(tx.occurredAt.slice(0, 10));
       }
-      setIsLoadingTx(false);
-    });
+    }).finally(() => { if (!cancelled) setIsLoadingTx(false); });
+    return () => { cancelled = true; };
   }, [user?.id, id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Re-fetch categories when type changes

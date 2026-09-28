@@ -21,9 +21,13 @@ export function AdminUsersPage() {
   useEffect(() => {
     async function load() {
       setIsLoading(true);
-      const data = await adminUserService.listUsers();
-      setUsers(data);
-      setIsLoading(false);
+      try {
+        setUsers((await adminUserService.listUsers()) ?? []);
+      } catch {
+        setUsers([]);
+      } finally {
+        setIsLoading(false);
+      }
     }
     void load();
   }, [refreshToken]);

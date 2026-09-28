@@ -194,7 +194,12 @@ router.post('/refresh', async (req, res) => {
     const { refreshToken } = req.body;
     if (!refreshToken) return res.status(400).json({ message: 'Refresh token required' });
 
-    const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
+    let decoded;
+    try {
+      decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
+    } catch {
+      return res.status(401).json({ message: 'Invalid or expired refresh token', code: 'INVALID_TOKEN' });
+    }
     if (decoded.type !== 'refresh') return res.status(401).json({ message: 'Invalid token type' });
 
     const user = await User.findById(decoded.id);
@@ -202,8 +207,11 @@ router.post('/refresh', async (req, res) => {
 
     const tokens = signTokens(user._id);
     res.json({ data: { user: user.toPublic(), ...tokens } });
-  } catch {
-    res.status(401).json({ message: 'Invalid or expired refresh token', code: 'INVALID_TOKEN' });
+  } catch (err) {
+    // Database/server failure — not a token problem, so don't tell the
+    // client its session is invalid (it would log the user out).
+    console.error('Token refresh failed:', err.message);
+    res.status(503).json({ message: 'Service temporarily unavailable. Please try again.', code: 'SERVICE_UNAVAILABLE' });
   }
 });
 

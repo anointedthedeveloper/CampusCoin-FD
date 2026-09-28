@@ -45,8 +45,10 @@ async function refreshAccessToken(): Promise<string> {
 
   // A plain axios call, not httpClient — going through httpClient here would
   // re-enter this same response interceptor on failure.
-  const { data } = await axios.post(`${API_BASE_URL}${REFRESH_URL}`, { refreshToken });
-  const { accessToken, refreshToken: nextRefreshToken } = data.data;
+  const { data } = await axios.post(`${API_BASE_URL}${REFRESH_URL}`, { refreshToken }, { timeout: 10000 });
+  const accessToken = data?.data?.accessToken;
+  const nextRefreshToken = data?.data?.refreshToken;
+  if (!accessToken || !nextRefreshToken) throw new Error('Malformed refresh response');
   localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, accessToken);
   localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, nextRefreshToken);
   return accessToken;
@@ -72,8 +74,15 @@ httpClient.interceptors.response.use(
         const newAccessToken = await refreshPromise;
         originalRequest.headers.set('Authorization', `Bearer ${newAccessToken}`);
         return httpClient(originalRequest);
-      } catch {
-        clearSessionAndNotify();
+      } catch (refreshError) {
+        // Only a definitive rejection of the refresh token (401/403/400, or a
+        // missing token) ends the session. A network error, timeout or 5xx
+        // (e.g. the API cold-starting or the database briefly unavailable)
+        // must not log the user out — the next request can try again.
+        const refreshStatus = axios.isAxiosError(refreshError) ? refreshError.response?.status : undefined;
+        const isDefinitive =
+          !axios.isAxiosError(refreshError) || (refreshStatus !== undefined && refreshStatus >= 400 && refreshStatus < 500);
+        if (isDefinitive) clearSessionAndNotify();
         // Fall through to the normal error below, using the ORIGINAL 401.
       }
     }

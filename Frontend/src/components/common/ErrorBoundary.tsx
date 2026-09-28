@@ -1,10 +1,21 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { AlertTriangle, RotateCcw } from 'lucide-react';
 
+function isChunkLoadError(error: Error): boolean {
+  return (
+    error.name === 'ChunkLoadError' ||
+    /Failed to fetch dynamically imported module|Importing a module script failed|error loading dynamically imported module|Loading chunk/i.test(
+      error.message,
+    )
+  );
+}
+
 interface Props {
   children: ReactNode;
   /** Optional label shown in the error card heading */
   label?: string;
+  /** When this value changes, a caught error is cleared (e.g. the route path). */
+  resetKey?: unknown;
 }
 
 interface State {
@@ -28,21 +39,31 @@ export class ErrorBoundary extends Component<Props, State> {
     return { error };
   }
 
+  componentDidUpdate(prevProps: Props) {
+    if (this.state.error && prevProps.resetKey !== this.props.resetKey) {
+      this.setState({ error: null });
+    }
+  }
+
   componentDidCatch(error: Error, info: ErrorInfo) {
     console.error('[ErrorBoundary]', error, info.componentStack);
   }
 
   handleReset = () => {
+    const error = this.state.error;
+    if (error && isChunkLoadError(error)) {
+      // The old chunk is gone after a redeploy; only a full reload fetches
+      // the new index.html with the current chunk names.
+      window.location.reload();
+      return;
+    }
     this.setState({ error: null });
   };
 
   render() {
     if (!this.state.error) return this.props.children;
 
-    const isChunkError =
-      this.state.error.message.includes('Failed to fetch dynamically imported module') ||
-      this.state.error.message.includes('Loading chunk') ||
-      this.state.error.name === 'ChunkLoadError';
+    const isChunkError = isChunkLoadError(this.state.error);
 
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-5 px-6 text-center">
@@ -56,7 +77,7 @@ export class ErrorBoundary extends Component<Props, State> {
           </h2>
           <p className="max-w-sm text-sm text-gray-500 dark:text-text-secondary">
             {isChunkError
-              ? 'A page chunk failed to download — this usually fixes itself on a retry.'
+              ? 'A newer version of Campus Coin may have been released. Reload to get the latest version.'
               : 'An unexpected error occurred while rendering this page.'}
           </p>
           {!isChunkError && (

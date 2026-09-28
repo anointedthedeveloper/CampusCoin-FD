@@ -67,7 +67,7 @@ export function AdminCategoriesPage() {
   const [refreshToken, setRefreshToken] = useState(0);
 
   useEffect(() => {
-    void adminCategoryService.list().then(setAllTemplates);
+    void adminCategoryService.list().then(setAllTemplates).catch(() => setAllTemplates([]));
   }, [refreshToken]);
 
   const expenseTemplates = allTemplates.filter((t) => t.type === 'expense');

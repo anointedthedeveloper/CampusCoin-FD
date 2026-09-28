@@ -29,16 +29,19 @@ export function SavingTipsPage() {
 
   useEffect(() => {
     if (!user) return;
+    let cancelled = false;
     async function load() {
-      const [all, bookmarked] = await Promise.all([
+      const [all, bookmarked] = await Promise.allSettled([
         tipsService.list(user!.id),
         tipsService.listBookmarked(user!.id),
       ]);
-      setTips(all);
-      setBookmarkedIds(new Set(bookmarked.map((t) => t.id)));
+      if (cancelled) return;
+      setTips(all.status === 'fulfilled' ? all.value : []);
+      setBookmarkedIds(new Set(bookmarked.status === 'fulfilled' ? bookmarked.value.map((t) => t.id) : []));
       setIsLoading(false);
     }
     void load();
+    return () => { cancelled = true; };
   }, [user, refreshToken]);
 
   function handleDismiss(id: string) {

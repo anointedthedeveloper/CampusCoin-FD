@@ -20,9 +20,13 @@ export function AdminUserDetailPage() {
     if (!id) return;
     async function load() {
       setIsLoading(true);
-      const data = await adminUserService.getUserById(id!);
-      setUser(data);
-      setIsLoading(false);
+      try {
+        setUser(await adminUserService.getUserById(id!));
+      } catch {
+        setUser(undefined);
+      } finally {
+        setIsLoading(false);
+      }
     }
     void load();
   }, [id, refreshToken]);

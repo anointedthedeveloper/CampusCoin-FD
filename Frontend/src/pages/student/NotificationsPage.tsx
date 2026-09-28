@@ -26,7 +26,12 @@ export function NotificationsPage() {
   const showLoader = useMinLoadTime(isLoading);
 
   useEffect(() => {
-    void adminAnnouncementService.listPublishedFor('students').then(setAnnouncements);
+    let cancelled = false;
+    adminAnnouncementService
+      .listPublishedFor('students')
+      .then((list) => { if (!cancelled) setAnnouncements(list); })
+      .catch(() => { if (!cancelled) setAnnouncements([]); });
+    return () => { cancelled = true; };
   }, []);
 
   const hasAny = notifications.length > 0 || announcements.length > 0;

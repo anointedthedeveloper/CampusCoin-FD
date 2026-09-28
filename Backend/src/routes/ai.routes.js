@@ -167,15 +167,14 @@ router.post('/answer', async (req, res) => {
     });
   } catch (err) {
     console.error('AI /answer failed:', err.message);
-    const isGeminiFailure = [
-      'GEMINI_REQUEST_FAILED',
-      'GEMINI_EMPTY_RESPONSE',
-    ].includes(err.message) || err.name === 'TimeoutError' || err.name === 'AbortError';
-    if (isGeminiFailure) {
+    // Any provider-side failure (Gemini or Groq: HTTP errors, empty output,
+    // timeouts) degrades to a rules-based answer from the student's own
+    // numbers instead of a bare 500. Only a failure before the summary was
+    // built (a database problem) falls through to the error handler.
+    if (summary) {
       return res.json({
         data: {
           answer: buildUnavailableAiAnswer(summary),
-          ai: getConfiguredProvider(),
           degraded: true,
         },
       });
@@ -304,7 +303,8 @@ router.post('/insights/generate', async (req, res) => {
           SYSTEM_INSTRUCTION,
           { maxOutputTokens: 200, responseMimeType: 'application/json' },
         );
-        const generated = JSON.parse(raw);
+        // Groq ignores responseMimeType and may wrap JSON in prose/fences.
+        const generated = JSON.parse(raw.match(/\{[\s\S]*\}/)?.[0] ?? raw);
         if (
           typeof generated.title === 'string' &&
           typeof generated.body === 'string'

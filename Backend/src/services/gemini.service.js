@@ -167,13 +167,21 @@ async function callGemini(
  * @returns {object}      The res.status(...).json(...) call result
  */
 function handleGeminiError(err, res) {
-  if (err.name === 'TimeoutError' || err.name === 'AbortError') {
+  // Also covers Groq SDK errors (APIConnectionTimeoutError, APIError with an
+  // HTTP status) so a Groq-only deployment doesn't collapse into a bare 500.
+  if (['TimeoutError', 'AbortError', 'APIConnectionTimeoutError'].includes(err.name)) {
     return res.status(504).json({ message: 'The AI service took too long to respond. Please try again.' });
   }
   if (err.message === 'GEMINI_NOT_CONFIGURED') {
     return res.status(503).json({ message: 'AI features are not configured on this server.' });
   }
   if (err.message === 'GEMINI_REQUEST_FAILED') {
+    return res.status(502).json({ message: 'The AI service returned an error. Please try again shortly.' });
+  }
+  if (err.message === 'GROQ_NOT_CONFIGURED') {
+    return res.status(503).json({ message: 'AI features are not configured on this server.' });
+  }
+  if (err.message === 'GROQ_EMPTY_RESPONSE' || typeof err.status === 'number' || err.name === 'APIConnectionError') {
     return res.status(502).json({ message: 'The AI service returned an error. Please try again shortly.' });
   }
   if (err.message === 'GEMINI_EMPTY_RESPONSE') {

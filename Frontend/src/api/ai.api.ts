@@ -23,12 +23,17 @@ export interface AIIdentity {
   model: string;
 }
 
+// AI providers routinely take longer than httpClient's 10s default (the
+// backend allows up to ~45s per provider call), so AI requests get their own
+// longer timeout instead of failing while the server is still answering.
+const AI_TIMEOUT_MS = 60_000;
+
 export const aiApi = {
   async answer(message: string, history: AIConversationTurn[] = []): Promise<{ answer: string; ai?: AIIdentity }> {
     const { data } = await httpClient.post<ApiSuccess<{ answer: string; ai?: AIIdentity }>>('/ai/answer', {
       message,
       history,
-    });
+    }, { timeout: AI_TIMEOUT_MS });
     return data.data;
   },
 
@@ -36,7 +41,7 @@ export const aiApi = {
     const { data } = await httpClient.post<ApiSuccess<CategorySuggestion>>('/ai/categorize', {
       description,
       merchant,
-    });
+    }, { timeout: AI_TIMEOUT_MS });
     return data.data;
   },
 
@@ -44,6 +49,7 @@ export const aiApi = {
     const { data } = await httpClient.post<ApiSuccess<{ insightId: string }>>(
       '/ai/insights/generate',
       payload,
+      { timeout: AI_TIMEOUT_MS },
     );
     return data.data;
   },

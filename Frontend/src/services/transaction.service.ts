@@ -4,7 +4,7 @@ import type { Transaction, TransactionFilters, TransactionPayload } from '@/type
 export const transactionService = {
   async list(_userId?: string, filters: TransactionFilters = {}): Promise<Transaction[]> {
     const result = await transactionsApi.list(filters);
-    return result.items;
+    return result?.items ?? [];
   },
 
   async listPaginated(_userId?: string, filters: TransactionFilters = {}) {

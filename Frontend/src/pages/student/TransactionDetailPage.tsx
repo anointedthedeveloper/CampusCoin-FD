@@ -28,10 +28,10 @@ export function TransactionDetailPage() {
       if (cancelled) return;
       setTransaction(tx);
       if (tx) {
-        const cat = await categoryService.getById(user!.id, tx.categoryId);
+        const cat = await categoryService.getById(user!.id, tx.categoryId).catch(() => undefined);
         if (!cancelled) setCategoryName(cat?.name ?? 'Other');
       }
-      setIsLoading(false);
+      if (!cancelled) setIsLoading(false);
     }
     void load();
     return () => { cancelled = true; };

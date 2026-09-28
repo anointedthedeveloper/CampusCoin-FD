@@ -23,11 +23,12 @@ export function AdminDashboardPage() {
 
   useEffect(() => {
     async function load() {
-      const [stats, users] = await Promise.all([
+      const [statsResult, usersResult] = await Promise.allSettled([
         adminStatisticsService.getStatistics(),
         adminUserService.listUsers(),
       ]);
-      setStatistics(stats);
+      const users = usersResult.status === 'fulfilled' ? usersResult.value ?? [] : [];
+      if (statsResult.status === 'fulfilled') setStatistics(statsResult.value);
       setRecentUsers(
         [...users]
           .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
@@ -38,7 +39,15 @@ export function AdminDashboardPage() {
     void load();
   }, []);
 
-  if (showLoader || !statistics) return <PageSpinner label="Loading admin dashboard…" />;
+  if (showLoader) return <PageSpinner label="Loading admin dashboard…" />;
+  if (!statistics) {
+    return (
+      <EmptyState
+        title="Statistics unavailable"
+        description="System statistics could not be loaded right now. Refresh the page to try again."
+      />
+    );
+  }
 
   const stats = [
     { label: 'Total Users',         value: statistics.totalUsers.toLocaleString(),            icon: Users,      tone: 'brand'  as const },

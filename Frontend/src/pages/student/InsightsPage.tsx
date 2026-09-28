@@ -9,6 +9,7 @@ import { formatCurrency, formatMonthLabel } from '@/utils/format';
 import { formatNumericInput, normalizeNumericInput } from '@/utils/number';
 import { cn } from '@/utils/cn';
 import type { Category } from '@/types/category';
+import { ApiError } from '@/types/api';
 
 interface ChatMessage {
   id: string;
@@ -88,7 +89,7 @@ export function InsightsPage() {
       }
     }
     setHistoryLoaded(true);
-  }, [user?.id]);
+  }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!historyStorageKey || !historyLoaded) return;
@@ -102,7 +103,10 @@ export function InsightsPage() {
   }, [historyStorageKey, historyLoaded, messages, pastConversations]);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setIsLoading(false);
+      return;
+    }
     let cancelled = false;
     categoryService.list(user.id)
       .then((result) => {
@@ -115,7 +119,7 @@ export function InsightsPage() {
         if (!cancelled) setIsLoading(false);
       });
     return () => { cancelled = true; };
-    }, [user?.id]);
+  }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function sendMessage(text: string) {
     const trimmedText = text.trim();
@@ -155,11 +159,16 @@ export function InsightsPage() {
           suggestedDescription: trimmedText,
         } : {}),
       }]);
-    } catch {
+    } catch (error) {
+      // Surface the server's reason (e.g. "AI answers are not configured on
+      // the server", a timeout) instead of one generic line for every failure.
+      const reason = error instanceof ApiError && error.status && error.message
+        ? error.message
+        : 'I could not reach the AI service right now. Please try again shortly.';
       setMessages((previous) => [...previous, {
         id: crypto.randomUUID(),
         role: 'assistant',
-        text: 'I could not reach the AI service right now. Please try again shortly.',
+        text: reason,
       }]);
     } finally {
       setIsSending(false);
@@ -168,14 +177,22 @@ export function InsightsPage() {
 
   async function handleAccept(message: ChatMessage) {
     if (!user || !message.suggestedCategoryId || !message.suggestedAmount) return;
-    await transactionService.create(user.id, {
-      type: 'expense',
-      categoryId: message.suggestedCategoryId,
-      amount: message.suggestedAmount,
-      description: message.suggestedDescription,
-      occurredAt: new Date().toISOString(),
-    });
-    setLoggedIds((previous) => new Set(previous).add(message.id));
+    try {
+      await transactionService.create(user.id, {
+        type: 'expense',
+        categoryId: message.suggestedCategoryId,
+        amount: message.suggestedAmount,
+        description: message.suggestedDescription,
+        occurredAt: new Date().toISOString(),
+      });
+      setLoggedIds((previous) => new Set(previous).add(message.id));
+    } catch (error) {
+      setMessages((previous) => [...previous, {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        text: `I couldn't log that expense: ${error instanceof Error ? error.message : 'please try again.'}`,
+      }]);
+    }
   }
 
   function handleSubmit(event: FormEvent) {
@@ -237,7 +254,7 @@ export function InsightsPage() {
                 <p className="text-sm font-semibold text-gray-900 dark:text-text-primary">Campus Coin Assistant</p>
                 <div className="flex items-center gap-1.5">
                   <span className="h-1.5 w-1.5 rounded-full bg-brand-500 dark:bg-primary-accent" />
-                  <p className="text-xs text-gray-400 dark:text-text-muted">Gemini · grounded in your monthly totals</p>
+                  <p className="text-xs text-gray-400 dark:text-text-muted">AI · grounded in your monthly totals</p>
                 </div>
               </div>
               <div className="flex shrink-0 items-center gap-1">
@@ -280,7 +297,7 @@ export function InsightsPage() {
                           <button
                             type="button"
                             onClick={() => void handleAccept(message)}
-                            className="rounded-lg bg-white/20 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/30"
+                            className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-brand-700 dark:bg-primary dark:hover:bg-primary-accent"
                           >
                             Log this expense
                           </button>
@@ -290,7 +307,7 @@ export function InsightsPage() {
                   </div>
                 </div>
               ))}
-              {isSending && <div className="flex items-center gap-2 text-xs text-gray-500"><Spinner /> Gemini is thinking...</div>}
+              {isSending && <div className="flex items-center gap-2 text-xs text-gray-500"><Spinner /> Assistant is thinking...</div>}
             </div>
 
             <form

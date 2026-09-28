@@ -15,9 +15,11 @@ export const reportService = {
   async getSixMonthTrend(_userId?: string, endMonth?: string): Promise<TrendPoint[]> {
     const end = endMonth ?? new Date().toISOString().slice(0, 7);
     const months: string[] = [];
-    let cursor = new Date(`${end}-01`);
+    // Work in plain year/month numbers: toISOString() on a local-midnight
+    // Date shifts to the previous month in any UTC+ timezone (e.g. Lagos).
+    const [endYear, endMonth1] = end.split('-').map(Number);
     for (let i = 5; i >= 0; i--) {
-      const d = new Date(cursor.getFullYear(), cursor.getMonth() - i, 1);
+      const d = new Date(Date.UTC(endYear, endMonth1 - 1 - i, 1));
       months.push(d.toISOString().slice(0, 7));
     }
     const reports = await Promise.all(months.map((m) => reportsApi.getMonthlyReport({ month: m }).catch(() => null)));
