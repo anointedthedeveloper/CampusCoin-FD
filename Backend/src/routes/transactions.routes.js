@@ -3,6 +3,7 @@ const multer = require('multer');
 const Transaction = require('../models/Transaction');
 const Category = require('../models/Category');
 const { protect } = require('../middleware/auth');
+const { ensureRecurringProcessed } = require('./recurring.routes');
 const { checkBudgetAfterTransaction } = require('../services/budgetAlert.service');
 const { validateIdParam, isValidObjectId } = require('../utils/objectId');
 
@@ -52,26 +53,38 @@ function formatTx(t) {
 // GET /api/v1/transactions
 router.get('/', async (req, res) => {
   try {
+    await ensureRecurringProcessed(req.user._id);
     const { categoryId, type, startDate, endDate, search, page = 1, pageSize = 20 } = req.query;
     if (categoryId && !isValidObjectId(categoryId)) return res.status(400).json({ message: 'Invalid categoryId' });
 
     const filter = { userId: req.user._id };
     if (categoryId) filter.categoryId = categoryId;
     if (type) filter.type = type;
+    if (type && !['income', 'expense'].includes(type)) return res.status(400).json({ message: 'Invalid type' });
     if (startDate || endDate) {
+      const start = startDate ? new Date(startDate) : null;
+      // A bare YYYY-MM-DD end date means "through the end of that day".
+      const end = endDate
+        ? new Date(/^\d{4}-\d{2}-\d{2}$/.test(endDate) ? `${endDate}T23:59:59.999Z` : endDate)
+        : null;
+      if ((start && Number.isNaN(start.getTime())) || (end && Number.isNaN(end.getTime()))) {
+        return res.status(400).json({ message: 'Invalid startDate or endDate' });
+      }
       filter.occurredAt = {};
-      if (startDate) filter.occurredAt.$gte = new Date(startDate);
-      if (endDate) filter.occurredAt.$lte = new Date(endDate);
+      if (start) filter.occurredAt.$gte = start;
+      if (end) filter.occurredAt.$lte = end;
     }
-    if (search) {
+    if (typeof search === 'string' && search.trim()) {
+      // Escape regex metacharacters: raw user input like "(" used to 500.
+      const pattern = search.trim().slice(0, 100).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       filter.$or = [
-        { description: { $regex: search, $options: 'i' } },
-        { merchant: { $regex: search, $options: 'i' } },
+        { description: { $regex: pattern, $options: 'i' } },
+        { merchant: { $regex: pattern, $options: 'i' } },
       ];
     }
 
-    const pageNum = Math.max(1, parseInt(page));
-    const pageSizeNum = Math.min(100, Math.max(1, parseInt(pageSize)));
+    const pageNum = Math.max(1, parseInt(page) || 1);
+    const pageSizeNum = Math.min(100, Math.max(1, parseInt(pageSize) || 20));
     const skip = (pageNum - 1) * pageSizeNum;
 
     const [items, totalItems] = await Promise.all([
@@ -119,6 +132,28 @@ router.post('/', async (req, res) => {
     // Verify the category belongs to this user or is a default
     const cat = await Category.findOne({ _id: categoryId, $or: [{ userId: req.user._id }, { userId: null }] });
     if (!cat) return res.status(400).json({ message: 'Invalid category' });
+    if (cat.type !== type) return res.status(400).json({ message: `"${cat.name}" is an ${cat.type} category` });
+
+    // Possible duplicate: same type, amount and category on the same day.
+    // The client can resend with confirmDuplicate: true to save it anyway.
+    if (req.body.confirmDuplicate !== true) {
+      const day = new Date(occurredAt);
+      const dayStart = new Date(Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate()));
+      const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
+      const duplicate = await Transaction.findOne({
+        userId: req.user._id,
+        categoryId,
+        type,
+        amount: Number(amount),
+        occurredAt: { $gte: dayStart, $lt: dayEnd },
+      });
+      if (duplicate) {
+        return res.status(409).json({
+          message: `You already logged ${type === 'income' ? 'income' : 'an expense'} of ${Number(amount).toLocaleString('en-US')} in ${cat.name} on this day. Save it again anyway?`,
+          code: 'POSSIBLE_DUPLICATE',
+        });
+      }
+    }
 
     const tx = await Transaction.create({
       userId: req.user._id,
@@ -169,6 +204,10 @@ router.patch('/:id', async (req, res) => {
       }
     });
     await tx.save();
+
+    if (tx.type === 'expense') {
+      await checkBudgetAfterTransaction(req.user._id, tx.categoryId, tx.occurredAt);
+    }
 
     res.json({ data: formatTx(tx) });
   } catch (err) {

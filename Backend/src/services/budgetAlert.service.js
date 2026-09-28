@@ -2,9 +2,16 @@ const Budget = require('../models/Budget');
 const Transaction = require('../models/Transaction');
 const Notification = require('../models/Notification');
 const Category = require('../models/Category');
+const User = require('../models/User');
+const mongoose = require('mongoose');
 
-async function checkBudgetAfterTransaction(userId, categoryId, occurredAt) {
+const toObjectId = (id) => (id instanceof mongoose.Types.ObjectId ? id : new mongoose.Types.ObjectId(String(id)));
+
+async function checkBudgetAfterTransaction(userIdInput, categoryIdInput, occurredAt) {
   try {
+    // $match in an aggregate does not cast strings to ObjectIds.
+    const userId = toObjectId(userIdInput);
+    const categoryId = toObjectId(categoryIdInput);
     const date = new Date(occurredAt);
     const month = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 
@@ -33,7 +40,12 @@ async function checkBudgetAfterTransaction(userId, categoryId, occurredAt) {
     let type = null;
     let severity = null;
     if (percentage >= 100) { type = 'budget-exceeded'; severity = 'high'; }
-    else if (percentage >= 80) { type = 'budget-near'; severity = 'medium'; }
+    else {
+      // The student's own "alert me at X%" setting (defaults to 80%).
+      const user = await User.findById(userId).select('settings.budgetAlertThreshold').lean();
+      const threshold = user?.settings?.budgetAlertThreshold ?? 80;
+      if (percentage >= threshold) { type = 'budget-near'; severity = 'medium'; }
+    }
     if (!type) return null;
 
     // Avoid re-notifying on every subsequent transaction once a threshold has

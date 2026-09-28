@@ -7,21 +7,10 @@ import { assets } from '@/assets/images';
 import { cn } from '@/utils/cn';
 import type { AuthPageOutletContext } from '@/pages/auth/authOutletContext';
 
-// At lg+ (where the hero and form sit side by side) the hero photo extends
-// the full width of the layout instead of stopping at a hard seam into a
-// flat-colored form panel — the photo fades into a solid, theme-appropriate
-// backdrop by the time it reaches the form column. Written as plain CSS
-// gradients (not Tailwind's from-/via-/to- utilities) so the exact stop
-// positions are unambiguous and don't depend on Tailwind's opacity-scale
-// lookup for those utilities, which silently no-ops for values outside its
-// preset scale.
-// Light mode: the photo fades to a clean white form panel through a crisp
-// gradient. Keep the photo vivid on the left, fully white by the form edge.
-const AUTH_BACKDROP_LIGHT =
-  'linear-gradient(to right, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.45) 30%, rgba(255,255,255,0.65) 50%, rgba(255,255,255,0.88) 65%, rgba(255,255,255,0.97) 78%, #ffffff 100%)';
-const AUTH_BACKDROP_DARK =
-  'linear-gradient(to right, rgba(5,46,22,0.88) 0%, rgba(5,46,22,0.84) 32%, rgba(5,46,22,0.9) 50%, rgba(9,18,13,0.85) 62%, #09120d 76%, #09120d 100%)';
-
+// At lg+ the photo runs full-bleed behind both columns. Instead of washing
+// it out with a white gradient (which left the hero copy low-contrast in
+// light mode), the photo keeps its colour under a light tint and every piece
+// of text sits on a frosted-glass panel with its own solid-enough backdrop.
 export function AuthLayout() {
   const hasRoomForDetails = useMediaQuery(AUTH_HERO_DETAIL_QUERY);
   // Height-only signal: even on wide desktop windows, a short browser viewport
@@ -38,7 +27,7 @@ export function AuthLayout() {
 
   return (
     <div className="relative flex h-[100dvh] flex-col overflow-hidden bg-white dark:bg-background lg:flex-row">
-      {/* Full-bleed background, lg+ only — see AUTH_BACKDROP_* above. Below
+      {/* Full-bleed background, lg+ only. Below
           lg the two columns stack and each keeps its own background
           (AuthHero's own photo up top, this container's flat color below). */}
       <div className="absolute inset-0 z-0 hidden lg:block" aria-hidden="true">
@@ -47,13 +36,7 @@ export function AuthLayout() {
           alt=""
           className="absolute inset-0 h-full w-full animate-slow-zoom object-cover object-center saturate-[1.15]"
         />
-        <div className="absolute inset-0 dark:hidden" style={{ backgroundImage: AUTH_BACKDROP_LIGHT }} />
-        <div className="absolute inset-0 hidden dark:block" style={{ backgroundImage: AUTH_BACKDROP_DARK }} />
-        {/* Warm golden-hour glow — dark mode only; light mode is bright daylight, not a dusk tint. */}
-        <div
-          className="absolute inset-0 hidden dark:block"
-          style={{ backgroundImage: 'radial-gradient(ellipse 60% 65% at 12% 100%, rgba(217,167,45,0.18), transparent 60%)' }}
-        />
+        <div className="absolute inset-0 bg-gradient-to-br from-brand-950/25 via-transparent to-brand-950/30 dark:from-black/70 dark:via-brand-950/60 dark:to-black/75" />
       </div>
 
       <div
@@ -75,7 +58,7 @@ export function AuthLayout() {
           <div className="w-full max-w-md animate-fade-in-up lg:max-w-lg">
             <div
               className={cn(
-                'auth-glow-border rounded-2xl border border-gray-200 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.08),0_1px_4px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] dark:border-white/10 dark:bg-surface-elevated dark:shadow-black/40',
+                'auth-glow-border glass-panel rounded-2xl transition-shadow duration-300',
                 glowDirection,
                 compact ? 'p-4' : 'p-6 sm:p-8',
               )}
@@ -85,7 +68,7 @@ export function AuthLayout() {
             <Link
               to={PUBLIC_ROUTES.home}
               className={cn(
-                'hidden items-center justify-center gap-1.5 text-sm font-medium text-gray-500 transition-colors duration-200 hover:text-brand-700 dark:text-text-muted dark:hover:text-primary-accent lg:flex',
+                'glass-chip mx-auto hidden w-fit items-center justify-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium text-gray-800 transition-colors duration-200 hover:text-brand-700 dark:text-white/85 dark:hover:text-primary-accent lg:flex',
                 isShort ? 'mt-2' : 'mt-6',
               )}
             >

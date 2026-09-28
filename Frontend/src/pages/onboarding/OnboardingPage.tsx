@@ -326,9 +326,9 @@ export function OnboardingPage() {
             // Map the income source the user selected to the best category name
             const sourceToCategory: Record<string, string> = {
               allowance:   'Allowance',
-              scholarship: 'Allowance',
-              'part-time': 'Salary',
-              freelance:   'Freelance',
+              scholarship: 'Scholarship',
+              'part-time': 'Part-time Job',
+              freelance:   'Part-time Job',
               gift:        'Gift',
             };
 

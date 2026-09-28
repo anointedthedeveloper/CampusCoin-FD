@@ -10,10 +10,12 @@ import { DEFAULT_CURRENCY } from '@/constants/config';
 import { formatCurrency, formatDate } from '@/utils/format';
 import { cn } from '@/utils/cn';
 import type { Transaction } from '@/types/transaction';
+import { forgetRecentTransaction, recordRecentTransaction } from '@/utils/recentTransactions';
 
 export function TransactionDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const currency = user?.settings?.currency ?? DEFAULT_CURRENCY;
   const navigate = useNavigate();
 
   const [transaction, setTransaction] = useState<Transaction | undefined>(undefined);
@@ -28,6 +30,7 @@ export function TransactionDetailPage() {
       if (cancelled) return;
       setTransaction(tx);
       if (tx) {
+        recordRecentTransaction(user!.id, tx, 'viewed');
         const cat = await categoryService.getById(user!.id, tx.categoryId).catch(() => undefined);
         if (!cancelled) setCategoryName(cat?.name ?? 'Other');
       }
@@ -57,6 +60,7 @@ export function TransactionDetailPage() {
     if (!user || !transaction) return;
     if (!window.confirm('Delete this transaction? This cannot be undone.')) return;
     await transactionService.remove(user.id, transaction.id);
+    forgetRecentTransaction(user.id, transaction.id);
     navigate(STUDENT_ROUTES.transactions);
   }
 
@@ -78,7 +82,7 @@ export function TransactionDetailPage() {
             </div>
           </div>
           <p className={cn('text-xl font-bold', transaction.type === 'income' ? 'text-brand-600' : 'text-gray-900')}>
-            {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount, DEFAULT_CURRENCY)}
+            {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount, currency)}
           </p>
         </div>
 

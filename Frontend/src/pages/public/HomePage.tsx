@@ -16,7 +16,7 @@ import {
   Wallet,
 } from 'lucide-react';
 import { PUBLIC_ROUTES, STUDENT_ROUTES } from '@/constants/routes';
-import { Ripple, ScreenshotSlideshow } from '@/components/common';
+import { QuickGuideVideo, Ripple, ScreenshotSlideshow, WatchGuideButton } from '@/components/common';
 import { FeatureGrid } from '@/components/home/FeatureGrid';
 import { assets } from '@/assets/images';
 import { useRipple } from '@/hooks/useRipple';
@@ -147,7 +147,7 @@ function HeroBackground() {
       ))}
       <div
         aria-hidden="true"
-        className="absolute inset-0 z-10 bg-gradient-to-b from-white/95 via-white/75 to-white/40 dark:hidden lg:bg-gradient-to-r lg:from-white/75 lg:via-white/25 lg:to-transparent"
+        className="absolute inset-0 z-10 bg-gradient-to-b from-white/30 to-transparent dark:hidden"
       />
       <div
         aria-hidden="true"
@@ -178,24 +178,25 @@ export function HomePage() {
 
   return (
     <div>
+      <QuickGuideVideo />
       {/* ── Hero ── */}
       <section className="relative isolate -mt-24 min-h-svh overflow-hidden bg-[#f6fbf7] pt-24 dark:bg-background">
         <HeroBackground />
         <div className="relative z-20 mx-auto flex min-h-[calc(100svh-6rem)] max-w-[1280px] items-center px-4 py-6 sm:px-6 md:py-8">
           <div className="grid w-full items-center gap-6 lg:grid-cols-[1.05fr_1fr] lg:gap-10">
-            <div className="max-w-[480px] py-3 md:py-6 lg:max-w-[600px]">
+            <div className="glass-panel max-w-[520px] rounded-[28px] p-6 sm:p-8 lg:max-w-[620px]">
               <span className="inline-flex animate-fade-in-up items-center gap-1.5 rounded-full bg-white/80 px-4 py-1.5 text-xs font-semibold text-[#1d3d2d] shadow-sm transition-transform duration-200 hover:scale-105 dark:bg-white/10 dark:text-text-primary dark:shadow-black/20">
                 <span className="text-[#1f7a43] dark:text-primary-accent">Smart money,</span>
                 <span className="text-[#1d3d2d] dark:text-text-primary">Brighter Future</span>
               </span>
 
-              <h1 className="mt-4 max-w-[600px] animate-fade-in-up text-[2.6rem] font-bold leading-[1.05] tracking-[-0.04em] text-[#1d3d2d] [animation-delay:100ms] dark:text-text-primary sm:mt-5 sm:text-[3.6rem] lg:text-[4.4rem]">
+              <h1 className="mt-4 max-w-[600px] animate-fade-in-up text-[2.3rem] font-bold leading-[1.05] tracking-[-0.04em] text-[#1d3d2d] [animation-delay:100ms] dark:text-text-primary sm:mt-5 sm:text-[3rem] lg:text-[3.5rem]">
                 Take control of <br />
                 your money on <br />
                 <span className="text-[#1a8f57] dark:text-primary-accent">campus</span>
               </h1>
 
-              <p className="mt-4 max-w-[460px] animate-fade-in-up text-base leading-relaxed text-gray-700 [animation-delay:150ms] dark:text-text-secondary sm:mt-5 sm:text-lg">
+              <p className="mt-4 max-w-[460px] animate-fade-in-up text-base leading-relaxed text-gray-800 [animation-delay:150ms] dark:text-text-secondary sm:mt-5 sm:text-lg">
                 Log allowance, gig income, and scholarships as they land, cap spending per category
                 with real-time budget bars, and get AI-assisted saving tips from your own habits —
                 no bank account required.
@@ -227,9 +228,10 @@ export function HomePage() {
                 </span>
                 <div>
                   <p className="text-sm font-semibold text-[#1d3d2d] dark:text-text-primary">Built for students</p>
-                  <p className="text-xs text-gray-500 dark:text-text-muted">Simple tools for everyday campus finances</p>
+                  <p className="text-xs text-gray-600 dark:text-text-muted">Simple tools for everyday campus finances</p>
                 </div>
               </div>
+              <WatchGuideButton className="mt-5 animate-fade-in-up [animation-delay:300ms]" />
             </div>
           </div>
         </div>

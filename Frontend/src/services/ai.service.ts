@@ -9,9 +9,11 @@ export const aiService = {
 
   answer: (message: string, history?: AIConversationTurn[]) => aiApi.answer(message, history),
 
-  async suggestCategory(description: string, merchant?: string): Promise<CategorySuggestion | null> {
-    if (!FEATURE_FLAGS.aiCategorization) return null;
-    return aiApi.suggestCategory(description, merchant);
+  // Gated by the student's own "Automatic categorization" setting (checked
+  // by the caller) rather than a build-time flag, so it works as soon as
+  // the student turns it on.
+  async suggestCategory(description: string, merchant?: string, type?: 'income' | 'expense'): Promise<CategorySuggestion | null> {
+    return aiApi.suggestCategory(description, merchant, type);
   },
 
   async generateMonthlyInsight(month: string): Promise<{ insightId: string } | null> {

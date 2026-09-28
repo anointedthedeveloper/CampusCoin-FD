@@ -70,6 +70,9 @@ const NotificationsPage = lazyWithRetry(() =>
 const ProfilePage = lazyWithRetry(() =>
   import('@/pages/student/ProfilePage').then((page) => ({ default: page.ProfilePage })),
 );
+const RecurringPage = lazyWithRetry(() =>
+  import('@/pages/student/RecurringPage').then((page) => ({ default: page.RecurringPage })),
+);
 const ReportsPage = lazyWithRetry(() =>
   import('@/pages/student/ReportsPage').then((page) => ({ default: page.ReportsPage })),
 );
@@ -176,6 +179,7 @@ export function AppRoutes() {
             <Route path={STUDENT_ROUTES.profile} element={<ProfilePage />} />
             <Route path={STUDENT_ROUTES.settings} element={<SettingsPage />} />
             <Route path={STUDENT_ROUTES.notifications} element={<NotificationsPage />} />
+            <Route path={STUDENT_ROUTES.recurring} element={<RecurringPage />} />
           </Route>
 
           {/* Admin console (requires authentication + admin role) */}

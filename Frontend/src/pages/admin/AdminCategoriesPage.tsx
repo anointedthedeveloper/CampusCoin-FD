@@ -38,7 +38,7 @@ function CategoryGrid({
               <span className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-full', badgeClassName)}>
                 <Icon className="h-4 w-4" />
               </span>
-              <p className="truncate text-sm font-medium text-gray-900">{template.name}</p>
+              <p className="truncate text-sm font-medium text-gray-900 dark:text-text-primary">{template.name}</p>
             </div>
             {!isProtected && (
               <button
@@ -73,13 +73,13 @@ export function AdminCategoriesPage() {
   const expenseTemplates = allTemplates.filter((t) => t.type === 'expense');
   const incomeTemplates = allTemplates.filter((t) => t.type === 'income');
 
-  function handleDelete(template: DefaultCategoryTemplate) {
+  async function handleDelete(template: DefaultCategoryTemplate) {
     const confirmed = window.confirm(
-      `Remove "${template.name}" from the default categories? Existing students keep their own copy — this only changes what new sign-ups start with.`,
+      `Remove "${template.name}" from the default categories? Students who already have their own "${template.name}" keep it — this changes what new sign-ups start with.`,
     );
     if (!confirmed) return;
     try {
-      adminCategoryService.remove(template.id);
+      await adminCategoryService.remove(template.id);
       setRefreshToken((token) => token + 1);
     } catch (err) {
       window.alert(err instanceof ApiError ? err.message : 'Could not remove this category.');
@@ -93,7 +93,7 @@ export function AdminCategoriesPage() {
 
     setIsSubmitting(true);
     try {
-      adminCategoryService.create({ name: name.trim(), type });
+      await adminCategoryService.create({ name: name.trim(), type });
       setName('');
       setIsFormOpen(false);
       setRefreshToken((token) => token + 1);
@@ -108,8 +108,8 @@ export function AdminCategoriesPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Categories</h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-text-primary">Categories</h1>
+          <p className="mt-1 text-sm text-gray-500 dark:text-text-muted">
             Manage the default categories every new student starts with.
           </p>
         </div>
@@ -129,7 +129,7 @@ export function AdminCategoriesPage() {
         <Card className="animate-fade-in-up p-5">
           <form onSubmit={handleSubmit} className="flex flex-col gap-4 sm:flex-row sm:items-end">
             <div className="flex-1">
-              <label htmlFor="category-name" className="text-sm font-medium text-gray-700">
+              <label htmlFor="category-name" className="text-sm font-medium text-gray-700 dark:text-text-secondary">
                 Category name
               </label>
               <input
@@ -139,18 +139,18 @@ export function AdminCategoriesPage() {
                 placeholder="e.g. Health & Wellness"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:text-text-primary dark:border-white/10 dark:bg-surface"
               />
             </div>
             <div>
-              <span className="text-sm font-medium text-gray-700">Type</span>
-              <div className="mt-1 inline-flex rounded-lg bg-gray-100 p-1">
+              <span className="text-sm font-medium text-gray-700 dark:text-text-secondary">Type</span>
+              <div className="mt-1 inline-flex rounded-lg bg-gray-100 p-1 dark:bg-white/[0.06]">
                 <button
                   type="button"
                   onClick={() => setType('expense')}
                   className={cn(
                     'rounded-md px-4 py-1.5 text-sm font-semibold transition-colors duration-200',
-                    type === 'expense' ? 'bg-brand-600 text-white shadow-sm' : 'text-gray-600 hover:text-gray-900',
+                    type === 'expense' ? 'bg-brand-600 text-white shadow-sm' : 'text-gray-600 hover:text-gray-900 dark:text-text-muted dark:hover:text-text-primary',
                   )}
                 >
                   Expense
@@ -160,7 +160,7 @@ export function AdminCategoriesPage() {
                   onClick={() => setType('income')}
                   className={cn(
                     'rounded-md px-4 py-1.5 text-sm font-semibold transition-colors duration-200',
-                    type === 'income' ? 'bg-brand-600 text-white shadow-sm' : 'text-gray-600 hover:text-gray-900',
+                    type === 'income' ? 'bg-brand-600 text-white shadow-sm' : 'text-gray-600 hover:text-gray-900 dark:text-text-muted dark:hover:text-text-primary',
                   )}
                 >
                   Income
@@ -176,12 +176,12 @@ export function AdminCategoriesPage() {
       )}
 
       <div className="space-y-3">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">Expense categories</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-text-muted">Expense categories</h2>
         <CategoryGrid templates={expenseTemplates} onDelete={handleDelete} />
       </div>
 
       <div className="space-y-3">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">Income categories</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-text-muted">Income categories</h2>
         <CategoryGrid templates={incomeTemplates} onDelete={handleDelete} />
       </div>
     </div>

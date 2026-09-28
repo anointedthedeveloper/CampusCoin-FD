@@ -27,3 +27,9 @@ export const REFRESH_TOKEN_STORAGE_KEY = 'campus-coin.refreshToken';
 // property/widget without a code change (e.g. a staging Tawk.to widget).
 export const TAWKTO_EMBED_SRC =
   import.meta.env.VITE_TAWKTO_SRC ?? 'https://embed.tawk.to/6ab9edcd78b82134466e99b0/1k3j4hr3j';
+
+// Quick guide / demo video shown from the Home and About pages. Any
+// embeddable URL works (Google Drive "/preview", YouTube "/embed/...").
+export const QUICK_GUIDE_VIDEO_URL =
+  import.meta.env.VITE_QUICK_GUIDE_VIDEO_URL ||
+  'https://drive.google.com/file/d/1D3DPfTy8Ajem-NdoQZ2B4Trf5Ulw7PKN/preview';

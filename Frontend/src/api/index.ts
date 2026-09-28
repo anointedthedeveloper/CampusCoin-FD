@@ -11,3 +11,4 @@ export * from './admin/users.api';
 export * from './admin/categories.api';
 export * from './admin/announcements.api';
 export * from './admin/statistics.api';
+export * from './recurring.api';

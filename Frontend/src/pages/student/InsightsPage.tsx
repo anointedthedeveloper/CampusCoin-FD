@@ -144,7 +144,7 @@ export function InsightsPage() {
       const lowerText = trimmedText.toLowerCase();
       const expenseCategories = categories.filter((category) => category.type === 'expense');
       const categoryMatch = expenseCategories.find((category) => lowerText.includes(category.name.toLowerCase()))
-        ?? expenseCategories.find((category) => /^other/i.test(category.name));
+        ?? expenseCategories.find((category) => /^(other|miscellaneous)/i.test(category.name));
       const amount = parseAmount(trimmedText);
 
       setMessages((previous) => [...previous, {
@@ -184,6 +184,7 @@ export function InsightsPage() {
         amount: message.suggestedAmount,
         description: message.suggestedDescription,
         occurredAt: new Date().toISOString(),
+        confirmDuplicate: true,
       });
       setLoggedIds((previous) => new Set(previous).add(message.id));
     } catch (error) {
@@ -238,6 +239,9 @@ export function InsightsPage() {
         <h1 className="text-2xl font-bold text-gray-900 dark:text-text-primary">AI Assistant</h1>
         <p className="mt-0.5 text-sm text-gray-500 dark:text-text-secondary">
           Ask about your spending, budgets, or describe a purchase. Answers use your {formatMonthLabel(month)} totals.
+        </p>
+        <p className="mt-1 text-xs text-gray-400 dark:text-text-muted">
+          AI answers and category suggestions are advisory only — review them before acting. They are not certified financial advice.
         </p>
       </div>
 

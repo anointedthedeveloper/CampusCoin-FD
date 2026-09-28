@@ -5,12 +5,14 @@ import {
   Bell,
   Bot,
   ChevronDown,
+  ChevronRight,
   LayoutDashboard,
   LogOut,
   Menu,
   PiggyBank,
   Plus,
   Receipt,
+  Repeat,
   Settings,
   Sparkles,
   Tags,
@@ -29,6 +31,7 @@ const navItems = [
   { to: STUDENT_ROUTES.dashboard,      label: 'Dashboard',     icon: LayoutDashboard, end: true },
   { to: STUDENT_ROUTES.newTransaction, label: 'Add Transaction', icon: Plus,            end: true },
   { to: STUDENT_ROUTES.transactions,   label: 'Transactions',  icon: Receipt },
+  { to: STUDENT_ROUTES.recurring,      label: 'Recurring',     icon: Repeat },
   { to: STUDENT_ROUTES.budgets,        label: 'Budgets',       icon: Wallet },
   { to: STUDENT_ROUTES.reports,        label: 'Reports',       icon: BarChart3 },
   { to: STUDENT_ROUTES.savingTips,     label: 'Saving Tips',   icon: PiggyBank },
@@ -43,6 +46,64 @@ const TOUR_STEPS = [
   { label: 'Budgets',         title: 'Set spending limits',       text: 'Cap spending per category each month and get warned before you go over.' },
   { label: 'AI Assistant',    title: 'Ask anything',              text: 'Ask about your spending in plain language and get instant answers.' },
 ];
+
+const ROUTE_LABELS: Record<string, string> = {
+  [STUDENT_ROUTES.dashboard]: 'Dashboard',
+  [STUDENT_ROUTES.transactions]: 'Transactions',
+  [STUDENT_ROUTES.newTransaction]: 'Add Transaction',
+  [STUDENT_ROUTES.recurring]: 'Recurring',
+  [STUDENT_ROUTES.categories]: 'Categories',
+  [STUDENT_ROUTES.budgets]: 'Budgets',
+  [STUDENT_ROUTES.reports]: 'Reports',
+  [STUDENT_ROUTES.insights]: 'AI Assistant',
+  [STUDENT_ROUTES.savingTips]: 'Saving Tips',
+  [STUDENT_ROUTES.savingsGoals]: 'Savings Goals',
+  [STUDENT_ROUTES.bookmarks]: 'Pinned Tips',
+  [STUDENT_ROUTES.import]: 'Import',
+  [STUDENT_ROUTES.profile]: 'Profile',
+  [STUDENT_ROUTES.settings]: 'Settings',
+  [STUDENT_ROUTES.notifications]: 'Notifications',
+};
+
+// Parent pages for routes that live "under" another section.
+const ROUTE_PARENTS: Record<string, string> = {
+  [STUDENT_ROUTES.newTransaction]: STUDENT_ROUTES.transactions,
+  [STUDENT_ROUTES.import]: STUDENT_ROUTES.transactions,
+  [STUDENT_ROUTES.bookmarks]: STUDENT_ROUTES.savingTips,
+};
+
+function Breadcrumbs({ pathname }: { pathname: string }) {
+  const crumbs: { to: string; label: string }[] = [];
+  if (ROUTE_LABELS[pathname]) {
+    const parent = ROUTE_PARENTS[pathname];
+    if (parent) crumbs.push({ to: parent, label: ROUTE_LABELS[parent] });
+    crumbs.push({ to: pathname, label: ROUTE_LABELS[pathname] });
+  } else if (pathname.startsWith(`${STUDENT_ROUTES.transactions}/`)) {
+    crumbs.push({ to: STUDENT_ROUTES.transactions, label: 'Transactions' });
+    crumbs.push({ to: pathname, label: pathname.endsWith('/edit') ? 'Edit' : 'Details' });
+  }
+  if (pathname !== STUDENT_ROUTES.dashboard) crumbs.unshift({ to: STUDENT_ROUTES.dashboard, label: 'Home' });
+
+  return (
+    <nav aria-label="Breadcrumb" className="hidden min-w-0 lg:block">
+      <ol className="flex items-center gap-1.5 text-sm">
+        {crumbs.map((crumb, index) => {
+          const isLast = index === crumbs.length - 1;
+          return (
+            <li key={crumb.to} className="flex min-w-0 items-center gap-1.5">
+              {index > 0 && <ChevronRight className="h-3.5 w-3.5 shrink-0 text-gray-300 dark:text-text-muted" aria-hidden="true" />}
+              {isLast ? (
+                <span aria-current="page" className="truncate font-semibold text-gray-900 dark:text-text-primary">{crumb.label}</span>
+              ) : (
+                <Link to={crumb.to} className="truncate text-gray-500 hover:text-brand-700 dark:text-text-muted dark:hover:text-primary-accent">{crumb.label}</Link>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+    </nav>
+  );
+}
 
 export function StudentLayout() {
   const { user, logout } = useAuth();
@@ -297,8 +358,8 @@ export function StudentLayout() {
             <Logo showWordmark={false} iconClassName="h-7 w-7" />
           </div>
 
-          {/* Desktop: page title area could go here in future */}
-          <div className="hidden lg:block" />
+          {/* Desktop: breadcrumbs */}
+          <Breadcrumbs pathname={location.pathname} />
 
           {/* Right actions */}
           <div className="flex items-center gap-1">

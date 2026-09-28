@@ -36,7 +36,7 @@ export function BookmarksPage() {
 
   async function handleRemove(ruleId: string) {
     if (!user) return;
-    await tipsService.toggleBookmark(user.id, ruleId);
+    await tipsService.toggleBookmark(user.id, ruleId, true);
     setRefreshToken((t) => t + 1);
   }
 
@@ -46,15 +46,15 @@ export function BookmarksPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-text-primary">Bookmarks</h1>
-        <p className="mt-1 text-sm text-gray-500">Saving tips you&apos;ve starred for later.</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-text-primary">Pinned Tips</h1>
+        <p className="mt-1 text-sm text-gray-500 dark:text-text-secondary">Saving tips you&apos;ve pinned for later.</p>
       </div>
 
       {bookmarkedTips.length === 0 ? (
         <EmptyState
           icon={Bookmark}
-          title="No bookmarks yet"
-          description="Tap the bookmark icon on any saving tip to save it here."
+          title="No pinned tips yet"
+          description="Tap the pin icon on any saving tip to keep it here."
           action={
             <Link to={STUDENT_ROUTES.savingTips} className="text-sm font-semibold text-brand-600 hover:text-brand-700">
               Browse saving tips
@@ -76,13 +76,13 @@ export function BookmarksPage() {
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold text-gray-900 dark:text-text-primary">{tip.title}</p>
-                  <p className="mt-1 text-sm text-gray-600">{tip.body}</p>
+                  <p className="mt-1 text-sm text-gray-600 dark:text-text-secondary">{tip.body}</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => handleRemove(tip.id)}
                   className="shrink-0 rounded-lg p-1.5 text-brand-600 transition-colors duration-200 hover:bg-brand-50"
-                  aria-label="Remove bookmark"
+                  aria-label="Unpin tip"
                 >
                   <Bookmark className="h-4 w-4 fill-current" />
                 </button>

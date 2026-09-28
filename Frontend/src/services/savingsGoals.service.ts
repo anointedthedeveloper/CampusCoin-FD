@@ -1,18 +1,48 @@
 import type { SavingsGoal } from '@/types/savingsGoal';
 
-const STORAGE_KEY = 'campus-coin.savingsGoals';
+// Goals are stored per student. The original version kept one shared list
+// for the whole browser, so a second student signing in on the same device
+// saw (and could edit) the first student's goals.
+const LEGACY_STORAGE_KEY = 'campus-coin.savingsGoals';
+const storageKey = (userId: string) => `${LEGACY_STORAGE_KEY}.${userId}`;
+
+// Set by list()/create(), which every page calls with the signed-in user
+// before using the id-only methods below.
+let activeUserId: string | null = null;
+
+function setActiveUser(userId: string): void {
+  activeUserId = userId;
+  try {
+    // One-time migration: hand the old shared list to the first student
+    // who opens Savings Goals on this device.
+    const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
+    if (legacy && !localStorage.getItem(storageKey(userId))) {
+      localStorage.setItem(storageKey(userId), legacy);
+    }
+    if (legacy) localStorage.removeItem(LEGACY_STORAGE_KEY);
+  } catch {
+    // ignore
+  }
+}
 
 function readAll(): SavingsGoal[] {
+  if (!activeUserId) return [];
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as SavingsGoal[]) : [];
+    const raw = localStorage.getItem(storageKey(activeUserId));
+    const parsed = raw ? (JSON.parse(raw) as SavingsGoal[]) : [];
+    return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
   }
 }
 
 function writeAll(goals: SavingsGoal[]): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(goals));
+  if (!activeUserId) return;
+  try {
+    localStorage.setItem(storageKey(activeUserId), JSON.stringify(goals));
+  } catch {
+    // Storage full or unavailable.
+  }
 }
 
 function uid(): string {
@@ -22,7 +52,7 @@ function uid(): string {
 export const savingsGoalsService = {
   /** List all goals for a user (userId scoped via key prefix if needed) */
   list(userId: string): SavingsGoal[] {
-    void userId; // userId reserved for future server-side scoping
+    setActiveUser(userId);
     return readAll();
   },
 
@@ -30,7 +60,7 @@ export const savingsGoalsService = {
     userId: string,
     payload: Omit<SavingsGoal, 'id' | 'createdAt' | 'celebratedMilestones'>,
   ): SavingsGoal {
-    void userId;
+    setActiveUser(userId);
     const goal: SavingsGoal = {
       ...payload,
       id: uid(),

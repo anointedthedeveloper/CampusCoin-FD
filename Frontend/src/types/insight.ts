@@ -17,7 +17,13 @@ export interface SavingTip {
   body: string;
   category?: string;
   isAiGenerated: boolean;
-  createdAt: string;
+  createdAt?: string;
+  /** 'personal' = generated from the student's own records. */
+  kind?: 'personal' | 'general';
+  /** Estimated monthly saving used for ranking. */
+  impact?: number;
+  rank?: number;
+  isPinned?: boolean;
 }
 
 export type BookmarkTargetType = 'insight' | 'saving-tip';

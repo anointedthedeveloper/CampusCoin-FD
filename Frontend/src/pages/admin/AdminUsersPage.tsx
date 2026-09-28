@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Users } from 'lucide-react';
-import { Avatar, Badge, Card, EmptyState, PageSpinner } from '@/components/common';
+import { Ban, CheckCircle2, RotateCcw, Search, Trash2, Users } from 'lucide-react';
+import { Avatar, Badge, Card, ConfirmDialog, EmptyState, PageSpinner } from '@/components/common';
+import { useAuth } from '@/hooks/useAuth';
 import { ADMIN_ROUTES, buildPath } from '@/constants/routes';
 import { adminUserService } from '@/services';
 import { formatDate } from '@/utils/format';
@@ -9,7 +10,12 @@ import { cn } from '@/utils/cn';
 import { useMinLoadTime } from '@/hooks/useMinLoadTime';
 import type { AdminUserSummary } from '@/types/admin';
 
+type PendingAction = { kind: 'suspend' | 'activate' | 'reset' | 'delete'; user: AdminUserSummary } | null;
+
 export function AdminUsersPage() {
+  const { user: currentUser } = useAuth();
+  const [pendingAction, setPendingAction] = useState<PendingAction>(null);
+  const [flash, setFlash] = useState<string | null>(null);
   const [search,       setSearch]       = useState('');
   const [roleFilter,   setRoleFilter]   = useState<'all' | 'student' | 'admin'>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'suspended'>('all');
@@ -44,10 +50,48 @@ export function AdminUsersPage() {
     return matchesSearch && matchesRole && matchesStatus;
   });
 
-  async function toggleActive(id: string, isActive: boolean) {
-    await adminUserService.setActive(id, !isActive);
+  async function runPendingAction() {
+    if (!pendingAction) return;
+    const { kind, user: target } = pendingAction;
+    if (kind === 'suspend' || kind === 'activate') {
+      await adminUserService.setActive(target.id, kind === 'activate');
+      setFlash(`${target.fullName} was ${kind === 'activate' ? 'reactivated' : 'suspended'}.`);
+    } else if (kind === 'reset') {
+      await adminUserService.resetAccount(target.id);
+      setFlash(`${target.fullName}'s account data was reset.`);
+    } else {
+      await adminUserService.remove(target.id);
+      setFlash(`${target.fullName} was deleted.`);
+    }
     setRefreshToken((t) => t + 1);
   }
+
+  const dialogCopy = pendingAction && {
+    suspend: {
+      title: `Suspend ${pendingAction.user.fullName}?`,
+      description: 'They will be signed out immediately and cannot log in until you reactivate the account. Their data is kept.',
+      confirmLabel: 'Suspend user',
+      tone: 'danger' as const,
+    },
+    activate: {
+      title: `Reactivate ${pendingAction.user.fullName}?`,
+      description: 'They will be able to sign in again.',
+      confirmLabel: 'Reactivate',
+      tone: 'primary' as const,
+    },
+    reset: {
+      title: `Reset ${pendingAction.user.fullName}'s account?`,
+      description: 'Deletes all of their transactions, budgets, recurring entries, notifications and bookmarks, restores the default categories and restarts onboarding. Their login stays the same. This cannot be undone.',
+      confirmLabel: 'Reset account',
+      tone: 'danger' as const,
+    },
+    delete: {
+      title: `Delete ${pendingAction.user.fullName}?`,
+      description: 'Permanently deletes this account and all of its financial records. This cannot be undone.',
+      confirmLabel: 'Delete permanently',
+      tone: 'danger' as const,
+    },
+  }[pendingAction.kind];
 
   if (showLoader) return <PageSpinner label="Loading users…" />;
 
@@ -60,6 +104,23 @@ export function AdminUsersPage() {
           {users.length} registered user{users.length !== 1 ? 's' : ''} on the platform.
         </p>
       </div>
+
+      {flash && (
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-brand-200 bg-brand-50 px-4 py-3 text-sm text-brand-800 dark:border-primary/25 dark:bg-primary/10 dark:text-primary-accent" role="status">
+          <span className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4" />{flash}</span>
+          <button type="button" onClick={() => setFlash(null)} className="text-xs font-semibold hover:underline">Dismiss</button>
+        </div>
+      )}
+
+      {dialogCopy && pendingAction && (
+        <ConfirmDialog
+          open
+          {...dialogCopy}
+          requireText={pendingAction.kind === 'delete' ? 'DELETE' : undefined}
+          onConfirm={runPendingAction}
+          onClose={() => setPendingAction(null)}
+        />
+      )}
 
       {/* Filters bar */}
       <Card noPadding className="overflow-hidden">
@@ -136,15 +197,12 @@ export function AdminUsersPage() {
         ) : (
           <>
             {/* Column headers — md+ */}
-            <div className="hidden border-b border-gray-50 px-5 py-2.5 dark:border-white/[0.04] md:grid md:grid-cols-[1fr_auto_auto_auto_auto] md:gap-4">
-              {['User', 'Transactions', 'Joined', 'Status', ''].map((h, i) => (
-                <span
-                  key={`${h}-${i}`}
-                  className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-text-muted"
-                >
-                  {h}
-                </span>
-              ))}
+            <div className="hidden items-center gap-3 border-b border-gray-50 px-5 py-2.5 text-xs font-semibold uppercase tracking-wide text-gray-400 dark:border-white/[0.04] dark:text-text-muted md:flex">
+              <span className="flex-1">User</span>
+              <span className="w-28">Transactions</span>
+              <span className="w-28">Joined</span>
+              <span className="w-20">Status</span>
+              <span className="w-[7.5rem] text-right">Actions</span>
             </div>
 
             <div className="divide-y divide-gray-50 dark:divide-white/[0.03]">
@@ -163,38 +221,66 @@ export function AdminUsersPage() {
                       <p className="truncate text-sm font-semibold text-gray-900 dark:text-text-primary">
                         {u.fullName}
                       </p>
-                      <p className="truncate text-xs text-gray-400 dark:text-text-muted">{u.email}</p>
+                      <p className="truncate text-xs text-gray-400 dark:text-text-muted">{u.email}{u.role === 'admin' && <span className="ml-1.5 rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-300">admin</span>}</p>
                     </div>
                   </Link>
 
                   {/* Transaction count */}
-                  <span className="hidden text-xs font-medium text-gray-500 dark:text-text-secondary md:block w-24">
+                  <span className="hidden text-xs font-medium text-gray-500 dark:text-text-secondary md:block w-28">
                     {u.transactionCount} txn{u.transactionCount !== 1 ? 's' : ''}
                   </span>
 
                   {/* Joined date */}
-                  <span className="hidden text-xs text-gray-400 dark:text-text-muted md:block w-24">
+                  <span className="hidden text-xs text-gray-400 dark:text-text-muted md:block w-28">
                     {formatDate(u.createdAt)}
                   </span>
 
                   {/* Status badge */}
-                  <Badge tone={u.isActive ? 'success' : 'neutral'} className="shrink-0">
-                    {u.isActive ? 'Active' : 'Suspended'}
-                  </Badge>
+                  <span className="w-20 shrink-0">
+                    <Badge tone={u.isActive ? 'success' : 'danger'}>
+                      {u.isActive ? 'Active' : 'Suspended'}
+                    </Badge>
+                  </span>
 
-                  {/* Suspend / Activate button */}
-                  <button
-                    type="button"
-                    onClick={() => void toggleActive(u.id, u.isActive)}
-                    className={cn(
-                      'shrink-0 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-all duration-150 hover:-translate-y-px',
-                      u.isActive
-                        ? 'border-red-100 text-red-600 hover:bg-red-50 dark:border-red-500/20 dark:text-red-400 dark:hover:bg-red-500/[0.08]'
-                        : 'border-brand-100 text-brand-700 hover:bg-brand-50 dark:border-primary/20 dark:text-primary-accent dark:hover:bg-primary/[0.08]',
-                    )}
-                  >
-                    {u.isActive ? 'Suspend' : 'Activate'}
-                  </button>
+                  {/* Actions — your own account can't be suspended, reset or deleted here */}
+                  {u.id === currentUser?.id ? (
+                    <span className="w-[7.5rem] shrink-0 text-right text-xs font-medium text-gray-400 dark:text-text-muted">You</span>
+                  ) : (
+                    <div className="flex w-[7.5rem] shrink-0 items-center justify-end gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setPendingAction({ kind: u.isActive ? 'suspend' : 'activate', user: u })}
+                        title={u.isActive ? 'Suspend' : 'Reactivate'}
+                        aria-label={`${u.isActive ? 'Suspend' : 'Reactivate'} ${u.fullName}`}
+                        className={cn(
+                          'flex h-8 w-8 items-center justify-center rounded-lg border transition-colors',
+                          u.isActive
+                            ? 'border-amber-200 text-amber-600 hover:bg-amber-50 dark:border-amber-400/20 dark:text-amber-400 dark:hover:bg-amber-400/10'
+                            : 'border-brand-200 text-brand-700 hover:bg-brand-50 dark:border-primary/25 dark:text-primary-accent dark:hover:bg-primary/10',
+                        )}
+                      >
+                        {u.isActive ? <Ban className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPendingAction({ kind: 'reset', user: u })}
+                        title="Reset account data"
+                        aria-label={`Reset ${u.fullName}'s account data`}
+                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-600 transition-colors hover:bg-gray-50 dark:border-white/10 dark:text-text-secondary dark:hover:bg-white/5"
+                      >
+                        <RotateCcw className="h-4 w-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPendingAction({ kind: 'delete', user: u })}
+                        title="Delete user"
+                        aria-label={`Delete ${u.fullName}`}
+                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-red-200 text-red-600 transition-colors hover:bg-red-50 dark:border-red-500/20 dark:text-red-400 dark:hover:bg-red-500/10"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

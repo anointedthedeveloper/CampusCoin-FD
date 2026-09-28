@@ -1,36 +1,41 @@
 import { insightsApi } from '@/api/insights.api';
-import type { SavingTip, Bookmark } from '@/types/insight';
+import type { SavingTip } from '@/types/insight';
 
+// Tips come from the server's saving-tips engine: personalised tips ranked by
+// how much they could save, followed by the admin's general templates.
+// "Bookmarking" a tip pins it; dismissing hides it until restored.
 export const tipsService = {
   async list(_userId?: string, _month?: string): Promise<SavingTip[]> {
     return insightsApi.listSavingTips();
   },
 
-  // Dismiss is not yet a backend feature — no-op.
-  dismiss(_userId: string, _ruleId: string): void {
-    return;
+  async listWithMeta(): Promise<{ tips: SavingTip[]; dismissedCount: number }> {
+    return insightsApi.listSavingTipsWithMeta();
+  },
+
+  async dismiss(_userId: string, tipId: string): Promise<void> {
+    await insightsApi.dismissSavingTip(tipId);
+  },
+
+  async restoreDismissed(): Promise<void> {
+    await insightsApi.restoreDismissedTips();
   },
 
   async isBookmarked(_userId: string, tipId: string): Promise<boolean> {
-    const bookmarks = await insightsApi.listBookmarks();
-    return bookmarks.some((b: Bookmark) => b.targetId === tipId && b.targetType === 'saving-tip');
+    const tips = await insightsApi.listSavingTips();
+    return Boolean(tips.find((t) => t.id === tipId)?.isPinned);
   },
 
-  async toggleBookmark(_userId: string, tipId: string): Promise<boolean> {
-    const bookmarks = await insightsApi.listBookmarks();
-    const existing = bookmarks.find((b: Bookmark) => b.targetId === tipId && b.targetType === 'saving-tip');
-    if (existing) {
-      await insightsApi.removeBookmark(existing.id);
-      return false;
-    }
-    await insightsApi.addBookmark({ targetType: 'saving-tip', targetId: tipId });
-    return true;
+  /** Toggles the pin; resolves to the new pinned state. */
+  async toggleBookmark(_userId: string, tipId: string, currentlyPinned?: boolean): Promise<boolean> {
+    const pinned = currentlyPinned ?? (await this.isBookmarked(_userId, tipId));
+    await insightsApi.pinSavingTip(tipId, !pinned);
+    return !pinned;
   },
 
   async listBookmarked(_userId?: string, _month?: string): Promise<SavingTip[]> {
-    const [tips, bookmarks] = await Promise.all([insightsApi.listSavingTips(), insightsApi.listBookmarks()]);
-    const bookmarkedIds = new Set(bookmarks.filter((b: Bookmark) => b.targetType === 'saving-tip').map((b: Bookmark) => b.targetId));
-    return tips.filter((t: SavingTip) => bookmarkedIds.has(t.id));
+    const tips = await insightsApi.listSavingTips();
+    return tips.filter((t) => t.isPinned);
   },
 
   deleteAllForUser(_userId: string): void {

@@ -1,7 +1,10 @@
 const router = require('express').Router();
+const { checkBudgetAfterTransaction } = require('../services/budgetAlert.service');
+const Category = require('../models/Category');
 const Budget = require('../models/Budget');
 const Transaction = require('../models/Transaction');
 const { protect } = require('../middleware/auth');
+const { ensureRecurringProcessed } = require('./recurring.routes');
 const { validateIdParam, isValidObjectId } = require('../utils/objectId');
 
 router.use(protect);
@@ -40,6 +43,7 @@ async function getSpentAmounts(userId, month, categoryIds) {
 // GET /api/v1/budgets?month=YYYY-MM
 router.get('/', async (req, res) => {
   try {
+    await ensureRecurringProcessed(req.user._id);
     const month = req.query.month || new Date().toISOString().slice(0, 7);
     if (!MONTH_RE.test(month)) return res.status(400).json({ message: 'month must be in YYYY-MM format' });
     const budgets = await Budget.find({ userId: req.user._id, month });
@@ -77,7 +81,12 @@ router.post('/', async (req, res) => {
     if (!MONTH_RE.test(month)) return res.status(400).json({ message: 'month must be in YYYY-MM format' });
     if (!(Number(limitAmount) >= 0)) return res.status(400).json({ message: 'limitAmount must be a non-negative number' });
 
+    const category = await Category.findOne({ _id: categoryId, type: 'expense', $or: [{ userId: req.user._id }, { userId: null }] });
+    if (!category) return res.status(400).json({ message: 'Choose one of your expense categories' });
+
     const budget = await Budget.create({ userId: req.user._id, categoryId, month, limitAmount: Number(limitAmount) });
+    // Spending may already be over the new limit.
+    await checkBudgetAfterTransaction(req.user._id, budget.categoryId, `${month}-15T12:00:00.000Z`);
     const spentMap = await getSpentAmounts(req.user._id, month, [budget.categoryId]);
     res.status(201).json({ data: formatBudget(budget, spentMap[budget.categoryId.toString()] || 0) });
   } catch (err) {
@@ -98,6 +107,7 @@ router.patch('/:id', async (req, res) => {
       budget.limitAmount = Number(req.body.limitAmount);
     }
     await budget.save();
+    await checkBudgetAfterTransaction(req.user._id, budget.categoryId, `${budget.month}-15T12:00:00.000Z`);
 
     const spentMap = await getSpentAmounts(req.user._id, budget.month, [budget.categoryId]);
     res.json({ data: formatBudget(budget, spentMap[budget.categoryId.toString()] || 0) });

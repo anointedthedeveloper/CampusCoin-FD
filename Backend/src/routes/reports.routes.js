@@ -2,6 +2,8 @@ const router = require('express').Router();
 const Transaction = require('../models/Transaction');
 const Category = require('../models/Category');
 const { protect } = require('../middleware/auth');
+const { ensureRecurringProcessed } = require('./recurring.routes');
+const { isValidObjectId } = require('../utils/objectId');
 
 router.use(protect);
 
@@ -69,13 +71,22 @@ function buildWeeklySpend(expenseTxs) {
 // ── GET /api/v1/reports/monthly?month=YYYY-MM ─────────────────────────
 router.get('/monthly', async (req, res) => {
   try {
+    await ensureRecurringProcessed(req.user._id);
     const month = req.query.month || new Date().toISOString().slice(0, 7);
     if (!/^\d{4}-\d{2}$/.test(month)) return res.status(400).json({ message: 'month must be in YYYY-MM format' });
 
     const { start, end } = getMonthRange(month);
 
     const filter = { userId: req.user._id, occurredAt: { $gte: start, $lt: end } };
-    if (req.query.categoryId) filter.categoryId = req.query.categoryId;
+    if (req.query.categoryId) {
+      if (!isValidObjectId(req.query.categoryId)) return res.status(400).json({ message: 'Invalid categoryId' });
+      filter.categoryId = req.query.categoryId;
+    }
+    for (const key of ['startDate', 'endDate']) {
+      if (req.query[key] && !/^\d{4}-\d{2}-\d{2}$/.test(req.query[key])) {
+        return res.status(400).json({ message: `${key} must be in YYYY-MM-DD format` });
+      }
+    }
     if (req.query.type && ['income', 'expense'].includes(req.query.type)) filter.type = req.query.type;
     if (req.query.source) filter.source = req.query.source;
     if (req.query.startDate) filter.occurredAt.$gte = new Date(`${req.query.startDate}T00:00:00.000Z`);
@@ -91,11 +102,15 @@ router.get('/monthly', async (req, res) => {
     const totalExpense = transactions.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
     const expenseTxs = transactions.filter((t) => t.type === 'expense');
 
-    const [categoryBreakdown, dailySpend, weeklySpend] = await Promise.all([
+    const incomeTxs = transactions.filter((t) => t.type === 'income');
+    const [categoryBreakdown, incomeBreakdown, dailySpend, weeklySpend, allCategories] = await Promise.all([
       buildCategoryBreakdown(expenseTxs, totalExpense),
+      buildCategoryBreakdown(incomeTxs, totalIncome),
       Promise.resolve(buildDailySpend(expenseTxs)),
       Promise.resolve(buildWeeklySpend(expenseTxs)),
+      Category.find({ _id: { $in: [...new Set(transactions.map((t) => t.categoryId.toString()))] } }),
     ]);
+    const nameById = new Map(allCategories.map((c) => [c._id.toString(), c.name]));
 
     res.json({
       data: {
@@ -111,8 +126,24 @@ router.get('/monthly', async (req, res) => {
         totalExpense,
         netSavings: totalIncome - totalExpense,
         categoryBreakdown,
+        incomeBreakdown,
         dailySpend,
         weeklySpend,
+        transactionCount: transactions.length,
+        // Newest first, for the report's transaction table.
+        transactions: transactions
+          .slice()
+          .reverse()
+          .slice(0, 500)
+          .map((t) => ({
+            id: t._id.toString(),
+            type: t.type,
+            amount: t.amount,
+            description: t.description ?? '',
+            categoryId: t.categoryId.toString(),
+            categoryName: nameById.get(t.categoryId.toString()) ?? 'Uncategorized',
+            occurredAt: t.occurredAt,
+          })),
       },
     });
   } catch (err) {
@@ -142,8 +173,17 @@ router.get('/monthly/pdf', async (req, res) => {
     const totalExpense = transactions.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
     const expenseTxs = transactions.filter((t) => t.type === 'expense');
 
-    const categoryBreakdown = await buildCategoryBreakdown(expenseTxs, totalExpense);
+    const incomeTxs = transactions.filter((t) => t.type === 'income');
+    const [categoryBreakdown, incomeBreakdown, categories] = await Promise.all([
+      buildCategoryBreakdown(expenseTxs, totalExpense),
+      buildCategoryBreakdown(incomeTxs, totalIncome),
+      Category.find({ _id: { $in: [...new Set(transactions.map((t) => t.categoryId.toString()))] } }),
+    ]);
+    const nameById = new Map(categories.map((c) => [c._id.toString(), c.name]));
     const dailySpend = buildDailySpend(expenseTxs);
+    const weeklySpend = buildWeeklySpend(expenseTxs);
+    const currency = req.user.settings?.currency || 'NGN';
+    const money = (n) => `${currency} ${Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
     const doc = new PDFDocument({ margin: 50, size: 'A4' });
     const filename = `CampusCoin-Monthly-Report-${month}.pdf`;
@@ -152,48 +192,77 @@ router.get('/monthly/pdf', async (req, res) => {
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     doc.pipe(res);
 
+    const brand = '#1c8f53';
+    const heading = (text) => {
+      doc.moveDown(0.8);
+      doc.fontSize(13).font('Helvetica-Bold').fillColor(brand).text(text);
+      doc.moveDown(0.3);
+      doc.fillColor('#111827');
+    };
+
     // Header
-    doc.fontSize(22).font('Helvetica-Bold').text('CampusCoin');
-    doc.fontSize(16).font('Helvetica-Bold').text('Monthly Financial Report');
-    doc.fontSize(11).font('Helvetica').text(`Report Month: ${month}`);
-    doc.moveDown();
+    doc.fontSize(22).font('Helvetica-Bold').fillColor(brand).text('Campus Coin');
+    doc.fontSize(15).fillColor('#111827').text('Monthly Financial Report');
+    doc.fontSize(10).font('Helvetica').fillColor('#4b5563')
+      .text(`Student: ${req.user.fullName}`)
+      .text(`Report month: ${month}`)
+      .text(`Generated: ${new Date().toISOString().slice(0, 10)}`);
+    doc.fillColor('#111827');
 
-    // Summary
-    doc.fontSize(14).font('Helvetica-Bold').text('Monthly Summary');
-    doc.moveDown(0.5);
+    heading('Summary');
     doc.fontSize(11).font('Helvetica')
-      .text(`Total Income: ${totalIncome.toLocaleString()} NGN`)
-      .text(`Total Expense: ${totalExpense.toLocaleString()} NGN`)
-      .text(`Net Savings: ${(totalIncome - totalExpense).toLocaleString()} NGN`);
-    doc.moveDown();
+      .text(`Total income: ${money(totalIncome)}`)
+      .text(`Total expenses: ${money(totalExpense)}`)
+      .text(`Net savings: ${money(totalIncome - totalExpense)}`)
+      .text(`Transactions: ${transactions.length}`);
 
-    // Category Breakdown
-    doc.fontSize(14).font('Helvetica-Bold').text('Expense by Category');
-    doc.moveDown(0.5);
-    if (categoryBreakdown.length === 0) {
-      doc.fontSize(11).font('Helvetica').text('No expense transactions for this month.');
+    heading('Income by source');
+    if (incomeBreakdown.length === 0) doc.fontSize(11).font('Helvetica').text('No income recorded this month.');
+    else incomeBreakdown.forEach((c) => doc.fontSize(11).font('Helvetica').text(`${c.categoryName}: ${money(c.amount)} (${c.percentage}%)`));
+
+    heading('Spending by category');
+    if (categoryBreakdown.length === 0) doc.fontSize(11).font('Helvetica').text('No expenses recorded this month.');
+    else categoryBreakdown.forEach((c) => doc.fontSize(11).font('Helvetica').text(`${c.categoryName}: ${money(c.amount)} (${c.percentage}%)`));
+
+    heading('Weekly spending');
+    if (weeklySpend.length === 0) doc.fontSize(11).font('Helvetica').text('No expenses recorded this month.');
+    else weeklySpend.forEach((w) => doc.fontSize(10).font('Helvetica').text(`${w.weekStart} to ${w.weekEnd}: ${money(w.amount)}`));
+
+    heading('Daily spending');
+    if (dailySpend.length === 0) doc.fontSize(11).font('Helvetica').text('No expenses recorded this month.');
+    else dailySpend.forEach((d) => doc.fontSize(10).font('Helvetica').text(`${d.date}: ${money(d.amount)}`));
+
+    heading('Transactions');
+    if (transactions.length === 0) {
+      doc.fontSize(11).font('Helvetica').text('No transactions this month.');
     } else {
-      categoryBreakdown.forEach((c) => {
-        doc.fontSize(11).font('Helvetica')
-          .text(`${c.categoryName}: ${c.amount.toLocaleString()} NGN (${c.percentage}%)`);
+      const cols = [50, 125, 300, 420];
+      const row = (values, bold) => {
+        if (doc.y > 760) doc.addPage();
+        const y = doc.y;
+        doc.fontSize(9).font(bold ? 'Helvetica-Bold' : 'Helvetica');
+        doc.text(values[0], cols[0], y, { width: 70 });
+        doc.text(values[1], cols[1], y, { width: 170, ellipsis: true, height: 12 });
+        doc.text(values[2], cols[2], y, { width: 115, ellipsis: true, height: 12 });
+        doc.text(values[3], cols[3], y, { width: 125, align: 'right' });
+        doc.x = 50;
+        doc.y = y + 14;
+      };
+      row(['Date', 'Description', 'Category', 'Amount'], true);
+      transactions.slice(0, 300).forEach((t) => {
+        row([
+          t.occurredAt.toISOString().slice(0, 10),
+          t.description || (t.type === 'income' ? 'Income' : 'Expense'),
+          nameById.get(t.categoryId.toString()) ?? 'Uncategorized',
+          `${t.type === 'income' ? '+' : '-'}${money(t.amount)}`,
+        ]);
       });
+      if (transactions.length > 300) doc.fontSize(9).text(`…and ${transactions.length - 300} more.`);
     }
-    doc.moveDown();
 
-    // Daily Spending
-    doc.fontSize(14).font('Helvetica-Bold').text('Daily Spending');
-    doc.moveDown(0.5);
-    if (dailySpend.length === 0) {
-      doc.fontSize(11).font('Helvetica').text('No expense transactions for this month.');
-    } else {
-      dailySpend.forEach((d) => {
-        doc.fontSize(10).font('Helvetica').text(`${d.date} — ${d.amount.toLocaleString()} NGN`);
-      });
-    }
-    doc.moveDown();
-
-    // Footer
-    doc.fontSize(9).font('Helvetica').text('Generated by CampusCoin', { align: 'center' });
+    doc.moveDown(2);
+    doc.fontSize(8).font('Helvetica').fillColor('#6b7280')
+      .text('Generated by Campus Coin. Figures are based on entries you recorded; this is not financial advice.', 50, doc.y, { align: 'center', width: 495 });
     doc.end();
   } catch (err) {
     console.error(err);

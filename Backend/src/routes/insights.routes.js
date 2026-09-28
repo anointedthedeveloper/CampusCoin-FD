@@ -3,6 +3,8 @@ const Insight = require('../models/Insight');
 const SavingTip = require('../models/SavingTip');
 const MoneyMove = require('../models/MoneyMove');
 const Bookmark = require('../models/Bookmark');
+const TipState = require('../models/TipState');
+const { getTipsForUser, setTipState } = require('../services/savingTips.service');
 const { protect } = require('../middleware/auth');
 const { validateIdParam, isValidObjectId } = require('../utils/objectId');
 
@@ -61,23 +63,53 @@ router.get('/insights', protect, async (req, res) => {
   }
 });
 
-// GET /api/v1/saving-tips
+// GET /api/v1/saving-tips — personalised tips ranked by estimated savings,
+// then the admin's general tip templates. ?pinned=1 returns only pinned tips.
 router.get('/saving-tips', protect, async (req, res) => {
   try {
-    // Seed a handful of tips if none exist yet
-    const count = await SavingTip.countDocuments();
-    if (count === 0) {
-      await SavingTip.insertMany([
-        { title: 'Cook at home', body: 'Preparing your own meals can save you up to 60% compared to eating out regularly.', category: 'Food & Drinks' },
-        { title: 'Use student discounts', body: 'Always carry your student ID — many stores, cinemas, and transport services offer significant discounts.', category: 'Shopping' },
-        { title: 'Track every naira', body: 'Logging even small expenses keeps you aware of where your money is going and helps spot patterns.', category: 'General' },
-        { title: 'Set a weekly spending limit', body: 'Break your monthly budget into weekly chunks so overspending is caught early.', category: 'General' },
-        { title: 'Buy second-hand textbooks', body: 'Second-hand or digital textbooks can cost a fraction of new copies.', category: 'Education' },
-        { title: 'Walk or cycle short distances', body: 'Skipping transport fares for short trips adds up to meaningful savings over a month.', category: 'Transport' },
-      ]);
-    }
-    const tips = await SavingTip.find().sort({ createdAt: -1 });
-    res.json({ data: tips.map(formatTip) });
+    const { tips, dismissedCount } = await getTipsForUser(req.user);
+    const pinnedOnly = req.query.pinned === '1' || req.query.pinned === 'true';
+    res.json({ data: pinnedOnly ? tips.filter((t) => t.isPinned) : tips, meta: { dismissedCount } });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+function validTipKey(key) {
+  return typeof key === 'string' && /^(personal|template):[\w:.-]{1,180}$/.test(key);
+}
+
+// POST /api/v1/saving-tips/dismiss  { tipId }
+router.post('/saving-tips/dismiss', protect, async (req, res) => {
+  try {
+    if (!validTipKey(req.body?.tipId)) return res.status(400).json({ message: 'Invalid tipId' });
+    await setTipState(req.user, req.body.tipId, { dismissed: true, pinned: false });
+    res.json({ data: null, message: 'Tip dismissed' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// POST /api/v1/saving-tips/pin  { tipId, pinned }
+router.post('/saving-tips/pin', protect, async (req, res) => {
+  try {
+    if (!validTipKey(req.body?.tipId)) return res.status(400).json({ message: 'Invalid tipId' });
+    const pinned = req.body.pinned !== false;
+    await setTipState(req.user, req.body.tipId, { pinned, ...(pinned ? { dismissed: false } : {}) });
+    res.json({ data: { tipId: req.body.tipId, pinned } });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// POST /api/v1/saving-tips/restore — bring back every dismissed tip.
+router.post('/saving-tips/restore', protect, async (req, res) => {
+  try {
+    await TipState.updateMany({ userId: req.user._id, dismissed: true }, { $set: { dismissed: false } });
+    res.json({ data: null, message: 'Dismissed tips restored' });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });

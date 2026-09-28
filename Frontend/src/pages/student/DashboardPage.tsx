@@ -71,6 +71,7 @@ function TxIcon({ type }: { type: 'income' | 'expense' }) {
 
 export function DashboardPage() {
   const { user } = useAuth();
+  const currency = user?.settings?.currency ?? DEFAULT_CURRENCY;
   const month = monthKey();
   const firstName = user?.fullName?.split(' ')[0] ?? 'there';
   const hour = new Date().getHours();
@@ -153,12 +154,19 @@ export function DashboardPage() {
   const topTip = tips[0];
   const categoryBreakdown = report?.categoryBreakdown ?? [];
   const totalExpenseThisMonth = report?.totalExpense ?? 0;
+  // Simple forecast: this month's spending pace projected to month end.
+  const today = new Date();
+  const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+  const projectedExpense = totalExpenseThisMonth > 0 ? (totalExpenseThisMonth / today.getDate()) * daysInMonth : 0;
+  const projectedNet = (report?.totalIncome ?? 0) - projectedExpense;
 
-  // ── Setup gate: block the full dashboard until onboarding is done ──
-  // A user who next'd through every step without filling anything in lands
-  // with status !== 'completed', so we always show the Complete Setup screen
-  // regardless of whether they have transactions or budgets already.
-  if (setupIncomplete) {
+  // ── Setup gate ──
+  // Only shown when setup was skipped AND there is nothing to show yet. A
+  // student who skipped setup but has been logging transactions or budgets
+  // gets their real dashboard (with a reminder banner) — previously they
+  // were locked out of it no matter how much data they had.
+  const hasAnyData = hasAnyTransactions || hasBudgets || hasOnboardingData;
+  if (setupIncomplete && !hasAnyData) {
     return (
       <div className="space-y-6">
         <div>
@@ -226,6 +234,14 @@ export function DashboardPage() {
   // ── Full dashboard ─────────────────────────────────────────────────
   return (
     <div className="space-y-6">
+      {setupIncomplete && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-200">
+          <span>Finish your money profile to get more personal budgets and tips.</span>
+          <Link to={`${STUDENT_ROUTES.onboarding}?edit=1`} className="inline-flex items-center gap-1.5 rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700">
+            <Wand2 className="h-3.5 w-3.5" /> Complete setup
+          </Link>
+        </div>
+      )}
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
@@ -275,10 +291,10 @@ export function DashboardPage() {
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-        <StatCard icon={ArrowUpRight} label="Income"   value={formatCurrency(report?.totalIncome ?? 0, DEFAULT_CURRENCY)}       hint={formatMonthLabel(month)} tone="brand" />
-        <StatCard icon={ArrowDownRight} label="Expenses" value={formatCurrency(totalExpenseThisMonth, DEFAULT_CURRENCY)}          hint={formatMonthLabel(month)} tone="red" />
-        <StatCard icon={Wallet}         label="Balance"  value={formatCurrency(balance, DEFAULT_CURRENCY)}                        hint="All time"                tone="blue" />
-        <StatCard icon={PiggyBank}      label="Saved"    value={formatCurrency(report?.netSavings ?? 0, DEFAULT_CURRENCY)}        hint={formatMonthLabel(month)} tone="amber" />
+        <StatCard icon={ArrowUpRight} label="Income"   value={formatCurrency(report?.totalIncome ?? 0, currency)}       hint={formatMonthLabel(month)} tone="brand" />
+        <StatCard icon={ArrowDownRight} label="Expenses" value={formatCurrency(totalExpenseThisMonth, currency)}          hint={formatMonthLabel(month)} tone="red" />
+        <StatCard icon={Wallet}         label="Balance"  value={formatCurrency(balance, currency)}                        hint="All time"                tone="blue" />
+        <StatCard icon={PiggyBank}      label="Saved"    value={formatCurrency(report?.netSavings ?? 0, currency)}        hint={formatMonthLabel(month)} tone="amber" />
       </div>
       {hasOnboardingData && (
         <Card>
@@ -293,13 +309,13 @@ export function DashboardPage() {
             {user.monthlyAllowanceBaseline !== undefined && (
               <div>
                 <p className="text-xs text-gray-500 dark:text-text-muted">Monthly income baseline</p>
-                <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-text-primary">{formatCurrency(user.monthlyAllowanceBaseline, DEFAULT_CURRENCY)}</p>
+                <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-text-primary">{formatCurrency(user.monthlyAllowanceBaseline, currency)}</p>
               </div>
             )}
             {user.savingsGoalAmount !== undefined && (
               <div>
                 <p className="text-xs text-gray-500 dark:text-text-muted">Savings target</p>
-                <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-text-primary">{formatCurrency(user.savingsGoalAmount, DEFAULT_CURRENCY)}</p>
+                <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-text-primary">{formatCurrency(user.savingsGoalAmount, currency)}</p>
               </div>
             )}
             {(incomeSourceLabels.length > 0 || incomeFrequencyLabel) && (
@@ -323,7 +339,7 @@ export function DashboardPage() {
             {budgetSummary && budgetSummary.totalBudgeted > 0 && (
               <div>
                 <p className="text-xs text-gray-500 dark:text-text-muted">Current month budget plan</p>
-                <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-text-primary">{formatCurrency(budgetSummary.totalBudgeted, DEFAULT_CURRENCY)}</p>
+                <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-text-primary">{formatCurrency(budgetSummary.totalBudgeted, currency)}</p>
               </div>
             )}
           </div>
@@ -353,9 +369,9 @@ export function DashboardPage() {
             <>
               <div className="mt-3 flex items-baseline justify-between gap-2">
                 <span className="text-xl font-bold text-gray-900 dark:text-text-primary">
-                  {formatCurrency(Math.max(balance, 0), DEFAULT_CURRENCY)}
+                  {formatCurrency(Math.max(balance, 0), currency)}
                   <span className="ml-1 text-sm font-normal text-gray-400 dark:text-text-muted">
-                    / {formatCurrency(user.savingsGoalAmount, DEFAULT_CURRENCY)}
+                    / {formatCurrency(user.savingsGoalAmount, currency)}
                   </span>
                 </span>
                 <span className="text-sm font-bold text-teal-600 dark:text-teal-400">
@@ -396,9 +412,9 @@ export function DashboardPage() {
             <>
               <div className="mt-3 flex items-baseline justify-between gap-2">
                 <span className="text-xl font-bold text-gray-900 dark:text-text-primary">
-                  {formatCurrency(topBudget.spentAmount, DEFAULT_CURRENCY)}
+                  {formatCurrency(topBudget.spentAmount, currency)}
                   <span className="ml-1 text-sm font-normal text-gray-400 dark:text-text-muted">
-                    / {formatCurrency(topBudget.limitAmount, DEFAULT_CURRENCY)}
+                    / {formatCurrency(topBudget.limitAmount, currency)}
                   </span>
                 </span>
                 <span className={cn(
@@ -455,7 +471,7 @@ export function DashboardPage() {
               <>
                 <p className="text-lg font-bold text-gray-900 dark:text-text-primary">{categoryBreakdown[0].categoryName}</p>
                 <p className="text-sm text-gray-500 dark:text-text-secondary">
-                  {formatCurrency(categoryBreakdown[0].amount, DEFAULT_CURRENCY)} · {categoryBreakdown[0].percentage}%
+                  {formatCurrency(categoryBreakdown[0].amount, currency)} · {categoryBreakdown[0].percentage}%
                 </p>
               </>
             )}
@@ -470,11 +486,23 @@ export function DashboardPage() {
                 report.netSavings >= 0 ? 'text-brand-600 dark:text-primary-accent' : 'text-red-600 dark:text-red-400',
               )}>
                 {report.netSavings >= 0
-                  ? `+${formatCurrency(report.netSavings, DEFAULT_CURRENCY)} net positive`
-                  : `${formatCurrency(Math.abs(report.netSavings), DEFAULT_CURRENCY)} overspent`}
+                  ? `+${formatCurrency(report.netSavings, currency)} net positive`
+                  : `${formatCurrency(Math.abs(report.netSavings), currency)} overspent`}
               </p>
             ) : (
               <p className="text-sm text-gray-400 dark:text-text-muted">Log transactions to see your financial health.</p>
+            )}
+            {projectedExpense > 0 && (
+              <div className="mt-3 border-t border-gray-100 pt-3 dark:border-white/[0.06]">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-text-muted">Month-end forecast</p>
+                <p className="mt-1 text-sm text-gray-700 dark:text-text-secondary">
+                  At your current pace you&apos;ll spend about <strong className="text-gray-900 dark:text-text-primary">{formatCurrency(projectedExpense, currency)}</strong> by {formatMonthLabel(month)}&apos;s end
+                  {(report?.totalIncome ?? 0) > 0 && (
+                    <> — {projectedNet >= 0 ? `leaving ~${formatCurrency(projectedNet, currency)}` : `~${formatCurrency(Math.abs(projectedNet), currency)} more than your income`}</>
+                  )}.
+                </p>
+                <p className="mt-1 text-[11px] text-gray-400 dark:text-text-muted">An estimate from your own entries — not financial advice.</p>
+              </div>
             )}
           </Card>
         </div>
@@ -545,7 +573,7 @@ export function DashboardPage() {
                     ? 'text-brand-600 dark:text-primary-accent'
                     : 'text-gray-900 dark:text-text-primary',
                 )}>
-                  {txn.type === 'income' ? '+' : '−'}{formatCurrency(txn.amount, DEFAULT_CURRENCY)}
+                  {txn.type === 'income' ? '+' : '−'}{formatCurrency(txn.amount, currency)}
                 </span>
               </Link>
             );

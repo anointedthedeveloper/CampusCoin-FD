@@ -5,8 +5,10 @@ import type { ApiSuccess } from '@/types/api';
 // provider (OpenAI, Gemini, Claude, ...) actually serves them is a backend
 // concern and must stay invisible here.
 export interface CategorySuggestion {
-  categoryId: string;
+  categoryId: string | null;
   confidence: number;
+  /** 'history' = learned from the student's own past entries. */
+  source?: 'history' | 'ai' | 'keywords' | null;
 }
 
 export interface MonthlyInsightRequest {
@@ -37,10 +39,11 @@ export const aiApi = {
     return data.data;
   },
 
-  async suggestCategory(description: string, merchant?: string): Promise<CategorySuggestion> {
+  async suggestCategory(description: string, merchant?: string, type?: 'income' | 'expense'): Promise<CategorySuggestion> {
     const { data } = await httpClient.post<ApiSuccess<CategorySuggestion>>('/ai/categorize', {
       description,
       merchant,
+      type,
     }, { timeout: AI_TIMEOUT_MS });
     return data.data;
   },

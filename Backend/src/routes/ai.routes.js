@@ -25,6 +25,7 @@ const { protect } = require('../middleware/auth');
 // Models used by legacy /categorize and /insights/generate
 const Category = require('../models/Category');
 const Insight = require('../models/Insight');
+const Transaction = require('../models/Transaction');
 
 // Services
 const {
@@ -202,15 +203,35 @@ router.post('/categorize', async (req, res) => {
   }
 
   try {
+    const typeFilter = ['income', 'expense'].includes(req.body?.type) ? { type: req.body.type } : {};
     const categories = await Category.find({
       $or: [{ userId: req.user._id }, { userId: null, isDefault: true }],
+      ...typeFilter,
     }).limit(100);
 
     const transactionText = `Description: ${description}\nMerchant: ${merchant}`;
     let selectedCategory = null;
     let confidence = 0.4;
+    let source = 'keywords';
 
-    if (req.user.settings?.aiCategorizationEnabled !== false && hasAiProvider() && categories.length) {
+    // Learn from the student's own history first: if they've logged (or
+    // corrected) a transaction with the same description before, reuse the
+    // category THEY chose. Their corrections therefore win over the model.
+    if (description) {
+      const escaped = description.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const previous = await Transaction.findOne({
+        userId: req.user._id,
+        description: { $regex: `^\\s*${escaped}\\s*$`, $options: 'i' },
+      }).sort({ updatedAt: -1 });
+      const learned = previous && categories.find((c) => c._id.equals(previous.categoryId));
+      if (learned) {
+        selectedCategory = learned;
+        confidence = 0.95;
+        source = 'history';
+      }
+    }
+
+    if (!selectedCategory && req.user.settings?.aiCategorizationEnabled !== false && hasAiProvider() && categories.length) {
       const categoryList = categories
         .map((c) => `${c._id} | ${c.name} | ${c.type}`)
         .join('\n');
@@ -235,7 +256,10 @@ router.post('/categorize', async (req, res) => {
         const id = rawId.match(/[a-f\d]{24}/i)?.[0];
         selectedCategory =
           categories.find((c) => c._id.toString() === id) || null;
-        if (selectedCategory) confidence = 0.9;
+        if (selectedCategory) {
+          confidence = 0.9;
+          source = 'ai';
+        }
       } catch (err) {
         console.warn(
           'Gemini categorize failed; using keyword fallback:',
@@ -255,6 +279,7 @@ router.post('/categorize', async (req, res) => {
       data: {
         categoryId: selectedCategory?._id.toString() ?? null,
         confidence: selectedCategory ? confidence : 0,
+        source: selectedCategory ? source : null,
       },
     });
   } catch (err) {
