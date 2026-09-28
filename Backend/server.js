@@ -43,6 +43,7 @@ app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 // deployed frontend available even when the hosting environment omits it.
 const allowedOrigins = [
   'https://campuscoin-topaz.vercel.app',
+  'https://campuscointw7.vercel.app',
   ...(process.env.CLIENT_URL || 'http://localhost:5173')
     .split(',')
     .map((origin) => origin.trim())

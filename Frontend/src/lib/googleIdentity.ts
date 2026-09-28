@@ -1,8 +1,4 @@
-// Thin wrapper around Google Identity Services' ID-token flow. We render
-// Google's own button off-screen (a synthetic click on it reliably opens the
-// real account-chooser popup, unlike google.accounts.id.prompt()'s One Tap,
-// which browsers can silently suppress) and forward the credential it
-// produces to whichever custom-styled button the caller clicked.
+// Render Google's own interactive button and forward its ID token to the app.
 //
 // The client ID itself is fetched from the backend (GET /auth/google/config)
 // rather than read from a VITE_ build-time env var, so it only has to be
@@ -18,7 +14,14 @@ interface GoogleCredentialResponse {
 
 interface GoogleAccountsId {
   initialize(config: { client_id: string; callback: (response: GoogleCredentialResponse) => void; ux_mode?: string }): void;
-  renderButton(parent: HTMLElement, options: { type: string }): void;
+  renderButton(parent: HTMLElement, options: {
+    type: 'standard';
+    theme: 'outline';
+    size: 'large';
+    text: 'signin_with' | 'signup_with' | 'continue_with';
+    shape: 'rectangular';
+    width: number;
+  }): void;
 }
 
 declare global {
@@ -30,10 +33,10 @@ declare global {
 const SCRIPT_ID = 'google-identity-script';
 const SCRIPT_SRC = 'https://accounts.google.com/gsi/client';
 
-let hiddenButtonEl: HTMLElement | null = null;
+let scriptPromise: Promise<void> | null = null;
 let initPromise: Promise<void> | null = null;
-let pending: { resolve: (token: string) => void; reject: (err: Error) => void } | null = null;
 let clientIdPromise: Promise<string | null> | null = null;
+let activeCredentialHandler: ((token: string) => void) | null = null;
 
 /** Fetches (and caches) the Google client ID from the backend. */
 function getClientId(): Promise<string | null> {
@@ -48,100 +51,74 @@ function getClientId(): Promise<string | null> {
 
 function loadScript(): Promise<void> {
   if (window.google?.accounts?.id) return Promise.resolve();
-  return new Promise((resolve, reject) => {
-    const existing = document.getElementById(SCRIPT_ID) as HTMLScriptElement | null;
-    if (existing) {
-      existing.addEventListener('load', () => resolve(), { once: true });
-      existing.addEventListener('error', () => reject(new Error('Failed to load Google sign-in.')), { once: true });
-      return;
-    }
-    const script = document.createElement('script');
-    script.id = SCRIPT_ID;
-    script.src = SCRIPT_SRC;
-    script.async = true;
-    script.defer = true;
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error('Failed to load Google sign-in.'));
-    document.head.appendChild(script);
-  });
+  if (!scriptPromise) {
+    scriptPromise = new Promise((resolve, reject) => {
+      const existing = document.getElementById(SCRIPT_ID) as HTMLScriptElement | null;
+      const script = existing ?? document.createElement('script');
+      script.addEventListener('load', () => resolve(), { once: true });
+      script.addEventListener('error', () => reject(new Error('Failed to load Google sign-in.')), { once: true });
+      if (!existing) {
+        script.id = SCRIPT_ID;
+        script.src = SCRIPT_SRC;
+        script.async = true;
+        script.defer = true;
+        document.head.appendChild(script);
+      }
+    });
+  }
+  return scriptPromise;
 }
 
 function ensureInitialized(clientId: string): Promise<void> {
   if (!initPromise) {
     initPromise = loadScript().then(() => {
-      window.google!.accounts.id.initialize({
+      const googleId = window.google?.accounts?.id;
+      if (!googleId) throw new Error('Google sign-in could not be initialized.');
+      googleId.initialize({
         client_id: clientId,
         ux_mode: 'popup',
         callback: (response) => {
-          pending?.resolve(response.credential);
-          pending = null;
+          if (response.credential) activeCredentialHandler?.(response.credential);
         },
       });
-      hiddenButtonEl = document.createElement('div');
-      hiddenButtonEl.style.position = 'fixed';
-      hiddenButtonEl.style.top = '-9999px';
-      hiddenButtonEl.style.left = '-9999px';
-      document.body.appendChild(hiddenButtonEl);
-      window.google!.accounts.id.renderButton(hiddenButtonEl, { type: 'standard' });
     });
   }
   return initPromise;
 }
 
-/** Warms up the Google Identity script ahead of time so the first real click isn't delayed. */
-export function preloadGoogleIdentity(): void {
-  void getClientId().then((clientId) => {
-    if (!clientId) return;
-    return ensureInitialized(clientId).catch(() => {
-      // Ignore — requestGoogleIdToken() will surface the failure on actual use.
-    });
-  });
-}
+/** Mounts Google's interactive button and forwards the verified ID-token payload. */
+export function mountGoogleButton(
+  container: HTMLElement,
+  text: 'signin_with' | 'signup_with' | 'continue_with',
+  onCredential: (token: string) => void,
+  onError: (message: string) => void,
+): () => void {
+  let cancelled = false;
+  const forwardCredential = (token: string) => onCredential(token);
 
-/** Opens the Google account chooser and resolves with an ID token to send to the backend. */
-export async function requestGoogleIdToken(): Promise<string> {
-  const clientId = await getClientId();
-  if (!clientId) {
-    throw new Error('Google sign-in is not set up for this app yet.');
-  }
-
-  if (!hiddenButtonEl) {
+  void (async () => {
+    const clientId = await getClientId();
+    if (!clientId) throw new Error('Google sign-in is not configured on this server.');
     await ensureInitialized(clientId);
-  }
+    if (cancelled) return;
 
-  // GSI renders the button asynchronously after renderButton() returns.
-  // Poll for the clickable element for up to 5 s before giving up.
-  const getClickable = (): HTMLElement | null =>
-    hiddenButtonEl?.querySelector<HTMLElement>('div[role="button"]') ?? null;
-
-  if (!getClickable()) {
-    await new Promise<void>((resolve, reject) => {
-      const deadline = Date.now() + 5000;
-      const interval = setInterval(() => {
-        if (getClickable()) { clearInterval(interval); resolve(); return; }
-        if (Date.now() >= deadline) { clearInterval(interval); reject(new Error('Google sign-in button failed to render. Please try again.')); }
-      }, 80);
+    activeCredentialHandler = forwardCredential;
+    const width = Math.max(200, Math.min(400, Math.floor(container.getBoundingClientRect().width || 400)));
+    window.google!.accounts.id.renderButton(container, {
+      type: 'standard',
+      theme: 'outline',
+      size: 'large',
+      text,
+      shape: 'rectangular',
+      width,
     });
-  }
-
-  return new Promise((resolve, reject) => {
-    const timeout = window.setTimeout(() => {
-      pending = null;
-      reject(new Error('Google sign-in was closed or timed out. Please try again.'));
-    }, 60_000);
-
-    pending = {
-      resolve: (token) => { window.clearTimeout(timeout); resolve(token); },
-      reject:  (err)   => { window.clearTimeout(timeout); reject(err); },
-    };
-
-    const clickable = getClickable();
-    if (!clickable) {
-      window.clearTimeout(timeout);
-      pending = null;
-      reject(new Error('Google sign-in button failed to render. Please try again.'));
-      return;
-    }
-    clickable.click();
+  })().catch((error: unknown) => {
+    if (!cancelled) onError(error instanceof Error ? error.message : 'Failed to load Google sign-in.');
   });
+
+  return () => {
+    cancelled = true;
+    if (activeCredentialHandler === forwardCredential) activeCredentialHandler = null;
+    container.replaceChildren();
+  };
 }
