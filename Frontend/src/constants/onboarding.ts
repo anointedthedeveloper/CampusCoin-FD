@@ -63,4 +63,4 @@ export const INCOME_FREQUENCY_OPTIONS: { value: 'weekly' | 'monthly' | 'occasion
   { value: 'occasionally', label: 'Occasionally' },
 ];
 
-export const TOTAL_ONBOARDING_STEPS = 4;
+export const TOTAL_ONBOARDING_STEPS = 5;
