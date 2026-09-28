@@ -16,18 +16,13 @@ export function LoginPage() {
   const location = useLocation();
   const { compact } = useOutletContext<AuthPageOutletContext>();
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail]               = useState('');
+  const [password, setPassword]         = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError]               = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
-  // Where to land after login: wherever the user was headed before being
-  // sent here (e.g. a protected link they followed while logged out), or
-  // each role's own home otherwise. Admins never default into the student
-  // dashboard — the admin console is a separate destination.
   const redirectFrom = (location.state as { from?: Location })?.from?.pathname;
 
   async function handleGoogleLogin() {
@@ -35,17 +30,13 @@ export function LoginPage() {
     setIsGoogleLoading(true);
     try {
       const loggedInUser = await loginWithGoogle();
-
       if (loggedInUser.role === 'admin') {
         navigate(redirectFrom ?? ADMIN_ROUTES.dashboard, { replace: true });
         return;
       }
-
       const onboardingStatus = loggedInUser.onboarding?.status ?? 'not_started';
       const needsOnboarding = onboardingStatus === 'not_started' || onboardingStatus === 'in_progress';
-      navigate(redirectFrom ?? (needsOnboarding ? STUDENT_ROUTES.onboarding : STUDENT_ROUTES.dashboard), {
-        replace: true,
-      });
+      navigate(redirectFrom ?? (needsOnboarding ? STUDENT_ROUTES.onboarding : STUDENT_ROUTES.dashboard), { replace: true });
     } catch (err) {
       setError(err instanceof ApiError || err instanceof Error ? err.message : 'Google sign-in failed. Please try again.');
     } finally {
@@ -56,33 +47,19 @@ export function LoginPage() {
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setError(null);
-
-    if (!isValidEmail(email)) {
-      setError('Enter a valid email address.');
-      return;
-    }
-    if (password.length < 1) {
-      setError('Enter your password.');
-      return;
-    }
+    if (!isValidEmail(email)) { setError('Enter a valid email address.'); return; }
+    if (!password.length)     { setError('Enter your password.');        return; }
 
     setIsSubmitting(true);
     try {
       const loggedInUser = await login({ email, password });
-
       if (loggedInUser.role === 'admin') {
         navigate(redirectFrom ?? ADMIN_ROUTES.dashboard, { replace: true });
         return;
       }
-
-      // A student who hasn't finished (or explicitly skipped) the one-time
-      // money-profile setup resumes it here — unless they were headed
-      // somewhere specific, which always wins.
       const onboardingStatus = loggedInUser.onboarding?.status ?? 'not_started';
       const needsOnboarding = onboardingStatus === 'not_started' || onboardingStatus === 'in_progress';
-      navigate(redirectFrom ?? (needsOnboarding ? STUDENT_ROUTES.onboarding : STUDENT_ROUTES.dashboard), {
-        replace: true,
-      });
+      navigate(redirectFrom ?? (needsOnboarding ? STUDENT_ROUTES.onboarding : STUDENT_ROUTES.dashboard), { replace: true });
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Something went wrong. Please try again.');
     } finally {
@@ -92,12 +69,32 @@ export function LoginPage() {
 
   return (
     <div>
-      <AuthPageHeader icon={LogIn} title="Welcome Back" subtitle="Sign in to your Campus Coin account." compact={compact} />
+      <AuthPageHeader
+        icon={LogIn}
+        title="Welcome back"
+        subtitle="Sign in to continue to Campus Coin."
+        compact={compact}
+      />
 
-      <form onSubmit={handleSubmit} className={cn(compact ? 'mt-3 space-y-2' : 'mt-6 space-y-4')}>
+      {/* Google first — research shows social login gets more clicks at the top */}
+      <GoogleButton
+        onClick={() => void handleGoogleLogin()}
+        isLoading={isGoogleLoading}
+        label="Continue with Google"
+      />
+
+      <div className={cn('flex items-center gap-3', compact ? 'my-3' : 'my-5')}>
+        <div className="h-px flex-1 bg-gray-200 dark:bg-white/10" />
+        <span className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-text-muted">
+          or sign in with email
+        </span>
+        <div className="h-px flex-1 bg-gray-200 dark:bg-white/10" />
+      </div>
+
+      <form onSubmit={handleSubmit} className={cn('flex flex-col', compact ? 'gap-3' : 'gap-4')}>
         <Input
           compact={compact}
-          label="Email Address"
+          label="Email address"
           type="email"
           name="email"
           placeholder="you@example.com"
@@ -108,70 +105,68 @@ export function LoginPage() {
           required
         />
 
-        <Input
-          compact={compact}
-          label="Password"
-          type={showPassword ? 'text' : 'password'}
-          name="password"
-          placeholder="Enter your password"
-          icon={<Lock className="h-4 w-4" />}
-          trailing={
-            <button
-              type="button"
-              onClick={() => setShowPassword((v) => !v)}
-              className="text-gray-400 hover:text-gray-600 dark:text-text-muted dark:hover:text-text-secondary"
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
+        <div>
+          <Input
+            compact={compact}
+            label="Password"
+            type={showPassword ? 'text' : 'password'}
+            name="password"
+            placeholder="••••••••"
+            icon={<Lock className="h-4 w-4" />}
+            trailing={
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                className="rounded p-0.5 text-gray-400 transition-colors hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:text-text-muted dark:hover:text-text-secondary"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            }
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete="current-password"
+            required
+          />
+          <div className="mt-1.5 flex justify-end">
+            <Link
+              to={PUBLIC_ROUTES.forgotPassword}
+              className="text-xs font-semibold text-brand-600 hover:text-brand-700 dark:text-primary-accent dark:hover:text-primary"
             >
-              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
-          }
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          autoComplete="current-password"
-          required
-        />
-
-        <div className="flex items-center justify-between text-sm">
-          <label className="flex items-center gap-2 text-gray-600 dark:text-text-secondary">
-            <input
-              type="checkbox"
-              checked={rememberMe}
-              onChange={(e) => setRememberMe(e.target.checked)}
-              className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500 dark:border-white/20 dark:bg-surface"
-            />
-            Remember me
-          </label>
-          <Link
-            to={PUBLIC_ROUTES.forgotPassword}
-            className="font-medium text-brand-600 hover:text-brand-700 dark:text-primary-accent dark:hover:text-primary"
-          >
-            Forgot password?
-          </Link>
+              Forgot password?
+            </Link>
+          </div>
         </div>
 
-        {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+        {error && (
+          <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3.5 py-3 dark:border-red-500/30 dark:bg-red-950/30">
+            <svg className="mt-0.5 h-4 w-4 shrink-0 text-red-500 dark:text-red-400" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+              <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1Zm-.75 3.75a.75.75 0 0 1 1.5 0v3.5a.75.75 0 0 1-1.5 0v-3.5ZM8 11.5a.875.875 0 1 1 0-1.75.875.875 0 0 1 0 1.75Z" />
+            </svg>
+            <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+          </div>
+        )}
 
-        <Button type="submit" variant="primary" className="w-full" isLoading={isSubmitting} loadingText="Signing in…">
+        <Button
+          type="submit"
+          variant="primary"
+          size={compact ? 'md' : 'lg'}
+          className="w-full"
+          isLoading={isSubmitting}
+          loadingText="Signing in…"
+        >
           Sign In
           <ArrowRight className="h-4 w-4" />
         </Button>
       </form>
 
-      <div className={cn('flex items-center gap-3', compact ? 'my-2.5' : 'my-6')}>
-        <div className="h-px flex-1 bg-gray-200 dark:bg-white/10" />
-        <span className="text-xs text-gray-400 dark:text-text-muted">OR</span>
-        <div className="h-px flex-1 bg-gray-200 dark:bg-white/10" />
-      </div>
-
-      <GoogleButton onClick={() => void handleGoogleLogin()} isLoading={isGoogleLoading} />
-
-      <p className={cn('text-center text-sm text-gray-600 dark:text-text-secondary', compact ? 'mt-2.5' : 'mt-6')}>
+      <p className={cn('text-center text-sm text-gray-500 dark:text-text-secondary', compact ? 'mt-4' : 'mt-6')}>
         Don&apos;t have an account?{' '}
         <Link
           to={PUBLIC_ROUTES.register}
-          className="font-semibold text-brand-600 hover:text-brand-700 dark:text-primary-accent dark:hover:text-primary"
+          className="font-bold text-brand-600 hover:text-brand-700 dark:text-primary-accent dark:hover:text-primary"
         >
-          Create Account
+          Create one free →
         </Link>
       </p>
     </div>
