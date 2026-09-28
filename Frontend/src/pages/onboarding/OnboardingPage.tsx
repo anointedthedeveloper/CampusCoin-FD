@@ -502,11 +502,11 @@ export function OnboardingPage() {
                 <span
                   key={label}
                   className={cn(
-                    'flex-1 text-center text-2xs font-medium transition-colors duration-200',
+                    'flex-1 text-center text-2xs font-semibold transition-colors duration-200',
                     i + 1 === step
-                      ? 'text-brand-700 dark:text-primary-accent'
+                      ? 'text-brand-600 dark:text-primary-accent'
                       : i + 1 < step
-                        ? 'text-gray-400 dark:text-text-muted'
+                        ? 'text-gray-500 dark:text-text-muted'
                         : 'text-gray-300 dark:text-white/20',
                   )}
                 >
@@ -878,7 +878,7 @@ export function OnboardingPage() {
                       color: 'bg-brand-100 text-brand-600 dark:bg-primary/15 dark:text-primary-accent',
                     },
                   ].map(({ icon: Icon, title, desc, color }) => (
-                    <div key={title} className="flex items-start gap-3 rounded-xl border border-gray-100 bg-white p-4 shadow-card dark:border-white/[0.06] dark:bg-surface-elevated">
+                    <div key={title} className="flex items-start gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/[0.06] dark:bg-surface-elevated">
                       <span className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-xl', color)}>
                         <Icon className="h-4 w-4" />
                       </span>
@@ -922,8 +922,8 @@ export function OnboardingPage() {
                     { label: 'Income',  value: 0 },
                     { label: 'Expense', value: 0 },
                   ].map((tile) => (
-                    <div key={tile.label} className="rounded-xl bg-brand-50 p-3 dark:bg-white/5">
-                      <p className="text-sm font-bold text-brand-900 dark:text-text-primary">
+                    <div key={tile.label} className="rounded-xl bg-gray-50 p-3 dark:bg-white/5">
+                      <p className="text-sm font-bold text-gray-900 dark:text-text-primary">
                         {formatCurrency(tile.value, currency)}
                       </p>
                       <p className="mt-0.5 text-xs text-gray-500 dark:text-text-muted">{tile.label}</p>
