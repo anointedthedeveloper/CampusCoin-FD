@@ -101,7 +101,7 @@ router.patch('/', async (req, res) => {
       }
     }
 
-    const user = await User.findByIdAndUpdate(req.user._id, updates, { new: true, runValidators: true });
+    const user = await User.findByIdAndUpdate(req.user._id, updates, { returnDocument: 'after', runValidators: true });
     res.json({ data: user.toPublic() });
   } catch (err) {
     console.error(err);
@@ -149,7 +149,7 @@ router.patch('/onboarding', async (req, res) => {
       await ensureMonthlyBudget(req.user._id, Number(req.body.monthlyBudget), categoryValues);
     }
 
-    const user = await User.findByIdAndUpdate(req.user._id, { $set: updates }, { new: true });
+    const user = await User.findByIdAndUpdate(req.user._id, { $set: updates }, { returnDocument: 'after' });
     res.json({ data: user.toPublic() });
   } catch (err) {
     console.error(err);
@@ -181,7 +181,7 @@ router.patch('/settings', async (req, res) => {
       if (req.body[key] !== undefined) updates[`settings.${key}`] = req.body[key];
     });
 
-    const user = await User.findByIdAndUpdate(req.user._id, { $set: updates }, { new: true });
+    const user = await User.findByIdAndUpdate(req.user._id, { $set: updates }, { returnDocument: 'after' });
     res.json({ data: user.settings });
   } catch (err) {
     console.error(err);

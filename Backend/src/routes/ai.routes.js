@@ -292,7 +292,7 @@ router.post('/insights/generate', async (req, res) => {
     const insight = await Insight.findOneAndUpdate(
       { userId, month, kind: 'monthly-summary' },
       { $set: { userId, month, kind: 'monthly-summary', title, body, isAiGenerated } },
-      { upsert: true, new: true, runValidators: true },
+      { upsert: true, returnDocument: 'after', runValidators: true },
     );
     return res.status(201).json({ data: { insightId: insight._id.toString() } });
   } catch (err) {

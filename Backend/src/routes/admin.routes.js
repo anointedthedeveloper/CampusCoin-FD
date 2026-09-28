@@ -78,7 +78,7 @@ router.patch('/users/:id', async (req, res) => {
     const { isActive } = req.body;
     if (isActive === undefined) return res.status(400).json({ message: 'isActive is required' });
 
-    const user = await User.findByIdAndUpdate(req.params.id, { isActive }, { new: true });
+    const user = await User.findByIdAndUpdate(req.params.id, { isActive }, { returnDocument: 'after' });
     if (!user) return res.status(404).json({ message: 'User not found' });
     const txCount = await Transaction.countDocuments({ userId: user._id });
     res.json({ data: { ...user.toPublic(), transactionCount: txCount } });

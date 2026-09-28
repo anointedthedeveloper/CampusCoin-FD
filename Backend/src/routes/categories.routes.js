@@ -16,7 +16,7 @@ async function getOrCreateFallbackCategory(userId, type) {
   return Category.findOneAndUpdate(
     { userId, type, name },
     { $setOnInsert: { userId, type, name, icon: 'more-horizontal', color: '#94a3b8', isDefault: true } },
-    { upsert: true, new: true },
+    { upsert: true, returnDocument: 'after' },
   );
 }
 
