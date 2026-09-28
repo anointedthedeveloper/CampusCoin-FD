@@ -15,8 +15,11 @@ import type { AuthPageOutletContext } from '@/pages/auth/authOutletContext';
 // positions are unambiguous and don't depend on Tailwind's opacity-scale
 // lookup for those utilities, which silently no-ops for values outside its
 // preset scale.
+// Light mode keeps the photo's own bright daylight look through the hero
+// side (just a whisper of white wash) and fades to solid white by the form
+// column. Dark mode keeps its original deep brand-green wash throughout.
 const AUTH_BACKDROP_LIGHT =
-  'linear-gradient(to right, rgba(5,46,22,0.88) 0%, rgba(5,46,22,0.84) 32%, rgba(5,46,22,0.9) 50%, rgba(248,250,248,0.55) 62%, #f8faf8 76%, #f8faf8 100%)';
+  'linear-gradient(to right, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.5) 32%, rgba(255,255,255,0.6) 50%, rgba(248,250,248,0.8) 64%, #f8faf8 78%, #f8faf8 100%)';
 const AUTH_BACKDROP_DARK =
   'linear-gradient(to right, rgba(5,46,22,0.88) 0%, rgba(5,46,22,0.84) 32%, rgba(5,46,22,0.9) 50%, rgba(9,18,13,0.85) 62%, #09120d 76%, #09120d 100%)';
 
@@ -47,8 +50,9 @@ export function AuthLayout() {
         />
         <div className="absolute inset-0 dark:hidden" style={{ backgroundImage: AUTH_BACKDROP_LIGHT }} />
         <div className="absolute inset-0 hidden dark:block" style={{ backgroundImage: AUTH_BACKDROP_DARK }} />
+        {/* Warm golden-hour glow — dark mode only; light mode is bright daylight, not a dusk tint. */}
         <div
-          className="absolute inset-0"
+          className="absolute inset-0 hidden dark:block"
           style={{ backgroundImage: 'radial-gradient(ellipse 60% 65% at 12% 100%, rgba(217,167,45,0.18), transparent 60%)' }}
         />
       </div>
