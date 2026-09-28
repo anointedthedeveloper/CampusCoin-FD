@@ -570,7 +570,7 @@ export function OnboardingPage() {
                     id="onboarding-currency"
                     value={currency}
                     onChange={(event) => setCurrency(event.target.value)}
-                    className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/20 dark:border-white/[0.08] dark:bg-surface dark:text-text-primary"
+                    className="w-full rounded-xl border border-gray-300 bg-white px-3.5 py-2.5 text-sm font-medium text-gray-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-white/[0.08] dark:bg-surface dark:text-text-primary"
                   >
                     {CURRENCY_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
                   </select>
@@ -626,7 +626,7 @@ export function OnboardingPage() {
                       maxLength={60}
                       required
                       aria-invalid={Boolean(error && !otherIncomeSource.trim())}
-                      className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/20 dark:border-border dark:bg-surface dark:text-text-primary"
+                      className="w-full rounded-xl border border-gray-300 bg-white px-3.5 py-2.5 text-sm font-medium text-gray-900 placeholder:text-gray-400 placeholder:font-normal shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-white/10 dark:bg-surface dark:text-text-primary"
                       placeholder="e.g. Freelance design"
                     />
                     {!otherIncomeSource.trim() && <p className="text-xs text-gray-500 dark:text-text-muted">Enter a name before continuing.</p>}
@@ -652,7 +652,7 @@ export function OnboardingPage() {
                             'flex-1 rounded-xl border px-2 py-2.5 text-xs font-semibold transition-colors duration-150',
                             incomeFrequency === opt.value
                               ? 'border-brand-500 bg-brand-50 text-brand-700 dark:border-primary-accent dark:bg-primary-accent/10 dark:text-primary-accent'
-                              : 'border-gray-200 text-gray-500 hover:border-gray-300 dark:border-border dark:text-text-muted dark:hover:border-white/20',
+                              : 'border-gray-300 bg-white text-gray-600 hover:border-gray-400 hover:bg-gray-50 dark:border-white/10 dark:bg-surface dark:text-text-muted dark:hover:border-white/20',
                           )}
                         >
                           {opt.label}
@@ -733,7 +733,7 @@ export function OnboardingPage() {
                       maxLength={60}
                       required
                       aria-invalid={Boolean(error && !otherSpendingCategory.trim())}
-                      className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/20 dark:border-border dark:bg-surface dark:text-text-primary"
+                      className="w-full rounded-xl border border-gray-300 bg-white px-3.5 py-2.5 text-sm font-medium text-gray-900 placeholder:text-gray-400 placeholder:font-normal shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-white/10 dark:bg-surface dark:text-text-primary"
                       placeholder="e.g. Pet care"
                     />
                     {!otherSpendingCategory.trim() && <p className="text-xs text-gray-500 dark:text-text-muted">Enter a name before continuing.</p>}
@@ -842,7 +842,7 @@ export function OnboardingPage() {
               <div className="space-y-6">
                 <div>
                   <p className="text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-primary-accent">Step 5 of {TOTAL_ONBOARDING_STEPS}</p>
-                  <h1 className="mt-1 text-3xl font-extrabold text-brand-900 dark:text-text-primary">
+                  <h1 className="mt-1 text-3xl font-extrabold text-gray-900 dark:text-text-primary">
                     Meet your AI Assistant
                   </h1>
                   <p className="mt-2 text-base text-gray-500 dark:text-text-secondary">
