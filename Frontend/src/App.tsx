@@ -3,9 +3,9 @@ import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { NotificationProvider } from '@/contexts/NotificationContext';
-import { ScrollToTop } from '@/components/common';
+import { ScrollToTop, TawkToVisibility } from '@/components/common';
 import { AppRoutes } from '@/routes';
-import { useTawkTo } from '@/hooks/useTawkTo';
+import { useTawkTo, useTawkToClickOutside } from '@/hooks/useTawkTo';
 
 function App() {
   useEffect(() => {
@@ -14,12 +14,15 @@ function App() {
 
   // Global live-chat widget — loaded once here so it's available on every
   // route (marketing pages and the authenticated app alike) without wiring
-  // it into each page individually.
+  // it into each page individually. Route-based show/hide (TawkToVisibility)
+  // needs the router, so it's mounted inside BrowserRouter below instead.
   useTawkTo();
+  useTawkToClickOutside();
 
   return (
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <ScrollToTop />
+      <TawkToVisibility />
       <ThemeProvider>
         <AuthProvider>
           <NotificationProvider>
