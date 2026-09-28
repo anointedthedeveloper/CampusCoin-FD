@@ -137,6 +137,13 @@ router.patch('/onboarding', async (req, res) => {
     // up automatically — no separate onboarding-only copy of this data.
     if (req.body.monthlyAllowanceBaseline !== undefined) updates.monthlyAllowanceBaseline = req.body.monthlyAllowanceBaseline;
     if (req.body.savingsGoalAmount !== undefined) updates.savingsGoalAmount = req.body.savingsGoalAmount;
+    if (req.body.currency !== undefined) {
+      const currency = String(req.body.currency).trim().toUpperCase();
+      if (!/^[A-Z]{3}$/.test(currency)) {
+        return res.status(400).json({ message: 'Currency must be a 3-letter code' });
+      }
+      updates['settings.currency'] = currency;
+    }
 
     if (req.body.spendingCategories !== undefined) {
       await ensureSpendingCategories(req.user._id, req.body.spendingCategories);

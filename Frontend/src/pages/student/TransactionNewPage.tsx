@@ -9,6 +9,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/utils/cn';
 import { ApiError } from '@/types/api';
 import type { Category, CategoryType } from '@/types/category';
+import { formatNumericInput, normalizeNumericInput } from '@/utils/number';
 
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
@@ -56,6 +57,11 @@ export function TransactionNewPage() {
     const parsed = Number(amount);
     if (!parsed || parsed <= 0) { setError('Enter an amount greater than zero.'); return; }
     if (!categoryId) { setError('Choose a category.'); return; }
+    const selectedCategory = categories.find((category) => category.id === categoryId);
+    if (/^other$/i.test(selectedCategory?.name ?? '') && !description.trim()) {
+      setError('Describe what this transaction was for.');
+      return;
+    }
     setIsSubmitting(true);
     try {
       await transactionService.create(user.id, {
@@ -120,16 +126,15 @@ export function TransactionNewPage() {
                 Amount <span className="text-brand-500">*</span>
               </label>
               <div className="relative">
-                <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-sm font-medium text-gray-400 dark:text-text-muted">₦</span>
+                <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-sm font-medium text-gray-400 dark:text-text-muted">{user?.settings?.currency ?? 'NGN'}</span>
                 <input
                   id="amount"
-                  type="number"
-                  min="0"
-                  step="0.01"
+                  type="text"
+                  inputMode="decimal"
                   required
                   placeholder="0.00"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
+                  value={formatNumericInput(amount)}
+                  onChange={(e) => setAmount(normalizeNumericInput(e.target.value))}
                   className={cn(fieldCls, 'pl-8 text-lg font-semibold')}
                 />
               </div>
@@ -156,12 +161,12 @@ export function TransactionNewPage() {
             <div>
               <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-text-secondary mb-1.5">
                 Description
-                <span className="ml-1.5 text-xs font-normal text-gray-400 dark:text-text-muted">optional</span>
+                <span className="ml-1.5 text-xs font-normal text-gray-400 dark:text-text-muted">{/^other$/i.test(categories.find((category) => category.id === categoryId)?.name ?? '') ? 'required for Other' : 'optional'}</span>
               </label>
               <input
                 id="description"
                 type="text"
-                placeholder={type === 'income' ? 'e.g. Monthly allowance from parents' : 'e.g. Campus Cafe lunch'}
+                placeholder={/^other$/i.test(categories.find((category) => category.id === categoryId)?.name ?? '') ? 'Describe what this was for' : type === 'income' ? 'e.g. Monthly allowance from parents' : 'e.g. Campus Cafe lunch'}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 className={fieldCls}

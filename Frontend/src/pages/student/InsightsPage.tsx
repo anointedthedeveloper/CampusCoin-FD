@@ -5,6 +5,7 @@ import { aiService, transactionService, categoryService } from '@/services';
 import { useAuth } from '@/hooks/useAuth';
 import { DEFAULT_CURRENCY } from '@/constants/config';
 import { formatCurrency, formatMonthLabel } from '@/utils/format';
+import { formatNumericInput, normalizeNumericInput } from '@/utils/number';
 import { cn } from '@/utils/cn';
 import type { Category } from '@/types/category';
 
@@ -16,6 +17,14 @@ interface ChatMessage {
   suggestedCategoryName?: string;
   suggestedAmount?: number;
   suggestedDescription?: string;
+  ai?: { provider: string; model: string };
+}
+
+interface PastConversation {
+  id: string;
+  title: string;
+  messages: ChatMessage[];
+  updatedAt: string;
 }
 
 const QUICK_QUESTIONS = [
@@ -55,6 +64,40 @@ export function InsightsPage() {
   const [purchaseItem, setPurchaseItem] = useState('');
   const [purchasePrice, setPurchasePrice] = useState('');
   const [loggedIds, setLoggedIds] = useState<Set<string>>(new Set());
+  const [pastConversations, setPastConversations] = useState<PastConversation[]>([]);
+  const [historyLoaded, setHistoryLoaded] = useState(false);
+
+  const historyStorageKey = user ? `campus-coin.ai-history.${user.id}` : null;
+
+  useEffect(() => {
+    if (!user) return;
+    const stored = localStorage.getItem(`campus-coin.ai-history.${user.id}`);
+    if (stored) {
+      try {
+        const saved = JSON.parse(stored) as ChatMessage[] | { current: ChatMessage[]; past: PastConversation[] };
+        if (Array.isArray(saved)) {
+          setMessages(saved.length ? saved : [welcomeMessage()]);
+        } else {
+          setMessages(saved.current?.length ? saved.current : [welcomeMessage()]);
+          setPastConversations(Array.isArray(saved.past) ? saved.past : []);
+        }
+      } catch {
+        localStorage.removeItem(`campus-coin.ai-history.${user.id}`);
+      }
+    }
+    setHistoryLoaded(true);
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (!historyStorageKey || !historyLoaded) return;
+    localStorage.setItem(
+      historyStorageKey,
+      JSON.stringify({
+        current: messages.filter((message) => message.id !== WELCOME_MESSAGE_ID).slice(-100),
+        past: pastConversations,
+      }),
+    );
+  }, [historyStorageKey, historyLoaded, messages, pastConversations]);
 
   useEffect(() => {
     if (!user) return;
@@ -70,7 +113,7 @@ export function InsightsPage() {
         if (!cancelled) setIsLoading(false);
       });
     return () => { cancelled = true; };
-  }, [user?.id]);
+    }, [user?.id]);
 
   async function sendMessage(text: string) {
     const trimmedText = text.trim();
@@ -89,7 +132,8 @@ export function InsightsPage() {
     setIsSending(true);
 
     try {
-      const answer = await aiService.answer(trimmedText, history);
+      const aiResult = await aiService.answer(trimmedText, history);
+      const answer = aiResult.answer;
       const looksLikeExpense = /bought|spent|₦|paid|purchase/i.test(trimmedText);
       const lowerText = trimmedText.toLowerCase();
       const expenseCategories = categories.filter((category) => category.type === 'expense');
@@ -101,6 +145,7 @@ export function InsightsPage() {
         id: crypto.randomUUID(),
         role: 'assistant',
         text: answer,
+        ai: aiResult.ai,
         ...(looksLikeExpense && categoryMatch && amount ? {
           suggestedCategoryId: categoryMatch.id,
           suggestedCategoryName: categoryMatch.name,
@@ -143,10 +188,22 @@ export function InsightsPage() {
     if (!item || !Number.isFinite(price) || price <= 0) return;
     setPurchaseItem('');
     setPurchasePrice('');
-    void sendMessage(`Can I buy ${item} for ₦${price.toLocaleString()}?`);
+    void sendMessage(`Can I buy ${item} for ${user?.settings?.currency ?? DEFAULT_CURRENCY} ${price.toLocaleString()}?`);
   }
 
   function handleNewChat() {
+    const currentMessages = messages.filter((message) => message.id !== WELCOME_MESSAGE_ID);
+    if (currentMessages.length) {
+      setPastConversations((previous) => [
+        {
+          id: crypto.randomUUID(),
+          title: currentMessages.find((message) => message.role === 'user')?.text.slice(0, 48) || 'Campus Coin chat',
+          messages: currentMessages,
+          updatedAt: new Date().toISOString(),
+        },
+        ...previous,
+      ].slice(0, 20));
+    }
     setMessages([welcomeMessage()]);
     setLoggedIds(new Set());
   }
@@ -202,11 +259,16 @@ export function InsightsPage() {
                       : 'rounded-bl-sm border border-gray-100 bg-gray-50 text-gray-800 dark:border-white/[0.06] dark:bg-surface-elevated dark:text-text-primary',
                   )}>
                     <p>{message.text}</p>
+                    {message.role === 'assistant' && message.ai && (
+                      <p className="mt-2 text-[10px] font-semibold uppercase tracking-wide opacity-60">
+                        {message.ai.provider} · {message.ai.model}
+                      </p>
+                    )}
                     {message.suggestedCategoryName && message.suggestedAmount && (
                       <div className="mt-3 space-y-2">
                         <div className="flex items-center gap-2 rounded-lg bg-white/90 px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm dark:bg-surface dark:text-text-secondary">
                           <Sparkles className="h-3.5 w-3.5 text-amber-500" />
-                          {message.suggestedCategoryName} · {formatCurrency(message.suggestedAmount, DEFAULT_CURRENCY)}
+                          {message.suggestedCategoryName} · {formatCurrency(message.suggestedAmount, user?.settings?.currency ?? DEFAULT_CURRENCY)}
                         </div>
                         {loggedIds.has(message.id) ? (
                           <p className="flex items-center gap-1.5 text-xs font-semibold text-brand-700 dark:text-primary-accent">
@@ -275,13 +337,12 @@ export function InsightsPage() {
                   className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/20 dark:border-white/10 dark:bg-surface dark:text-text-primary"
                 />
                 <div className="flex gap-2">
-                  <span className="flex h-10 items-center rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm text-gray-500 dark:border-white/10 dark:bg-surface dark:text-text-muted">₦</span>
+                  <span className="flex h-10 items-center rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm text-gray-500 dark:border-white/10 dark:bg-surface dark:text-text-muted">{user?.settings?.currency ?? DEFAULT_CURRENCY}</span>
                   <input
-                    type="number"
-                    min="0.01"
-                    step="0.01"
-                    value={purchasePrice}
-                    onChange={(event) => setPurchasePrice(event.target.value)}
+                    type="text"
+                    inputMode="decimal"
+                    value={formatNumericInput(purchasePrice)}
+                    onChange={(event) => setPurchasePrice(normalizeNumericInput(event.target.value))}
                     disabled={isSending}
                     required
                     placeholder="Price"
@@ -319,6 +380,26 @@ export function InsightsPage() {
                 ))}
               </div>
             </Card>
+            {pastConversations.length > 0 && (
+              <Card>
+                <div className="mb-3 flex items-center justify-between gap-2">
+                  <h2 className="text-sm font-semibold text-gray-900 dark:text-text-primary">Past conversations</h2>
+                  <span className="text-xs text-gray-400 dark:text-text-muted">{pastConversations.length}</span>
+                </div>
+                <div className="space-y-1.5">
+                  {pastConversations.slice(0, 5).map((conversation) => (
+                    <button
+                      key={conversation.id}
+                      type="button"
+                      onClick={() => setMessages(conversation.messages)}
+                      className="w-full truncate rounded-lg border border-gray-100 px-3 py-2 text-left text-xs font-medium text-gray-600 hover:border-brand-200 hover:bg-brand-50 hover:text-brand-700 dark:border-white/5 dark:text-text-secondary dark:hover:border-primary/30 dark:hover:bg-primary/[0.08] dark:hover:text-primary-accent"
+                    >
+                      {conversation.title}
+                    </button>
+                  ))}
+                </div>
+              </Card>
+            )}
 
             <Card className="border-brand-100 bg-gradient-to-br from-brand-50 to-blue-50 dark:border-primary/15 dark:from-primary/[0.08] dark:to-blue-400/[0.08]">
               <div className="flex items-start gap-3">

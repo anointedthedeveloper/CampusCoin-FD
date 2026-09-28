@@ -26,6 +26,7 @@ export interface OnboardingUpdate {
   // Budget records for the current month, split across the onboarding's
   // selected spending categories.
   monthlyBudget?: number;
+  currency?: string;
 }
 
 export interface User {
@@ -41,6 +42,7 @@ export interface User {
   onboarding?: OnboardingProfile;
   createdAt: string;
   updatedAt: string;
+  settings?: UserSettings;
 }
 
 export interface UserProfileUpdate {

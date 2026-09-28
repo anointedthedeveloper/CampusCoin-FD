@@ -14,12 +14,12 @@ import {
   Wallet,
   Zap,
 } from 'lucide-react';
-import { Button, Input, Logo } from '@/components/common';
+import { Button, FormattedNumberInput, Logo } from '@/components/common';
 import { SelectableCard } from '@/components/onboarding/SelectableCard';
 import { useAuth } from '@/hooks/useAuth';
 import { profileService } from '@/services';
 import { STUDENT_ROUTES } from '@/constants/routes';
-import { DEFAULT_CURRENCY } from '@/constants/config';
+import { CURRENCY_OPTIONS, DEFAULT_CURRENCY } from '@/constants/config';
 import { formatCurrency } from '@/utils/format';
 import {
   FINANCIAL_GOAL_OPTIONS,
@@ -164,6 +164,7 @@ export function OnboardingPage() {
   const [goals,              setGoals]               = useState<string[]>([]);
   const [monthlyBudget,      setMonthlyBudget]       = useState('');
   const [savingsTarget,      setSavingsTarget]       = useState('');
+  const [currency,           setCurrency]            = useState(DEFAULT_CURRENCY);
 
   useEffect(() => {
     if (!user) return;
@@ -178,6 +179,7 @@ export function OnboardingPage() {
     setGoals(user.onboarding?.goals ?? []);
     setIncomeAmount(user.monthlyAllowanceBaseline !== undefined ? String(user.monthlyAllowanceBaseline) : '');
     setSavingsTarget(user.savingsGoalAmount !== undefined ? String(user.savingsGoalAmount) : '');
+    setCurrency(user.settings?.currency ?? DEFAULT_CURRENCY);
     setStep(isEditMode ? 1 : Math.min(Math.max(user.onboarding?.currentStep ?? 1, 1), TOTAL_ONBOARDING_STEPS + 1));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
@@ -256,6 +258,7 @@ export function OnboardingPage() {
         monthlyAllowanceBaseline: incomeAmount ? Number(incomeAmount) : undefined,
         savingsGoalAmount:        savingsTarget ? Number(savingsTarget) : undefined,
         monthlyBudget:            monthlyBudget ? Number(monthlyBudget) : undefined,
+        currency,
         currentStep: 5,
         status: 'in_progress',
       });
@@ -483,10 +486,23 @@ export function OnboardingPage() {
                     </div>
                   ))}
                 </div>
+                <div className="max-w-sm">
+                  <label htmlFor="onboarding-currency" className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-text-secondary">
+                    Preferred currency
+                  </label>
+                  <select
+                    id="onboarding-currency"
+                    value={currency}
+                    onChange={(event) => setCurrency(event.target.value)}
+                    className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/20 dark:border-white/[0.08] dark:bg-surface dark:text-text-primary"
+                  >
+                    {CURRENCY_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                  </select>
+                </div>
                 <div className="flex items-center gap-4">
                   <Button
                     size="lg"
-                    onClick={() => void goToStep(2)}
+                    onClick={() => void goToStep(2, { currency })}
                     isLoading={isSaving}
                   >
                     Let&apos;s go
@@ -522,14 +538,11 @@ export function OnboardingPage() {
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <Input
+                  <FormattedNumberInput
                     label="Income amount (optional)"
-                    type="number"
-                    min="0"
-                    step="0.01"
                     placeholder="0.00"
                     value={incomeAmount}
-                    onChange={(e) => setIncomeAmount(e.target.value)}
+                    onChange={setIncomeAmount}
                   />
                   <div className="flex flex-col gap-1.5">
                     <span className="text-sm font-medium text-gray-700 dark:text-text-secondary">Frequency</span>
@@ -658,24 +671,18 @@ export function OnboardingPage() {
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <Input
+                  <FormattedNumberInput
                     label="Monthly spending budget (optional)"
-                    type="number"
-                    min="0"
-                    step="0.01"
                     placeholder="0.00"
                     value={monthlyBudget}
-                    onChange={(e) => setMonthlyBudget(e.target.value)}
+                    onChange={setMonthlyBudget}
                     hint="We'll track this against your actual spending."
                   />
-                  <Input
+                  <FormattedNumberInput
                     label="Savings target (optional)"
-                    type="number"
-                    min="0"
-                    step="0.01"
                     placeholder="0.00"
                     value={savingsTarget}
-                    onChange={(e) => setSavingsTarget(e.target.value)}
+                    onChange={setSavingsTarget}
                     hint="Shown as a progress bar on your dashboard."
                   />
                 </div>
@@ -791,7 +798,7 @@ export function OnboardingPage() {
                   ].map((tile) => (
                     <div key={tile.label} className="rounded-xl bg-brand-50 p-3 dark:bg-white/5">
                       <p className="text-sm font-bold text-brand-900 dark:text-text-primary">
-                        {formatCurrency(tile.value, DEFAULT_CURRENCY)}
+                        {formatCurrency(tile.value, currency)}
                       </p>
                       <p className="mt-0.5 text-xs text-gray-500 dark:text-text-muted">{tile.label}</p>
                     </div>
@@ -815,7 +822,7 @@ export function OnboardingPage() {
                         : 'Income'}
                     </p>
                     <p className="mt-0.5 text-xl font-bold text-brand-900 dark:text-text-primary">
-                      {formatCurrency(Number(incomeAmount), DEFAULT_CURRENCY)}
+                      {formatCurrency(Number(incomeAmount), currency)}
                     </p>
                   </div>
                 )}
@@ -853,7 +860,7 @@ export function OnboardingPage() {
                   <div className="mb-4 rounded-xl bg-brand-50 p-4 dark:bg-white/5">
                     <p className="text-xs text-gray-500 dark:text-text-muted">Monthly budget</p>
                     <p className="mt-0.5 text-xl font-bold text-brand-900 dark:text-text-primary">
-                      {formatCurrency(Number(monthlyBudget), DEFAULT_CURRENCY)}
+                      {formatCurrency(Number(monthlyBudget), currency)}
                     </p>
                     <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-white dark:bg-white/10">
                       <div className="h-full w-0 rounded-full bg-brand-500 dark:bg-primary-accent" />

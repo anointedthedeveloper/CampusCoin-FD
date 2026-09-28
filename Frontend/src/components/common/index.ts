@@ -1,6 +1,7 @@
 export * from './Button';
 export * from './BrowserFrame';
 export * from './Input';
+export * from './FormattedNumberInput';
 export * from './Card';
 export * from './Spinner';
 export * from './PageLoader';

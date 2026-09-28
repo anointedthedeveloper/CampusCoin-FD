@@ -18,13 +18,18 @@ export interface AIConversationTurn {
   text: string;
 }
 
+export interface AIIdentity {
+  provider: string;
+  model: string;
+}
+
 export const aiApi = {
-  async answer(message: string, history: AIConversationTurn[] = []): Promise<string> {
-    const { data } = await httpClient.post<ApiSuccess<{ answer: string }>>('/ai/answer', {
+  async answer(message: string, history: AIConversationTurn[] = []): Promise<{ answer: string; ai?: AIIdentity }> {
+    const { data } = await httpClient.post<ApiSuccess<{ answer: string; ai?: AIIdentity }>>('/ai/answer', {
       message,
       history,
     });
-    return data.data.answer;
+    return data.data;
   },
 
   async suggestCategory(description: string, merchant?: string): Promise<CategorySuggestion> {

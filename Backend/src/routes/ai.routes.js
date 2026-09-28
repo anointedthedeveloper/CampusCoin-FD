@@ -28,12 +28,12 @@ const Insight = require('../models/Insight');
 
 // Services
 const {
-  callGemini,
   normalizeHistory,
   formatAmount,
   handleGeminiError,
   SYSTEM_INSTRUCTION,
 } = require('../services/gemini.service');
+const { callAI, callAIWithInfo, getConfiguredProvider, hasAiProvider } = require('../services/ai.service');
 
 const {
   getMonthlySummary,
@@ -48,6 +48,12 @@ const {
 } = require('../services/financialData.service');
 
 router.use(protect);
+router.use((_req, res, next) => {
+  const ai = getConfiguredProvider();
+  res.setHeader('X-AI-Provider', ai.provider);
+  res.setHeader('X-AI-Model', ai.model);
+  next();
+});
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Shared helpers
@@ -93,6 +99,25 @@ function buildSystemInstruction(aiContext) {
   );
 }
 
+function buildUnavailableAiAnswer(summary) {
+  if (!summary?.hasData) {
+    return 'The AI service is temporarily unavailable, and there are no transactions in this month to summarize yet.';
+  }
+
+  const income = formatAmount(summary.totalIncome, summary.currency);
+  const expenses = formatAmount(summary.totalExpenses, summary.currency);
+  const net = formatAmount(summary.netCashFlow, summary.currency);
+  const topCategory = summary.topCategories?.[0];
+  const categoryNote = topCategory
+    ? ` Your largest expense category is ${topCategory.name} at ${formatAmount(topCategory.amount, summary.currency)}.`
+    : '';
+  const cashFlowNote = summary.netCashFlow >= 0
+    ? ' You are currently spending less than your recorded income.'
+    : ' Your expenses are currently higher than your recorded income.';
+
+  return `The AI service is temporarily unavailable. For ${summary.month}, you recorded ${income} in income and ${expenses} in expenses, for a net cash flow of ${net}.${categoryNote}${cashFlowNote}`;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // LEGACY — POST /answer
 // Kept for backwards compatibility with existing frontend callers.
@@ -105,15 +130,16 @@ router.post('/answer', async (req, res) => {
       .status(400)
       .json({ message: 'Message must be between 1 and 1200 characters' });
   }
-  if (!process.env.GEMINI_API_KEY) {
+  if (!hasAiProvider()) {
     return res
       .status(503)
       .json({ message: 'AI answers are not configured on the server' });
   }
 
+  let summary;
   try {
     const currency = req.user.settings?.currency || 'NGN';
-    const summary = await getMonthlySummary(req.user._id, currency);
+    summary = await getMonthlySummary(req.user._id, currency);
     const studentPlan = {
       monthlyIncomeBaseline: req.user.monthlyAllowanceBaseline ?? null,
       savingsGoalAmount: req.user.savingsGoalAmount ?? null,
@@ -125,7 +151,7 @@ router.post('/answer', async (req, res) => {
     const sysInstruction =
       SYSTEM_INSTRUCTION + '\nMonthly summary and student-provided plan: ' + JSON.stringify({ summary, studentPlan });
 
-    const answer = await callGemini(
+    const aiResult = await callAIWithInfo(
       [
         ...normalizeHistory(req.body.history),
         { role: 'user', parts: [{ text: message }] },
@@ -133,9 +159,27 @@ router.post('/answer', async (req, res) => {
       sysInstruction,
       { maxOutputTokens: 500 },
     );
-    return res.json({ data: { answer } });
+    return res.json({
+      data: {
+        answer: aiResult.text,
+        ai: { provider: aiResult.provider, model: aiResult.model },
+      },
+    });
   } catch (err) {
     console.error('AI /answer failed:', err.message);
+    const isGeminiFailure = [
+      'GEMINI_REQUEST_FAILED',
+      'GEMINI_EMPTY_RESPONSE',
+    ].includes(err.message) || err.name === 'TimeoutError' || err.name === 'AbortError';
+    if (isGeminiFailure) {
+      return res.json({
+        data: {
+          answer: buildUnavailableAiAnswer(summary),
+          ai: getConfiguredProvider(),
+          degraded: true,
+        },
+      });
+    }
     return handleGeminiError(err, res);
   }
 });
@@ -167,12 +211,12 @@ router.post('/categorize', async (req, res) => {
     let selectedCategory = null;
     let confidence = 0.4;
 
-    if (process.env.GEMINI_API_KEY && categories.length) {
+    if (hasAiProvider() && categories.length) {
       const categoryList = categories
         .map((c) => `${c._id} | ${c.name} | ${c.type}`)
         .join('\n');
       try {
-        const rawId = await callGemini(
+        const rawId = await callAI(
           [
             {
               role: 'user',
@@ -241,9 +285,9 @@ router.post('/insights/generate', async (req, res) => {
     let body;
     let isAiGenerated = false;
 
-    if (process.env.GEMINI_API_KEY) {
+    if (hasAiProvider()) {
       try {
-        const raw = await callGemini(
+        const raw = await callAI(
           [
             {
               role: 'user',
@@ -327,7 +371,7 @@ router.post('/chat', async (req, res) => {
       .status(400)
       .json({ message: 'Message must be between 1 and 1200 characters' });
   }
-  if (!process.env.GEMINI_API_KEY) {
+  if (!hasAiProvider()) {
     return res
       .status(503)
       .json({ message: 'AI features are not configured on this server.' });
@@ -348,7 +392,7 @@ router.post('/chat', async (req, res) => {
     // This is lightweight string matching — Gemini handles the actual answer.
     const intent = detectIntent(message);
 
-    const answer = await callGemini(
+    const answer = await callAI(
       [
         ...normalizeHistory(req.body.history),
         { role: 'user', parts: [{ text: message }] },
@@ -407,7 +451,7 @@ router.post('/affordability', async (req, res) => {
     // Return the structured data immediately; add Gemini explanation if available
     let explanation = null;
 
-    if (process.env.GEMINI_API_KEY) {
+    if (hasAiProvider()) {
       try {
         const prompt =
           `The student wants to know if they can afford ${itemName} costing ${formatAmount(amount, currency)}` +
@@ -417,7 +461,7 @@ router.post('/affordability', async (req, res) => {
           `Show the key numbers. Do not make the decision for the student. ` +
           `Do not use markdown.`;
 
-        explanation = await callGemini(
+        explanation = await callAI(
           [
             ...normalizeHistory(req.body.history),
             { role: 'user', parts: [{ text: prompt }] },
@@ -462,7 +506,7 @@ router.get('/spending-trend', async (req, res) => {
 
     let narrative = null;
 
-    if (process.env.GEMINI_API_KEY) {
+    if (hasAiProvider()) {
       try {
         const prompt =
           `Explain the student's spending trend in 2-4 friendly sentences. ` +
@@ -471,7 +515,7 @@ router.get('/spending-trend', async (req, res) => {
           `Month comparison: ${JSON.stringify(comparison)}\n` +
           `6-month trend: ${JSON.stringify(trend)}`;
 
-        narrative = await callGemini(
+        narrative = await callAI(
           [{ role: 'user', parts: [{ text: prompt }] }],
           SYSTEM_INSTRUCTION,
           { maxOutputTokens: 350 },
@@ -525,7 +569,7 @@ router.get('/saving-suggestions', async (req, res) => {
 
     let suggestions = null;
 
-    if (process.env.GEMINI_API_KEY) {
+    if (hasAiProvider()) {
       try {
         const prompt =
           `Generate 3-5 specific, actionable, non-judgmental saving suggestions for this student. ` +
@@ -536,7 +580,7 @@ router.get('/saving-suggestions', async (req, res) => {
           `Budget status: ${JSON.stringify(budgetStatus.budgets)}\n` +
           `Currency: ${currency}`;
 
-        const raw = await callGemini(
+        const raw = await callAI(
           [{ role: 'user', parts: [{ text: prompt }] }],
           SYSTEM_INSTRUCTION,
           { maxOutputTokens: 500, responseMimeType: 'application/json' },
@@ -605,7 +649,7 @@ router.get('/budget-status', async (req, res) => {
 
     let commentary = null;
 
-    if (process.env.GEMINI_API_KEY) {
+    if (hasAiProvider()) {
       try {
         const prompt =
           `Summarise the student's budget health in 2-4 sentences. ` +
@@ -613,7 +657,7 @@ router.get('/budget-status', async (req, res) => {
           `Be encouraging. Do not use markdown.\n\n` +
           `Budget data: ${JSON.stringify(budgetStatus)}\nCurrency: ${currency}`;
 
-        commentary = await callGemini(
+        commentary = await callAI(
           [{ role: 'user', parts: [{ text: prompt }] }],
           SYSTEM_INSTRUCTION,
           { maxOutputTokens: 300 },
@@ -714,14 +758,14 @@ router.post('/savings-scenario', async (req, res) => {
 
     let explanation = null;
 
-    if (process.env.GEMINI_API_KEY) {
+    if (hasAiProvider()) {
       try {
         const prompt =
           `Explain this savings scenario to the student in 2-3 friendly sentences. ` +
           `Mention the monthly and total saving amounts clearly. ` +
           `Do not use markdown.\n\nScenario: ${JSON.stringify(scenario)}`;
 
-        explanation = await callGemini(
+        explanation = await callAI(
           [{ role: 'user', parts: [{ text: prompt }] }],
           SYSTEM_INSTRUCTION,
           { maxOutputTokens: 250 },

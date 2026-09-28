@@ -8,6 +8,7 @@ import { DEFAULT_CURRENCY } from '@/constants/config';
 import { formatCurrency, formatMonthLabel } from '@/utils/format';
 import { ApiError } from '@/types/api';
 import { cn } from '@/utils/cn';
+import { formatNumericInput, normalizeNumericInput } from '@/utils/number';
 import type { Budget } from '@/types/budget';
 import type { Category } from '@/types/category';
 
@@ -220,17 +221,16 @@ export function BudgetsPage() {
               </label>
               <div className="relative">
                 <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-sm font-medium text-gray-400 dark:text-text-muted">
-                  ₦
+                  {user?.settings?.currency ?? DEFAULT_CURRENCY}
                 </span>
                 <input
                   id="budget-limit"
-                  type="number"
-                  min="0"
-                  step="0.01"
+                  type="text"
+                  inputMode="decimal"
                   required
                   placeholder="e.g. 15000"
-                  value={limitAmount}
-                  onChange={(e) => setLimitAmount(e.target.value)}
+                  value={formatNumericInput(limitAmount)}
+                  onChange={(e) => setLimitAmount(normalizeNumericInput(e.target.value))}
                   className={cn(
                     'w-full rounded-lg border bg-white py-2.5 pl-8 pr-3.5 text-sm text-gray-900 shadow-inset',
                     'border-gray-200 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/20',

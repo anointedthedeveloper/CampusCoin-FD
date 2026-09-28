@@ -85,6 +85,7 @@ userSchema.methods.toPublic = function () {
     savingsGoalAmount: this.savingsGoalAmount,
     avatarUrl: this.avatarUrl,
     isActive: this.isActive,
+    settings: this.settings,
     onboarding: this.onboarding,
     createdAt: this.createdAt,
     updatedAt: this.updatedAt,

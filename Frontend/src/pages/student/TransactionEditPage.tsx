@@ -9,6 +9,7 @@ import { cn } from '@/utils/cn';
 import { ApiError } from '@/types/api';
 import type { Category, CategoryType } from '@/types/category';
 import type { Transaction } from '@/types/transaction';
+import { formatNumericInput, normalizeNumericInput } from '@/utils/number';
 
 export function TransactionEditPage() {
   const { id } = useParams<{ id: string }>();
@@ -66,6 +67,11 @@ export function TransactionEditPage() {
     const parsedAmount = Number(amount);
     if (!parsedAmount || parsedAmount <= 0) { setError('Enter an amount greater than zero.'); return; }
     if (!categoryId) { setError('Choose a category.'); return; }
+    const selectedCategory = categories.find((category) => category.id === categoryId);
+    if (/^other$/i.test(selectedCategory?.name ?? '') && !description.trim()) {
+      setError('Describe what this transaction was for.');
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -98,8 +104,8 @@ export function TransactionEditPage() {
           <div>
             <label htmlFor="amount" className="text-sm font-medium text-gray-700 dark:text-text-secondary">Amount</label>
             <div className="relative mt-1">
-              <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-gray-400 dark:text-text-muted">₦</span>
-              <input id="amount" type="number" min="0" step="0.01" required value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full rounded-lg border border-gray-300 py-2 pl-7 pr-3 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-border dark:bg-surface dark:text-text-primary dark:focus:border-primary-accent dark:focus:ring-primary-accent" />
+              <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-gray-400 dark:text-text-muted">{user.settings?.currency ?? 'NGN'}</span>
+              <input id="amount" type="text" inputMode="decimal" required value={formatNumericInput(amount)} onChange={(e) => setAmount(normalizeNumericInput(e.target.value))} className="w-full rounded-lg border border-gray-300 py-2 pl-12 pr-3 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-border dark:bg-surface dark:text-text-primary dark:focus:border-primary-accent dark:focus:ring-primary-accent" />
             </div>
           </div>
 
@@ -112,7 +118,7 @@ export function TransactionEditPage() {
           </div>
 
           <div>
-            <label htmlFor="description" className="text-sm font-medium text-gray-700 dark:text-text-secondary">Description <span className="text-gray-400 dark:text-text-muted">(optional)</span></label>
+            <label htmlFor="description" className="text-sm font-medium text-gray-700 dark:text-text-secondary">Description <span className="text-gray-400 dark:text-text-muted">{/^other$/i.test(categories.find((category) => category.id === categoryId)?.name ?? '') ? '(required for Other)' : '(optional)'}</span></label>
             <input id="description" type="text" value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-border dark:bg-surface dark:text-text-primary dark:focus:border-primary-accent dark:focus:ring-primary-accent" />
           </div>
 

@@ -1,13 +1,14 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { Bell, ChevronDown, HelpCircle, KeyRound, LogOut, ShieldCheck, Wand2 } from 'lucide-react';
-import { Avatar, Button, Card, Input } from '@/components/common';
+import { Avatar, Button, Card, FormattedNumberInput, Input } from '@/components/common';
 import { useAuth } from '@/hooks/useAuth';
 import { authService, profileService } from '@/services';
 import { PUBLIC_ROUTES, STUDENT_ROUTES } from '@/constants/routes';
 import { ApiError } from '@/types/api';
 import { cn } from '@/utils/cn';
 import type { UserSettings } from '@/types/user';
+import { CURRENCY_OPTIONS, DEFAULT_CURRENCY } from '@/constants/config';
 
 type SettingsPanel = 'password' | 'notifications' | 'privacy' | null;
 
@@ -127,6 +128,11 @@ export function ProfilePage() {
   const [error,         setError]         = useState<string | null>(null);
   const [savedAt,       setSavedAt]       = useState<number | null>(null);
   const [expandedPanel, setExpandedPanel] = useState<SettingsPanel>(null);
+  const [currency, setCurrency] = useState(DEFAULT_CURRENCY);
+
+  useEffect(() => {
+    profileService.getSettings().then((settings) => setCurrency(settings.currency || DEFAULT_CURRENCY));
+  }, []);
 
   async function handleSave(e: FormEvent) {
     e.preventDefault();
@@ -141,6 +147,7 @@ export function ProfilePage() {
         monthlyAllowanceBaseline: monthlyAllowance ? Number(monthlyAllowance) : undefined,
         savingsGoalAmount: savingsGoal ? Number(savingsGoal) : undefined,
       });
+      await profileService.updateSettings({ currency });
       await refreshUser();
       setSavedAt(Date.now());
     } catch (err) {
@@ -201,22 +208,31 @@ export function ProfilePage() {
               onChange={(e) => setAcademicYear(e.target.value)}
               placeholder="e.g. 300 Level"
             />
-            <Input
+            <FormattedNumberInput
               label="Monthly Allowance Baseline"
-              type="number" min="0" step="0.01"
               value={monthlyAllowance}
-              onChange={(e) => setMonthlyAllowance(e.target.value)}
+              onChange={setMonthlyAllowance}
               placeholder="Optional"
               hint="Used to benchmark your monthly savings rate."
             />
-            <Input
+            <FormattedNumberInput
               label="Savings Goal"
-              type="number" min="0" step="0.01"
               value={savingsGoal}
-              onChange={(e) => setSavingsGoal(e.target.value)}
+              onChange={setSavingsGoal}
               placeholder="Optional"
               hint="Your target balance — shown as a progress bar on the dashboard."
             />
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="profile-currency" className="text-sm font-medium text-gray-700 dark:text-text-secondary">Preferred Currency</label>
+              <select
+                id="profile-currency"
+                value={currency}
+                onChange={(event) => setCurrency(event.target.value)}
+                className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/20 dark:border-white/[0.08] dark:bg-surface dark:text-text-primary"
+              >
+                {CURRENCY_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+              </select>
+            </div>
 
             {error && (
               <div className="rounded-lg border border-red-100 bg-red-50 px-3.5 py-2.5 text-sm text-red-700 dark:border-red-500/20 dark:bg-red-950/20 dark:text-red-400">

@@ -9,6 +9,14 @@ export const FEATURE_FLAGS = {
 } as const;
 
 export const DEFAULT_CURRENCY = 'NGN';
+export const CURRENCY_OPTIONS = [
+  { value: 'NGN', label: 'Nigerian Naira (₦)' },
+  { value: 'USD', label: 'US Dollar ($)' },
+  { value: 'GBP', label: 'British Pound (£)' },
+  { value: 'EUR', label: 'Euro (€)' },
+  { value: 'CAD', label: 'Canadian Dollar (CA$)' },
+  { value: 'GHS', label: 'Ghanaian Cedi (GH₵)' },
+] as const;
 export const DEFAULT_BUDGET_ALERT_THRESHOLD = 80;
 
 export const AUTH_TOKEN_STORAGE_KEY = 'campus-coin.accessToken';

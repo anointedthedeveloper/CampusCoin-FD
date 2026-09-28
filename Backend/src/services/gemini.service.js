@@ -6,7 +6,7 @@
  * timeout, and error-mapping live in exactly one place.
  */
 
-const GEMINI_TIMEOUT_MS = 25_000;
+const GEMINI_TIMEOUT_MS = Number(process.env.GEMINI_TIMEOUT_MS) || 45_000;
 
 /**
  * Campus Coin system instruction injected into every Gemini call.
@@ -92,8 +92,8 @@ async function callGemini(
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new Error('GEMINI_NOT_CONFIGURED');
 
-  const primaryModel = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
-  const fallbackModels = process.env.GEMINI_FALLBACK_MODELS || 'gemini-3.8-flash-lite';
+  const primaryModel = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
+  const fallbackModels = process.env.GEMINI_FALLBACK_MODELS || 'gemini-3.8-flash';
   const models = [...new Set([
     primaryModel,
     ...fallbackModels.split(',').map((modelName) => modelName.trim()).filter(Boolean),
@@ -102,23 +102,31 @@ async function callGemini(
   for (let index = 0; index < models.length; index += 1) {
     const model = models[index];
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-goog-api-key': apiKey,
-      },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: systemInstruction }] },
-        contents,
-        generationConfig: {
-          temperature: 0.4,
-          maxOutputTokens: 600,
-          ...generationConfig,
+    let response;
+    try {
+      response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': apiKey,
         },
-      }),
-      signal: AbortSignal.timeout(GEMINI_TIMEOUT_MS),
-    });
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: systemInstruction }] },
+          contents,
+          generationConfig: {
+            temperature: 0.4,
+            maxOutputTokens: 600,
+            ...generationConfig,
+          },
+        }),
+        signal: AbortSignal.timeout(GEMINI_TIMEOUT_MS),
+      });
+    } catch (err) {
+      const isTimeout = err.name === 'TimeoutError' || err.name === 'AbortError';
+      console.error(`Gemini model ${model} request failed:`, err.message);
+      if (isTimeout && index < models.length - 1) continue;
+      throw err;
+    }
 
     let result;
     try {
