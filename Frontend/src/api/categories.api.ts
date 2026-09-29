@@ -18,7 +18,8 @@ export const categoriesApi = {
     return data.data;
   },
 
-  async remove(id: string): Promise<void> {
-    await httpClient.delete(`/categories/${id}`);
+  async remove(id: string): Promise<{ reassignedCount: number }> {
+    const { data } = await httpClient.delete<{ data?: { reassignedCount?: number } }>(`/categories/${id}`);
+    return { reassignedCount: data?.data?.reassignedCount ?? 0 };
   },
 };

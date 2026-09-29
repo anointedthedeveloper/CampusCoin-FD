@@ -20,4 +20,14 @@ export const reportsApi = {
     });
     return data;
   },
+
+  /** Emails the month's PDF to the student, or to `to` (e.g. a parent). */
+  async emailMonthly(month: string, to?: string): Promise<string> {
+    const { data } = await httpClient.post<ApiSuccess<{ to: string }> & { message?: string }>(
+      '/reports/monthly/email',
+      { month, ...(to ? { to } : {}) },
+      { timeout: 45000 },
+    );
+    return data.message ?? `Report sent to ${data.data.to}.`;
+  },
 };

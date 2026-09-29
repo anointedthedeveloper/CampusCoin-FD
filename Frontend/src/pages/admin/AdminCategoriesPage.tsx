@@ -5,6 +5,9 @@ import { adminCategoryService, type DefaultCategoryTemplate } from '@/services/a
 import { ApiError } from '@/types/api';
 import { cn } from '@/utils/cn';
 import type { CategoryType } from '@/types/category';
+import { IconPicker } from '@/components/categories/IconPicker';
+import { CategoryIconBadge } from '@/components/categories/CategoryIconBadge';
+import { suggestIcons } from '@/constants/categoryIcons';
 
 const PALETTE = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#14b8a6', '#3b82f6', '#6366f1', '#8b5cf6', '#ec4899', '#94a3b8'];
 
@@ -40,6 +43,9 @@ export function AdminCategoriesPage() {
   const [name, setName] = useState('');
   const [type, setType] = useState<CategoryType>('expense');
   const [color, setColor] = useState(PALETTE[5]);
+  const [icon, setIcon] = useState('utensils');
+  // Until the admin picks an icon, keep choosing the best match for the name.
+  const [iconTouched, setIconTouched] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -47,6 +53,7 @@ export function AdminCategoriesPage() {
   const [editing, setEditing] = useState<DefaultCategoryTemplate | null>(null);
   const [editName, setEditName] = useState('');
   const [editColor, setEditColor] = useState(PALETTE[5]);
+  const [editIcon, setEditIcon] = useState('more-horizontal');
   const [applyToStudents, setApplyToStudents] = useState(true);
   const [editError, setEditError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -57,15 +64,22 @@ export function AdminCategoriesPage() {
     adminCategoryService.list().then(setTemplates).catch(() => setTemplates([]));
   }, [refreshToken]);
 
+  useEffect(() => {
+    if (iconTouched) return;
+    const best = suggestIcons(name, type, 1)[0];
+    setIcon(best ?? (type === 'income' ? 'hand-coins' : 'tag'));
+  }, [name, type, iconTouched]);
+
   async function handleCreate(event: FormEvent) {
     event.preventDefault();
     if (!name.trim()) return;
     setError(null);
     setIsSubmitting(true);
     try {
-      await adminCategoryService.create({ name: name.trim(), type, color });
+      await adminCategoryService.create({ name: name.trim(), type, color, icon });
       setFlash(`"${name.trim()}" added. New students will start with it and existing students see it too.`);
       setName('');
+      setIconTouched(false);
       setIsFormOpen(false);
       setRefreshToken((t) => t + 1);
     } catch (err) {
@@ -79,6 +93,7 @@ export function AdminCategoriesPage() {
     setEditing(template);
     setEditName(template.name);
     setEditColor(template.color && PALETTE.includes(template.color) ? template.color : PALETTE[9]);
+    setEditIcon(template.icon || suggestIcons(template.name, template.type, 1)[0] || 'tag');
     setApplyToStudents(true);
     setEditError(null);
   }
@@ -89,7 +104,7 @@ export function AdminCategoriesPage() {
     setIsSaving(true);
     setEditError(null);
     try {
-      const result = await adminCategoryService.update(editing.id, { name: editName.trim(), color: editColor, applyToStudents });
+      const result = await adminCategoryService.update(editing.id, { name: editName.trim(), color: editColor, icon: editIcon, applyToStudents });
       setFlash(`Saved "${editName.trim()}"${applyToStudents ? ` — updated for ${result.studentsUpdated ?? 0} student${result.studentsUpdated === 1 ? '' : 's'}` : ''}.`);
       setEditing(null);
       setRefreshToken((t) => t + 1);
@@ -139,8 +154,19 @@ export function AdminCategoriesPage() {
                 <span className="text-sm font-medium text-gray-700 dark:text-text-secondary">Colour</span>
                 <div className="mt-2"><ColorPicker value={color} onChange={setColor} /></div>
               </div>
+              <div>
+                <span className="text-sm font-medium text-gray-700 dark:text-text-secondary">Icon</span>
+                <div className="mt-2"><IconPicker value={icon} onChange={(slug) => { setIcon(slug); setIconTouched(true); }} name={name} type={type} color={color} /></div>
+              </div>
             </div>
             <div className="flex flex-col justify-between gap-4">
+              <div className="flex items-center gap-3 rounded-xl border border-dashed border-gray-200 p-3 dark:border-white/10">
+                <CategoryIconBadge category={{ name: name || 'New category', icon, color, type }} size="lg" />
+                <div className="min-w-0">
+                  <p className="text-xs text-gray-500 dark:text-text-muted">Preview</p>
+                  <p className="truncate text-sm font-semibold text-gray-900 dark:text-text-primary">{name.trim() || 'New category'}</p>
+                </div>
+              </div>
               <div>
                 <span className="text-sm font-medium text-gray-700 dark:text-text-secondary">Type</span>
                 <div className="mt-1 flex rounded-lg bg-gray-100 p-1 dark:bg-white/[0.06]">
@@ -160,7 +186,7 @@ export function AdminCategoriesPage() {
 
       {editing && (
         <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm" onClick={() => !isSaving && setEditing(null)}>
-          <Card className="w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
+          <Card className="max-h-[90vh] w-full max-w-md overflow-y-auto p-6" onClick={(e) => e.stopPropagation()}>
             <form onSubmit={handleSaveEdit} className="space-y-4" aria-label={`Edit ${editing.name}`}>
               <h2 className="text-lg font-bold text-gray-900 dark:text-text-primary">Edit category</h2>
               <label className="block text-sm font-medium text-gray-700 dark:text-text-secondary">
@@ -171,6 +197,10 @@ export function AdminCategoriesPage() {
               <div>
                 <span className="text-sm font-medium text-gray-700 dark:text-text-secondary">Colour</span>
                 <div className="mt-2"><ColorPicker value={editColor} onChange={setEditColor} /></div>
+              </div>
+              <div>
+                <span className="text-sm font-medium text-gray-700 dark:text-text-secondary">Icon</span>
+                <div className="mt-2"><IconPicker value={editIcon} onChange={setEditIcon} name={editName} type={editing.type} color={editColor} /></div>
               </div>
               <label className="flex items-start gap-2 text-sm text-gray-700 dark:text-text-secondary">
                 <input type="checkbox" checked={applyToStudents} onChange={(e) => setApplyToStudents(e.target.checked)} className="mt-0.5 h-4 w-4 rounded border-gray-300 text-brand-600" />
@@ -222,7 +252,7 @@ export function AdminCategoriesPage() {
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 {list.map((template) => (
                   <div key={template.id} className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 transition-shadow hover:shadow-sm dark:border-white/[0.06] dark:bg-surface-elevated">
-                    <span className="h-9 w-9 shrink-0 rounded-full" style={{ backgroundColor: template.color ?? '#94a3b8' }} aria-hidden="true" />
+                    <CategoryIconBadge category={template} />
                     <div className="min-w-0 flex-1">
                       <p className="flex items-center gap-1.5 truncate text-sm font-semibold text-gray-900 dark:text-text-primary">
                         {template.name}

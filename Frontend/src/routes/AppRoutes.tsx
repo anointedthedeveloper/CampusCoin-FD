@@ -138,6 +138,9 @@ const AdminUserDetailPage = lazyWithRetry(() =>
 const AdminSupportPage = lazyWithRetry(() =>
   import('@/pages/admin/AdminSupportPage').then((page) => ({ default: page.AdminSupportPage })),
 );
+const AdminSystemPage = lazyWithRetry(() =>
+  import('@/pages/admin/AdminSystemPage').then((page) => ({ default: page.AdminSystemPage })),
+);
 const AdminProfilePage = lazyWithRetry(() =>
   import('@/pages/admin/AdminProfilePage').then((page) => ({ default: page.AdminProfilePage })),
 );
@@ -211,6 +214,7 @@ export function AppRoutes() {
               <Route path={ADMIN_ROUTES.statistics} element={<AdminStatisticsPage />} />
               <Route path={ADMIN_ROUTES.profile} element={<AdminProfilePage />} />
               <Route path={ADMIN_ROUTES.support} element={<AdminSupportPage />} />
+              <Route path={ADMIN_ROUTES.system} element={<AdminSystemPage />} />
             </Route>
           </Route>
         </Route>

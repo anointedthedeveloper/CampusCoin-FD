@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   CalendarDays,
   Car,
@@ -23,7 +24,9 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Card } from '@/components/common';
+import { Card, PageSpinner } from '@/components/common';
+import { useMinLoadTime } from '@/hooks/useMinLoadTime';
+import { ApiError } from '@/types/api';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/utils/cn';
 import {
@@ -801,12 +804,32 @@ export function SavingsGoalsPage() {
   const [confetti, setConfetti] = useState(false);
   const [toast, setToast] = useState<{ milestone: number; goalName: string } | null>(null);
 
-  const load = useCallback(() => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const showLoader = useMinLoadTime(isLoading);
+
+  const load = useCallback(async () => {
     if (!user) return;
-    setGoals(savingsGoalsService.list(user.id));
+    try {
+      setGoals(await savingsGoalsService.list(user.id));
+      setLoadError(null);
+    } catch {
+      setLoadError('Your savings goals could not be loaded. Check your connection and try again.');
+    } finally {
+      setIsLoading(false);
+    }
   }, [user]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { void load(); }, [load]);
+
+  // "New savings goal" from the quick-add menu opens the form straight away.
+  const [searchParams, setSearchParams] = useSearchParams();
+  useEffect(() => {
+    if (searchParams.get('new') !== '1') return;
+    setModalMode('create');
+    setSearchParams({}, { replace: true });
+  }, [searchParams, setSearchParams]);
 
   // Check for newly hit milestones after goals update
   useEffect(() => {
@@ -814,7 +837,7 @@ export function SavingsGoalsPage() {
     for (const goal of goals) {
       const milestone = getNewMilestone(goal);
       if (milestone !== null) {
-        savingsGoalsService.markMilestoneCelebrated(goal.id, milestone);
+        void savingsGoalsService.markMilestoneCelebrated(goal.id, milestone).catch(() => undefined);
         setGoals((prev) =>
           prev.map((g) =>
             g.id === goal.id
@@ -827,7 +850,7 @@ export function SavingsGoalsPage() {
         break; // celebrate one at a time
       }
     }
-  }, [goals, user]);  
+  }, [goals, user]);
 
   // ── Derived stats ────────────────────────────────────────────────────────────
   const totalSaved    = goals.reduce((s, g) => s + g.savedAmount, 0);
@@ -837,34 +860,47 @@ export function SavingsGoalsPage() {
 
   // ── Handlers ────────────────────────────────────────────────────────────────
 
-  function handleCreate(data: Omit<SavingsGoal, 'id' | 'createdAt' | 'celebratedMilestones'>) {
+  async function run(action: () => Promise<unknown>) {
+    setActionError(null);
+    try {
+      await action();
+      await load();
+      return true;
+    } catch (err) {
+      setActionError(err instanceof ApiError ? err.message : 'That did not save. Please try again.');
+      return false;
+    }
+  }
+
+  async function handleCreate(data: Omit<SavingsGoal, 'id' | 'createdAt' | 'celebratedMilestones'>) {
     if (!user) return;
-    savingsGoalsService.create(user.id, data);
-    setModalMode(null);
-    load();
+    if (await run(() => savingsGoalsService.create(data))) setModalMode(null);
   }
 
-  function handleEdit(data: Omit<SavingsGoal, 'id' | 'createdAt' | 'celebratedMilestones'>) {
+  async function handleEdit(data: Omit<SavingsGoal, 'id' | 'createdAt' | 'celebratedMilestones'>) {
     if (!editingGoal) return;
-    savingsGoalsService.update(editingGoal.id, data);
-    setModalMode(null);
-    setEditingGoal(undefined);
-    load();
+    const id = editingGoal.id;
+    if (await run(() => savingsGoalsService.update(id, data))) {
+      setModalMode(null);
+      setEditingGoal(undefined);
+    }
   }
 
-  function handleDeleteConfirmed() {
+  async function handleDeleteConfirmed() {
     if (!deleteConfirm) return;
-    savingsGoalsService.delete(deleteConfirm);
+    const id = deleteConfirm;
     setDeleteConfirm(null);
-    load();
+    await run(() => savingsGoalsService.delete(id));
   }
 
-  function handleAdjust(delta: number) {
+  async function handleAdjust(delta: number) {
     if (!adjustGoal) return;
-    savingsGoalsService.adjustAmount(adjustGoal.id, delta);
+    const id = adjustGoal.id;
     setAdjustGoal(undefined);
-    load();
+    await run(() => savingsGoalsService.adjustAmount(id, delta));
   }
+
+  if (showLoader) return <PageSpinner label="Loading your goals…" />;
 
   return (
     <div className="space-y-6">
@@ -946,6 +982,13 @@ export function SavingsGoalsPage() {
           <Plus className="h-4 w-4" /> New Goal
         </button>
       </div>
+
+      {(loadError || actionError) && (
+        <div role="alert" className="flex items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-950/30 dark:text-red-300">
+          <span>{loadError ?? actionError}</span>
+          {loadError && <button type="button" onClick={() => { setIsLoading(true); void load(); }} className="font-semibold underline">Retry</button>}
+        </div>
+      )}
 
       {/* Overview stats */}
       {goals.length > 0 && (

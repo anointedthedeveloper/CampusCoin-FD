@@ -151,7 +151,7 @@ export function OnboardingPage() {
     if (!isCreatingWallet) { setWalletMsgIdx(0); return; }
     const id = setInterval(
       () => setWalletMsgIdx((i) => Math.min(i + 1, WALLET_MESSAGES.length - 1)),
-      2500,
+      800,
     );
     return () => clearInterval(id);
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -210,7 +210,9 @@ export function OnboardingPage() {
       setSkippedSteps((prev) => new Set(prev).add(step));
     }
     try {
-      await persist({ currentStep: next, status: 'in_progress', ...extra });
+      // Editing an existing profile never flips it back to "in progress",
+      // so leaving halfway can't bring back the first-time setup screen.
+      await persist(isEditMode ? { ...extra } : { currentStep: next, status: 'in_progress', ...extra });
       setStep(next);
       setError(null);
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -275,8 +277,7 @@ export function OnboardingPage() {
         savingsGoalAmount:        savingsTarget ? Number(savingsTarget) : undefined,
         monthlyBudget:            monthlyBudget ? Number(monthlyBudget) : undefined,
         currency,
-        currentStep: 5,
-        status: 'in_progress',
+        ...(isEditMode ? {} : { currentStep: 5, status: 'in_progress' as const }),
       });
       setStep(5);
       setError(null);
@@ -287,8 +288,19 @@ export function OnboardingPage() {
   }
 
   async function handleComplete() {
+    if (isEditMode) {
+      // Updating an existing profile: save and go back — no set-up animation
+      // and no second "opening balance" transaction.
+      try {
+        await persist({ status: 'completed' });
+        navigate(STUDENT_ROUTES.profile, { replace: true, state: { notice: 'Your money profile was updated.' } });
+      } catch {
+        // error already set by persist()
+      }
+      return;
+    }
     setIsCreatingWallet(true);
-    const minimumDelay = new Promise<void>((resolve) => setTimeout(resolve, 9000));
+    const minimumDelay = new Promise<void>((resolve) => setTimeout(resolve, 3500));
 
     // Determine final status: if ALL three data steps were skipped → incomplete
     const allDataSkipped =
@@ -483,14 +495,20 @@ export function OnboardingPage() {
           <Link to="/">
             <Logo />
           </Link>
-          <button
-            type="button"
-            onClick={() => void handleSkip()}
-            disabled={isSaving}
-            className="text-sm font-medium text-gray-400 transition-colors hover:text-gray-600 dark:text-text-muted dark:hover:text-text-secondary"
-          >
-            Skip setup
-          </button>
+          {isEditMode ? (
+            <Link to={STUDENT_ROUTES.profile} className="text-sm font-medium text-gray-500 transition-colors hover:text-gray-700 dark:text-text-muted dark:hover:text-text-secondary">
+              Cancel — back to profile
+            </Link>
+          ) : (
+            <button
+              type="button"
+              onClick={() => void handleSkip()}
+              disabled={isSaving}
+              className="text-sm font-medium text-gray-400 transition-colors hover:text-gray-600 dark:text-text-muted dark:hover:text-text-secondary"
+            >
+              Skip for now
+            </button>
+          )}
         </div>
 
         {/* Progress bar — shown for steps 1–5 */}
@@ -498,21 +516,24 @@ export function OnboardingPage() {
           <div className="mt-6">
             <StepProgress current={step} total={TOTAL_ONBOARDING_STEPS} />
             <div className="mt-2 flex gap-1.5">
-              {STEP_LABELS.slice(0, TOTAL_ONBOARDING_STEPS).map((label, i) => (
-                <span
-                  key={label}
-                  className={cn(
-                    'flex-1 text-center text-2xs font-semibold transition-colors duration-200',
-                    i + 1 === step
-                      ? 'text-brand-600 dark:text-primary-accent'
-                      : i + 1 < step
-                        ? 'text-gray-500 dark:text-text-muted'
-                        : 'text-gray-300 dark:text-white/20',
-                  )}
-                >
-                  {label}
-                </span>
-              ))}
+              {STEP_LABELS.slice(0, TOTAL_ONBOARDING_STEPS).map((label, i) => {
+                const cls = cn(
+                  'flex-1 text-center text-2xs font-semibold transition-colors duration-200',
+                  i + 1 === step
+                    ? 'text-brand-600 dark:text-primary-accent'
+                    : i + 1 < step || isEditMode
+                      ? 'text-gray-500 dark:text-text-muted'
+                      : 'text-gray-300 dark:text-white/20',
+                );
+                // When editing, any section can be opened directly.
+                return isEditMode ? (
+                  <button key={label} type="button" onClick={() => { setStep(i + 1); setError(null); }} className={cn(cls, 'rounded hover:text-brand-700 hover:underline dark:hover:text-primary-accent')} aria-current={i + 1 === step ? 'step' : undefined}>
+                    {i === 0 ? 'Currency' : label}
+                  </button>
+                ) : (
+                  <span key={label} className={cls}>{label}</span>
+                );
+              })}
             </div>
           </div>
         )}
@@ -544,10 +565,12 @@ export function OnboardingPage() {
                 </span>
                 <div>
                   <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-gray-900 dark:text-text-primary">
-                    Welcome to Campus Coin,<br />{firstName} 👋
+                    {isEditMode ? <>Update your money profile</> : <>Welcome to Campus Coin,<br />{firstName} 👋</>}
                   </h1>
                   <p className="mt-3 max-w-md text-base leading-relaxed text-gray-600 dark:text-text-secondary">
-                    Let&apos;s set up your money profile in 4 quick steps so Campus Coin can give you personalised budgeting insights.
+                    {isEditMode
+                      ? 'Change your currency, income, spending categories or goals. Jump to any section using the steps above — your answers are saved as you go.'
+                      : 'Let\u2019s set up your money profile in 4 quick steps so Campus Coin can give you personalised budgeting insights. You can change any of it later from your profile.'}
                   </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
@@ -581,7 +604,7 @@ export function OnboardingPage() {
                     onClick={() => void goToStep(2, { currency })}
                     isLoading={isSaving}
                   >
-                    Let&apos;s go
+                    {isEditMode ? 'Next: income' : <>Let&apos;s go</>}
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 </div>
@@ -894,7 +917,7 @@ export function OnboardingPage() {
                 {skippedSteps.size > 0 && (
                   <div className="rounded-xl border border-amber-100 bg-amber-50 px-4 py-3 dark:border-amber-400/15 dark:bg-amber-400/8">
                     <p className="text-sm font-medium text-amber-800 dark:text-amber-400">
-                      You skipped {skippedSteps.size} step{skippedSteps.size > 1 ? 's' : ''} — your dashboard will still work, but you can always go back and fill them in from your profile settings.
+                      You skipped {skippedSteps.size} step{skippedSteps.size > 1 ? 's' : ''} — your dashboard will still work, and you can fill them in any time from Profile → Edit money profile.
                     </p>
                   </div>
                 )}
@@ -906,7 +929,7 @@ export function OnboardingPage() {
                   isLoading={isSaving}
                 >
                   <Wallet className="h-4 w-4" />
-                  Finish setup
+                  {isEditMode ? 'Save money profile' : 'Finish setup'}
                 </Button>
               </div>
             )}

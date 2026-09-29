@@ -77,6 +77,7 @@ export function AuthLayout() {
               <ArrowLeft className="h-3.5 w-3.5" />
               Back to Campus Coin
             </Link>
+            <p className="mt-3 text-center text-[11px] text-gray-600 dark:text-white/50">Made by <span className="font-semibold">Team Flandek</span></p>
           </div>
         </div>
       </div>

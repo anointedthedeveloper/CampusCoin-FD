@@ -21,8 +21,7 @@ export const categoryService = {
   },
 
   async remove(_userId: string, id: string): Promise<{ reassignedCount: number }> {
-    await categoriesApi.remove(id);
-    return { reassignedCount: 0 };
+    return categoriesApi.remove(id);
   },
 
   // Seeding is handled server-side at registration — no-op on the client.

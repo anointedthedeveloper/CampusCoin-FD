@@ -7,7 +7,9 @@ export type NotificationType =
   | 'announcement'
   | 'overspending'
   | 'allowance-exceeded'
-  | 'goal-reached';
+  | 'goal-reached'
+  | 'support-reply'
+  | 'backup';
 
 export interface AppNotification {
   id: string;
@@ -17,4 +19,5 @@ export interface AppNotification {
   message: string;
   isRead: boolean;
   createdAt: string;
+  meta?: Record<string, unknown> | null;
 }

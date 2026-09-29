@@ -1,34 +1,18 @@
+import { httpClient } from '@/api/httpClient';
+import type { ApiSuccess } from '@/types/api';
 import type { SavingsGoal } from '@/types/savingsGoal';
 
-// Goals are stored per student. The original version kept one shared list
-// for the whole browser, so a second student signing in on the same device
-// saw (and could edit) the first student's goals.
+// Goals live on the server so they follow the student to any device and are
+// included in backups. Older versions kept them only in this browser; those
+// are uploaded once (see migrateLocalGoals) and then removed locally.
 const LEGACY_STORAGE_KEY = 'campus-coin.savingsGoals';
-const storageKey = (userId: string) => `${LEGACY_STORAGE_KEY}.${userId}`;
+const legacyKey = (userId: string) => `${LEGACY_STORAGE_KEY}.${userId}`;
 
-// Set by list()/create(), which every page calls with the signed-in user
-// before using the id-only methods below.
-let activeUserId: string | null = null;
+type GoalInput = Omit<SavingsGoal, 'id' | 'createdAt' | 'celebratedMilestones'>;
 
-function setActiveUser(userId: string): void {
-  activeUserId = userId;
+function readLegacy(userId: string): SavingsGoal[] {
   try {
-    // One-time migration: hand the old shared list to the first student
-    // who opens Savings Goals on this device.
-    const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
-    if (legacy && !localStorage.getItem(storageKey(userId))) {
-      localStorage.setItem(storageKey(userId), legacy);
-    }
-    if (legacy) localStorage.removeItem(LEGACY_STORAGE_KEY);
-  } catch {
-    // ignore
-  }
-}
-
-function readAll(): SavingsGoal[] {
-  if (!activeUserId) return [];
-  try {
-    const raw = localStorage.getItem(storageKey(activeUserId));
+    const raw = localStorage.getItem(legacyKey(userId)) ?? localStorage.getItem(LEGACY_STORAGE_KEY);
     const parsed = raw ? (JSON.parse(raw) as SavingsGoal[]) : [];
     return Array.isArray(parsed) ? parsed : [];
   } catch {
@@ -36,78 +20,58 @@ function readAll(): SavingsGoal[] {
   }
 }
 
-function writeAll(goals: SavingsGoal[]): void {
-  if (!activeUserId) return;
+function clearLegacy(userId: string) {
   try {
-    localStorage.setItem(storageKey(activeUserId), JSON.stringify(goals));
+    localStorage.removeItem(legacyKey(userId));
+    localStorage.removeItem(LEGACY_STORAGE_KEY);
   } catch {
-    // Storage full or unavailable.
+    // ignore
   }
 }
 
-function uid(): string {
-  return `sg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+async function migrateLocalGoals(userId: string): Promise<SavingsGoal[] | null> {
+  const local = readLegacy(userId);
+  if (!local.length) return null;
+  const { data } = await httpClient.post<ApiSuccess<SavingsGoal[]>>('/savings-goals/import', { goals: local });
+  clearLegacy(userId);
+  return data.data;
 }
 
 export const savingsGoalsService = {
-  /** List all goals for a user (userId scoped via key prefix if needed) */
-  list(userId: string): SavingsGoal[] {
-    setActiveUser(userId);
-    return readAll();
+  /** All of the signed-in student's goals (uploading any browser-only ones first). */
+  async list(userId: string): Promise<SavingsGoal[]> {
+    const migrated = await migrateLocalGoals(userId).catch(() => null);
+    if (migrated) return migrated;
+    const { data } = await httpClient.get<ApiSuccess<SavingsGoal[]>>('/savings-goals');
+    return data.data ?? [];
   },
 
-  create(
-    userId: string,
-    payload: Omit<SavingsGoal, 'id' | 'createdAt' | 'celebratedMilestones'>,
-  ): SavingsGoal {
-    setActiveUser(userId);
-    const goal: SavingsGoal = {
-      ...payload,
-      id: uid(),
-      createdAt: new Date().toISOString(),
-      celebratedMilestones: [],
-    };
-    const all = readAll();
-    writeAll([...all, goal]);
-    return goal;
+  async create(payload: GoalInput): Promise<SavingsGoal> {
+    const { data } = await httpClient.post<ApiSuccess<SavingsGoal>>('/savings-goals', payload);
+    return data.data;
   },
 
-  update(id: string, patch: Partial<Omit<SavingsGoal, 'id' | 'createdAt'>>): SavingsGoal {
-    const all = readAll();
-    const idx = all.findIndex((g) => g.id === id);
-    if (idx === -1) throw new Error(`Goal ${id} not found`);
-    const updated = { ...all[idx], ...patch };
-    all[idx] = updated;
-    writeAll(all);
-    return updated;
+  async update(id: string, patch: Partial<GoalInput>): Promise<SavingsGoal> {
+    const { data } = await httpClient.patch<ApiSuccess<SavingsGoal>>(`/savings-goals/${id}`, {
+      ...patch,
+      targetDate: patch.targetDate ? patch.targetDate : null,
+    });
+    return data.data;
   },
 
-  delete(id: string): void {
-    writeAll(readAll().filter((g) => g.id !== id));
+  async delete(id: string): Promise<void> {
+    await httpClient.delete(`/savings-goals/${id}`);
   },
 
   /** Record that a milestone percentage has been celebrated so it fires only once */
-  markMilestoneCelebrated(id: string, milestone: number): void {
-    const all = readAll();
-    const idx = all.findIndex((g) => g.id === id);
-    if (idx === -1) return;
-    const existing = all[idx].celebratedMilestones ?? [];
-    if (!existing.includes(milestone)) {
-      all[idx] = { ...all[idx], celebratedMilestones: [...existing, milestone] };
-      writeAll(all);
-    }
+  async markMilestoneCelebrated(id: string, milestone: number): Promise<void> {
+    await httpClient.post(`/savings-goals/${id}/milestones`, { milestone });
   },
 
-  /** Deposit or withdraw from a goal's savedAmount */
-  adjustAmount(id: string, delta: number): SavingsGoal {
-    const all = readAll();
-    const idx = all.findIndex((g) => g.id === id);
-    if (idx === -1) throw new Error(`Goal ${id} not found`);
-    const newAmount = Math.max(0, all[idx].savedAmount + delta);
-    const updated = { ...all[idx], savedAmount: newAmount };
-    all[idx] = updated;
-    writeAll(all);
-    return updated;
+  /** Deposit (+) or withdraw (−) from a goal's savedAmount */
+  async adjustAmount(id: string, delta: number): Promise<SavingsGoal> {
+    const { data } = await httpClient.post<ApiSuccess<SavingsGoal>>(`/savings-goals/${id}/adjust`, { delta });
+    return data.data;
   },
 };
 

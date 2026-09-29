@@ -12,7 +12,7 @@ const fieldCls =
   'mt-1.5 w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/20 dark:border-white/10 dark:bg-surface dark:text-text-primary dark:placeholder:text-text-muted';
 
 /** Contact form that files a message in the admin Support inbox. */
-export function SupportForm() {
+export function SupportForm({ onSent }: { onSent?: (id: string) => void } = {}) {
   const { user } = useAuth();
   const [name, setName] = useState(user?.fullName ?? '');
   const [email, setEmail] = useState(user?.email ?? '');
@@ -21,6 +21,7 @@ export function SupportForm() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sent, setSent] = useState(false);
+  const [linked, setLinked] = useState(false);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -30,9 +31,11 @@ export function SupportForm() {
     if (message.trim().length < 10) { setError('Please write at least 10 characters.'); return; }
     setIsSubmitting(true);
     try {
-      await supportApi.send({ name: name.trim(), email: email.trim(), topic, message: message.trim() });
+      const result = await supportApi.send({ name: name.trim(), email: email.trim(), topic, message: message.trim() });
+      setLinked(result.linked);
       setSent(true);
       setMessage('');
+      onSent?.(result.id);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Your message could not be sent. Please try again.');
     } finally {
@@ -45,7 +48,11 @@ export function SupportForm() {
       <div className="flex flex-col items-center gap-3 py-8 text-center" role="status">
         <CheckCircle2 className="h-10 w-10 text-brand-600 dark:text-primary-accent" />
         <p className="text-lg font-bold text-gray-900 dark:text-text-primary">Message sent</p>
-        <p className="max-w-sm text-sm text-gray-600 dark:text-text-secondary">Thanks — the Campus Coin team will reply to {email}.</p>
+        <p className="max-w-sm text-sm text-gray-600 dark:text-text-secondary">
+          {linked
+            ? 'Thanks — replies from the Campus Coin team will appear in “My conversations” and in your notifications. We’ll email you too.'
+            : `Thanks — the Campus Coin team will reply to ${email}.`}
+        </p>
         <button type="button" onClick={() => setSent(false)} className="text-sm font-semibold text-brand-700 hover:underline dark:text-primary-accent">Send another message</button>
       </div>
     );

@@ -43,7 +43,8 @@ export default {
       },
 
       fontFamily: {
-        sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', 'sans-serif'],
+        // 'Naira' only covers ₦ (see index.html) so the sign has two bars.
+        sans: ['Naira', '"Plus Jakarta Sans"', 'Inter', 'system-ui', 'sans-serif'],
       },
 
       fontSize: {

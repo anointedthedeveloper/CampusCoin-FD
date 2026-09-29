@@ -25,7 +25,7 @@ const onboardingSchema = new mongoose.Schema(
       enum: ['not_started', 'in_progress', 'completed', 'skipped'],
       default: 'not_started',
     },
-    currentStep: { type: Number, default: 1, min: 1, max: 5 },
+    currentStep: { type: Number, default: 1, min: 1, max: 6 },
     incomeSources: [{ type: String, trim: true }],
     otherIncomeSource: { type: String, trim: true, maxlength: 60 },
     incomeFrequency: { type: String, enum: ['weekly', 'monthly', 'occasionally'] },

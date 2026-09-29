@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const { serverError } = require('../utils/httpErrors');
 const Notification = require('../models/Notification');
 const Announcement = require('../models/Announcement');
 const { protect } = require('../middleware/auth');
@@ -61,8 +62,7 @@ router.get('/', async (req, res) => {
     }).sort({ createdAt: -1 }).limit(50);
     res.json({ data: notifications.map(formatNotif) });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -88,8 +88,7 @@ router.get('/announcements', async (req, res) => {
       })),
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -102,8 +101,7 @@ router.patch('/:id/read', async (req, res) => {
     await notif.save();
     res.json({ data: formatNotif(notif) });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -113,8 +111,7 @@ router.patch('/read-all', async (req, res) => {
     await Notification.updateMany({ userId: req.user._id, isRead: false }, { isRead: true });
     res.json({ data: null, message: 'All notifications marked as read' });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -124,8 +121,7 @@ router.patch('/clear-all', async (req, res) => {
     await Notification.updateMany({ userId: req.user._id, isDismissed: { $ne: true } }, { isDismissed: true, isRead: true });
     res.json({ data: null, message: 'Notifications cleared' });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -138,8 +134,7 @@ router.patch('/:id/dismiss', async (req, res) => {
     await notif.save();
     res.json({ data: formatNotif(notif) });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 

@@ -8,7 +8,31 @@ import type {
 } from '@/types/auth';
 import type { ApiSuccess } from '@/types/api';
 
+export interface AuthSession {
+  id: string;
+  method: 'password' | 'google' | 'register' | 'refresh';
+  userAgent: string;
+  ip: string;
+  createdAt: string;
+  lastUsedAt: string;
+  current: boolean;
+}
+
 export const authApi = {
+  async sessions(): Promise<AuthSession[]> {
+    const { data } = await httpClient.get<ApiSuccess<AuthSession[]>>('/auth/sessions');
+    return data.data ?? [];
+  },
+
+  async revokeSession(id: string): Promise<void> {
+    await httpClient.delete(`/auth/sessions/${id}`);
+  },
+
+  async revokeOtherSessions(): Promise<number> {
+    const { data } = await httpClient.delete<ApiSuccess<{ count: number }>>('/auth/sessions');
+    return data.data?.count ?? 0;
+  },
+
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     const { data } = await httpClient.post<ApiSuccess<AuthResponse>>('/auth/login', credentials);
     return data.data;

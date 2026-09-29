@@ -5,6 +5,7 @@ const Budget = require('../models/Budget');
 const Category = require('../models/Category');
 const { protect } = require('../middleware/auth');
 const { ensureRecurringProcessed } = require('./recurring.routes');
+const { ensureDailyBackup } = require('../services/backup.service');
 
 router.use(protect);
 
@@ -13,6 +14,8 @@ router.get('/', async (req, res) => {
   try {
     await ensureRecurringProcessed(req.user._id);
     const userId = req.user._id;
+    // Opening the app guarantees a daily backup even if the cron never ran.
+    await ensureDailyBackup(userId).catch((err) => console.error('Daily backup failed:', err.message));
 
     // Current month
     const now = new Date();

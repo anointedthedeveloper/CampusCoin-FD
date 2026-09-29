@@ -63,10 +63,10 @@ export function AboutPage() {
     <div className="overflow-hidden">
       <QuickGuideVideo />
       {/* ── Hero ── */}
-      <section className="mx-auto grid max-w-[1280px] items-center gap-10 px-4 pb-14 pt-12 sm:px-6 sm:pb-20 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:pt-16">
+      <section className="mx-auto grid max-w-[1280px] items-center gap-8 px-4 pb-14 pt-10 sm:px-6 sm:pb-20 lg:grid-cols-[0.82fr_1.18fr] lg:gap-10 lg:pt-12">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#1a8f57] dark:text-primary-accent">The thinking behind Campus Coin</p>
-          <h1 className="mt-5 max-w-2xl text-4xl font-bold leading-[1.08] text-[#1d3d2d] dark:text-text-primary sm:text-5xl lg:text-[3.5rem]">
+          <h1 className="mt-5 max-w-2xl text-4xl font-bold leading-[1.08] text-[#1d3d2d] dark:text-text-primary sm:text-5xl lg:text-[2.9rem] xl:text-[3.1rem]">
             Money management should fit student life.
           </h1>
           <p className="mt-5 max-w-xl text-base leading-7 text-gray-600 dark:text-text-secondary">
@@ -79,7 +79,7 @@ export function AboutPage() {
           <WatchGuideButton />
           </div>
         </div>
-        <figure className="relative min-h-[340px] overflow-hidden rounded-[28px] shadow-card dark:shadow-dark-card sm:min-h-[430px]">
+        <figure className="relative min-h-[340px] overflow-hidden rounded-[28px] shadow-card dark:shadow-dark-card sm:min-h-[440px] lg:min-h-[520px]">
           <span className="absolute left-6 top-6 z-10 inline-flex w-fit items-center gap-1.5 rounded-full bg-white/90 px-3 py-1 text-[11px] font-semibold text-[#1c8f53] shadow-sm dark:bg-white/10 dark:text-primary-accent">
             <span className="h-1.5 w-1.5 rounded-full bg-[#1c8f53] dark:bg-primary-accent" />
             Built for campus life
@@ -87,7 +87,7 @@ export function AboutPage() {
           <img
             src={assets.aboutDeskDark}
             alt="Laptop and phone showing the Campus Coin dashboard on a desk"
-            className="h-full min-h-[340px] w-full object-cover sm:min-h-[430px]"
+            className="absolute inset-0 h-full w-full object-cover object-[60%_center]"
             loading="eager"
           />
           <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/60 to-transparent" aria-hidden="true" />

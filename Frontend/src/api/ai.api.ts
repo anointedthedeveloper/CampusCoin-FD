@@ -37,12 +37,26 @@ export interface AITemplate {
   targetMonths?: number;
 }
 
+export type AIActionKind = 'add_transaction' | 'update_transaction' | 'delete_transaction' | 'set_budget' | 'add_savings_goal' | 'contribute_goal' | 'add_category' | 'update_profile';
+
+/** A change the assistant proposed; nothing is saved until it's approved. */
+export interface AIAction {
+  id: string;
+  kind: AIActionKind;
+  summary: string;
+  status: 'pending' | 'applied' | 'rejected' | 'failed';
+  error?: string;
+  result?: { message: string };
+}
+
 export interface AIAnswer {
   answer: string;
   ai?: AIIdentity;
   degraded?: boolean;
   conversationId?: string;
   title?: string;
+  messageId?: string;
+  actions?: AIAction[];
 }
 
 export interface AIConversationSummary {
@@ -60,6 +74,7 @@ export interface AIStoredMessage {
   text: string;
   ai?: AIIdentity;
   createdAt: string;
+  actions?: AIAction[];
 }
 
 export const aiApi = {
@@ -83,6 +98,22 @@ export const aiApi = {
 
   async getConversation(id: string): Promise<AIConversationSummary & { messages: AIStoredMessage[] }> {
     const { data } = await httpClient.get<ApiSuccess<AIConversationSummary & { messages: AIStoredMessage[] }>>(`/ai/conversations/${id}`);
+    return data.data;
+  },
+
+  async applyAction(conversationId: string, messageId: string, actionId: string): Promise<AIAction> {
+    // A change that couldn't be saved still returns 200 with status "failed".
+    const { data } = await httpClient.post<ApiSuccess<AIAction>>(`/ai/conversations/${conversationId}/messages/${messageId}/actions/${actionId}/apply`);
+    return data.data;
+  },
+
+  async rejectAction(conversationId: string, messageId: string, actionId: string): Promise<AIAction> {
+    const { data } = await httpClient.post<ApiSuccess<AIAction>>(`/ai/conversations/${conversationId}/messages/${messageId}/actions/${actionId}/reject`);
+    return data.data;
+  },
+
+  async applyAllActions(conversationId: string, messageId: string): Promise<AIAction[]> {
+    const { data } = await httpClient.post<ApiSuccess<AIAction[]>>(`/ai/conversations/${conversationId}/messages/${messageId}/actions/apply-all`);
     return data.data;
   },
 

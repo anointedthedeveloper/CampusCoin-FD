@@ -1,5 +1,5 @@
 import { getBudgetStatus, getBudgetUtilization } from '@/services/budget.service';
-import { DEFAULT_CATEGORY_ICON, EXPENSE_CATEGORY_ICONS } from '@/constants/categoryIcons';
+import { categoryBadgeStyle, resolveCategoryIcon } from '@/constants/categoryIcons';
 import { DEFAULT_CURRENCY } from '@/constants/config';
 import { formatCurrency } from '@/utils/format';
 import { cn } from '@/utils/cn';
@@ -20,12 +20,13 @@ const statusLabel: Record<string, string> = {
 interface BudgetProgressRowProps {
   categoryName: string;
   budget: Budget;
+  category?: { name: string; icon?: string; color?: string };
 }
 
-export function BudgetProgressRow({ categoryName, budget }: BudgetProgressRowProps) {
+export function BudgetProgressRow({ categoryName, budget, category }: BudgetProgressRowProps) {
   const utilization = getBudgetUtilization(budget);
   const status      = getBudgetStatus(budget);
-  const { icon: Icon, badgeClassName } = EXPENSE_CATEGORY_ICONS[categoryName] ?? DEFAULT_CATEGORY_ICON;
+  const Icon = resolveCategoryIcon({ name: categoryName, icon: category?.icon, type: 'expense' });
 
   const remaining = budget.limitAmount - budget.spentAmount;
   const isOver    = remaining < 0;
@@ -34,10 +35,7 @@ export function BudgetProgressRow({ categoryName, budget }: BudgetProgressRowPro
     <div className="py-4">
       <div className="flex items-center gap-3">
         {/* Icon */}
-        <span className={cn(
-          'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl',
-          badgeClassName,
-        )}>
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl" style={categoryBadgeStyle(category?.color)}>
           <Icon className="h-4 w-4" />
         </span>
 

@@ -20,6 +20,16 @@
  */
 
 const router = require('express').Router();
+const { serverError } = require('../utils/httpErrors');
+const { keywordCategory, userCategories } = require('../services/categorizer.service');
+const { ACTIONS_INSTRUCTION, extractActions, ruleBasedActions, resolveActions, applyAction, loadContext } = require('../services/aiActions.service');
+
+// Messages that ask to change data ("add…", "I spent…", "set my budget…").
+const COMMAND_RE = /\b(add|log|record|create|make|set|save|put|deposit|delete|remove|undo|change|update|edit|i spent|i paid|i bought|i received|i earned|got paid|received|earned|spent|bought)\b/i;
+
+function formatAction(a) {
+  return { id: a._id.toString(), kind: a.kind, summary: a.summary, status: a.status, error: a.error || undefined, result: a.result?.message ? { message: a.result.message } : undefined };
+}
 const { protect } = require('../middleware/auth');
 
 // Models used by legacy /categorize and /insights/generate
@@ -61,34 +71,6 @@ router.use((_req, res, next) => {
 // ─────────────────────────────────────────────────────────────────────────────
 // Shared helpers
 // ─────────────────────────────────────────────────────────────────────────────
-
-/** Keyword → category-name lookup used by /categorize fallback. */
-const CATEGORY_KEYWORDS = [
-  { keywords: ['food', 'eat', 'restaurant', 'cafe', 'drink', 'lunch', 'dinner', 'breakfast', 'snack', 'groceries', 'supermarket'], name: 'Food & Drinks' },
-  { keywords: ['uber', 'bolt', 'taxi', 'bus', 'transport', 'fare', 'fuel', 'petrol', 'ride', 'train'], name: 'Transport' },
-  { keywords: ['rent', 'house', 'hostel', 'accommodation', 'landlord', 'lodge'], name: 'Housing' },
-  { keywords: ['electric', 'water', 'internet', 'data', 'airtime', 'utility', 'bill', 'wifi'], name: 'Utilities' },
-  { keywords: ['hospital', 'pharmacy', 'doctor', 'clinic', 'health', 'drug', 'medicine'], name: 'Healthcare' },
-  { keywords: ['school', 'tuition', 'book', 'course', 'exam', 'lecture', 'education', 'study'], name: 'Education' },
-  { keywords: ['netflix', 'spotify', 'cinema', 'movie', 'game', 'concert', 'entertainment', 'streaming'], name: 'Entertainment' },
-  { keywords: ['shop', 'cloth', 'shoe', 'amazon', 'jumia', 'konga', 'fashion', 'buy', 'purchase'], name: 'Shopping' },
-  { keywords: ['salary', 'wage', 'payroll', 'income', 'pay'], name: 'Salary' },
-  { keywords: ['allowance', 'pocket', 'stipend'], name: 'Allowance' },
-  { keywords: ['freelance', 'contract', 'gig', 'project'], name: 'Freelance' },
-  { keywords: ['gift', 'present', 'donation'], name: 'Gift' },
-  { keywords: ['save', 'savings', 'invest', 'piggy'], name: 'Savings' },
-];
-
-function fallbackCategory(text, categories) {
-  const lower = text.toLowerCase();
-  for (const item of CATEGORY_KEYWORDS) {
-    if (item.keywords.some((kw) => lower.includes(kw))) {
-      const match = categories.find((c) => c.name.toLowerCase() === item.name.toLowerCase());
-      if (match) return match;
-    }
-  }
-  return categories.find((c) => /^other$/i.test(c.name)) || categories[0] || null;
-}
 
 /**
  * Build a terse system instruction that includes the current AI context.
@@ -181,8 +163,9 @@ router.post('/answer', async (req, res) => {
   let aiInfo = null;
   let degraded = false;
 
+  let actionCtx = { categories: [], goals: [], recent: [] };
   try {
-    context = await buildAiContext(req.user._id, req.user);
+    [context, actionCtx] = await Promise.all([buildAiContext(req.user._id, req.user), loadContext(req.user)]);
     if (template) {
       const amount = Number(template.amount);
       const months = template.targetMonths != null ? Number(template.targetMonths) : null;
@@ -209,15 +192,21 @@ router.post('/answer', async (req, res) => {
         savingsGoalAmount: req.user.savingsGoalAmount ?? null,
         goals: req.user.onboarding?.goals ?? [],
       };
+      const editable = {
+        categories: actionCtx.categories.map((c) => ({ name: c.name, type: c.type })),
+        savingsGoals: actionCtx.goals.map((g) => ({ name: g.name, target: g.targetAmount, saved: g.savedAmount })),
+        recentTransactions: actionCtx.recent.slice(0, 15).map((t) => ({ id: t.id, type: t.type, amount: t.amount, category: actionCtx.categories.find((c) => String(c._id) === String(t.categoryId))?.name, description: t.description, date: new Date(t.occurredAt).toISOString().slice(0, 10) })),
+        today: new Date().toISOString().slice(0, 10),
+      };
       const sysInstruction =
-        buildSystemInstruction({ ...context, studentPlan, ...(calculation ? { affordabilityCalculation: calculation } : {}) }) +
+        buildSystemInstruction({ ...context, studentPlan, editableRecords: editable, ...(calculation ? { affordabilityCalculation: calculation } : {}) }) +
         (calculation
           ? '\nThe student used an affordability template. Base the answer ONLY on affordabilityCalculation and include a Markdown table of its key figures.'
-          : '');
+          : `\n\n${ACTIONS_INSTRUCTION}`);
       aiInfo = await callAIWithInfo(
         [...normalizeHistory(history), { role: 'user', parts: [{ text: message }] }],
         sysInstruction,
-        { maxOutputTokens: 900 },
+        { maxOutputTokens: 1100 },
       );
       answer = aiInfo.text;
     } catch (err) {
@@ -238,12 +227,41 @@ router.post('/answer', async (req, res) => {
         : 'AI answers are not configured on the server yet. ' + buildUnavailableAiAnswer(summary).replace(/^The AI service is temporarily unavailable[,.]\s*/i, '');
   }
 
+  // Proposed changes: from the model's action block, or — when the model
+  // gave none (or AI is down) — from the built-in parser for clear commands.
+  let proposals = [];
+  if (!template) {
+    const extracted = extractActions(answer);
+    let raw = extracted.actions;
+    let fromRules = false;
+    if (!raw.length && COMMAND_RE.test(message)) {
+      raw = ruleBasedActions(message, actionCtx);
+      fromRules = raw.length > 0;
+    }
+    if (raw.length) {
+      const resolved = await resolveActions(req.user, raw, actionCtx).catch(() => ({ proposals: [], problems: [] }));
+      proposals = resolved.proposals;
+      if (proposals.length) {
+        answer = fromRules
+          ? `Here’s what I prepared from your message — check it and tap **Approve** to save it${proposals.length > 1 ? ' (or approve them one by one)' : ''}.`
+          : extracted.text;
+        degraded = false;
+      } else if (resolved.problems.length) {
+        answer = `${extracted.text}\n\n_I couldn’t prepare that change because ${resolved.problems[0]}. Try again with the amount and category, e.g. “Add ₦1,500 lunch expense in Food”._`;
+      } else {
+        answer = extracted.text;
+      }
+    }
+  }
+
+  let assistantMessageId;
   try {
     if (!conversation) {
       conversation = new AiConversation({ userId: req.user._id, title: message.slice(0, 60) });
     }
     conversation.messages.push({ role: 'user', text: message });
-    conversation.messages.push({ role: 'assistant', text: answer.slice(0, 12000), provider: aiInfo?.provider, model: aiInfo?.model });
+    conversation.messages.push({ role: 'assistant', text: answer.slice(0, 12000), provider: aiInfo?.provider, model: aiInfo?.model, actions: proposals.length ? proposals : undefined });
+    assistantMessageId = conversation.messages[conversation.messages.length - 1]._id.toString();
     if (conversation.messages.length > MAX_STORED_MESSAGES) {
       conversation.messages = conversation.messages.slice(-MAX_STORED_MESSAGES);
     }
@@ -260,8 +278,85 @@ router.post('/answer', async (req, res) => {
       conversationId: conversation?._id?.toString(),
       title: conversation?.title,
       calculation,
+      messageId: assistantMessageId,
+      actions: assistantMessageId
+        ? (conversation.messages.id(assistantMessageId)?.actions || []).map(formatAction)
+        : [],
     },
   });
+});
+
+/** Finds a pending action on one of the student's conversations. */
+async function findAction(req) {
+  const { conversationId, messageId, actionId } = req.params;
+  if (![conversationId, messageId, actionId].every(isValidObjectId)) return { error: [400, 'Invalid id'] };
+  const conversation = await AiConversation.findOne({ _id: conversationId, userId: req.user._id });
+  const msg = conversation?.messages.id(messageId);
+  const action = msg?.actions?.id(actionId);
+  if (!action) return { error: [404, 'Action not found'] };
+  return { conversation, action };
+}
+
+async function applyOne(req, conversation, action) {
+  if (action.status !== 'pending') return;
+  try {
+    action.result = await applyAction(req.user, action);
+    action.status = 'applied';
+  } catch (err) {
+    action.status = 'failed';
+    action.error = String(err.status ? err.message : 'Something went wrong saving this.').slice(0, 300);
+    if (!err.status) console.error('Applying AI action failed:', err);
+  }
+  action.decidedAt = new Date();
+}
+
+// POST /ai/conversations/:conversationId/messages/:messageId/actions/:actionId/apply
+router.post('/conversations/:conversationId/messages/:messageId/actions/:actionId/apply', async (req, res) => {
+  try {
+    const { error, conversation, action } = await findAction(req);
+    if (error) return res.status(error[0]).json({ message: error[1] });
+    if (action.status !== 'pending') return res.status(409).json({ message: `This change was already ${action.status}.`, data: formatAction(action) });
+    await applyOne(req, conversation, action);
+    conversation.markModified('messages');
+    await conversation.save();
+    // 200 either way: the action's own status says whether it was saved.
+    res.json({ data: formatAction(action), message: action.status === 'applied' ? action.result?.message : action.error });
+  } catch (err) {
+    return serverError(res, err);
+  }
+});
+
+// POST /ai/conversations/:conversationId/messages/:messageId/actions/:actionId/reject
+router.post('/conversations/:conversationId/messages/:messageId/actions/:actionId/reject', async (req, res) => {
+  try {
+    const { error, conversation, action } = await findAction(req);
+    if (error) return res.status(error[0]).json({ message: error[1] });
+    if (action.status !== 'pending') return res.status(409).json({ message: `This change was already ${action.status}.`, data: formatAction(action) });
+    action.status = 'rejected';
+    action.decidedAt = new Date();
+    conversation.markModified('messages');
+    await conversation.save();
+    res.json({ data: formatAction(action) });
+  } catch (err) {
+    return serverError(res, err);
+  }
+});
+
+// POST /ai/conversations/:conversationId/messages/:messageId/actions/apply-all
+router.post('/conversations/:conversationId/messages/:messageId/actions/apply-all', async (req, res) => {
+  try {
+    const { conversationId, messageId } = req.params;
+    if (![conversationId, messageId].every(isValidObjectId)) return res.status(400).json({ message: 'Invalid id' });
+    const conversation = await AiConversation.findOne({ _id: conversationId, userId: req.user._id });
+    const msg = conversation?.messages.id(messageId);
+    if (!msg?.actions?.length) return res.status(404).json({ message: 'No changes to approve' });
+    for (const action of msg.actions) await applyOne(req, conversation, action);
+    conversation.markModified('messages');
+    await conversation.save();
+    res.json({ data: msg.actions.map(formatAction) });
+  } catch (err) {
+    return serverError(res, err);
+  }
 });
 
 function formatConversationSummary(c) {
@@ -282,8 +377,7 @@ router.get('/conversations', async (req, res) => {
     const list = await AiConversation.find({ userId: req.user._id }).sort({ updatedAt: -1 }).limit(50);
     res.json({ data: list.map(formatConversationSummary) });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -296,12 +390,11 @@ router.get('/conversations/:conversationId', async (req, res) => {
     res.json({
       data: {
         ...formatConversationSummary(c),
-        messages: c.messages.map((m) => ({ id: m._id.toString(), role: m.role, text: m.text, ai: m.provider ? { provider: m.provider, model: m.model } : undefined, createdAt: m.createdAt })),
+        messages: c.messages.map((m) => ({ id: m._id.toString(), role: m.role, text: m.text, ai: m.provider ? { provider: m.provider, model: m.model } : undefined, createdAt: m.createdAt, actions: m.actions?.length ? m.actions.map(formatAction) : undefined })),
       },
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -315,8 +408,7 @@ router.patch('/conversations/:conversationId', async (req, res) => {
     if (!c) return res.status(404).json({ message: 'Conversation not found' });
     res.json({ data: formatConversationSummary(c) });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -327,8 +419,7 @@ router.delete('/conversations/:conversationId', async (req, res) => {
     await AiConversation.deleteOne({ _id: req.params.conversationId, userId: req.user._id });
     res.json({ data: null, message: 'Conversation deleted' });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -338,8 +429,7 @@ router.delete('/conversations', async (req, res) => {
     await AiConversation.deleteMany({ userId: req.user._id });
     res.json({ data: null, message: 'Chat history cleared' });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -362,11 +452,10 @@ router.post('/categorize', async (req, res) => {
   }
 
   try {
-    const typeFilter = ['income', 'expense'].includes(req.body?.type) ? { type: req.body.type } : {};
-    const categories = await Category.find({
-      $or: [{ userId: req.user._id }, { userId: null, isDefault: true }],
-      ...typeFilter,
-    }).limit(100);
+    const txType = ['income', 'expense'].includes(req.body?.type) ? req.body.type : undefined;
+    // Only the student's own categories — a template id would point the
+    // transaction at a category they don't own.
+    const categories = await userCategories(req.user._id, txType);
 
     const transactionText = `Description: ${description}\nMerchant: ${merchant}`;
     let selectedCategory = null;
@@ -382,7 +471,7 @@ router.post('/categorize', async (req, res) => {
         userId: req.user._id,
         description: { $regex: `^\\s*${escaped}\\s*$`, $options: 'i' },
       }).sort({ updatedAt: -1 });
-      const learned = previous && categories.find((c) => c._id.equals(previous.categoryId));
+      const learned = previous && categories.find((c) => String(c._id) === String(previous.categoryId));
       if (learned) {
         selectedCategory = learned;
         confidence = 0.95;
@@ -428,10 +517,7 @@ router.post('/categorize', async (req, res) => {
     }
 
     if (!selectedCategory) {
-      selectedCategory = fallbackCategory(
-        `${description} ${merchant}`,
-        categories,
-      );
+      selectedCategory = keywordCategory(`${description} ${merchant}`, categories, txType);
     }
 
     return res.json({

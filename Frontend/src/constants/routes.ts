@@ -43,6 +43,7 @@ export const ADMIN_ROUTES = {
   statistics: '/admin/statistics',
   profile: '/admin/profile',
   support: '/admin/support',
+  system: '/admin/system',
 } as const;
 
 export function buildPath(pattern: string, params: Record<string, string>): string {

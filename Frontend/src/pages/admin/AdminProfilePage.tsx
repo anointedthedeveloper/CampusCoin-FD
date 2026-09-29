@@ -8,6 +8,7 @@ import { isStrongPassword } from '@/utils/validation';
 import { formatDate } from '@/utils/format';
 import { ApiError } from '@/types/api';
 import { cn } from '@/utils/cn';
+import { SessionsCard } from '@/components/settings/SessionsCard';
 
 export function AdminProfilePage() {
   const { user, refreshUser } = useAuth();
@@ -108,6 +109,8 @@ export function AdminProfilePage() {
           </form>
         </Card>
       </div>
+
+      <SessionsCard />
 
       <Card>
         <h2 className="flex items-center gap-2 font-semibold text-gray-900 dark:text-text-primary"><Type className="h-4 w-4" /> Text size</h2>

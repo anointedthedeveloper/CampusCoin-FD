@@ -126,7 +126,7 @@ function HeroBackground() {
           alt=""
           aria-hidden="true"
           className={cn(
-            'absolute inset-0 h-full w-full object-cover object-[62%_center] transition-opacity duration-1000 ease-in-out sm:object-[26%_center] lg:object-[55%_center] dark:brightness-[0.55] dark:saturate-[0.9]',
+            'absolute inset-0 h-full w-full object-cover object-[62%_center] transition-opacity duration-1000 ease-in-out sm:object-[26%_center] lg:object-[62%_center] dark:brightness-[0.55] dark:saturate-[0.9]',
             index === active ? 'opacity-100' : 'opacity-0',
           )}
         />
@@ -168,15 +168,16 @@ export function HomePage() {
       {/* ── Hero ── */}
       <section className="relative isolate -mt-24 min-h-svh overflow-hidden bg-[#f6fbf7] pt-24 dark:bg-background">
         <HeroBackground />
-        <div className="relative z-20 mx-auto flex min-h-[calc(100svh-6rem)] max-w-[1280px] items-center px-4 py-6 sm:px-6 md:py-8">
-          <div className="grid w-full items-center gap-6 lg:grid-cols-[1.05fr_1fr] lg:gap-10">
-            <div className="glass-panel max-w-[520px] rounded-[28px] p-6 sm:p-8 lg:max-w-[620px] [@media(max-height:720px)]:p-6">
+        {/* The card sits at the far left so the photo keeps the rest of the screen. */}
+        <div className="relative z-20 flex min-h-[calc(100svh-6rem)] w-full items-center px-4 py-6 sm:px-6 md:py-8 lg:pl-[3vw] lg:pr-0 2xl:pl-[5vw]">
+          <div className="w-full">
+            <div className="glass-panel max-w-[520px] rounded-[28px] p-6 sm:p-8 lg:max-w-[540px] [@media(max-height:720px)]:p-6">
               <span className="inline-flex animate-fade-in-up items-center gap-1.5 rounded-full bg-white/80 px-4 py-1.5 text-xs font-semibold text-[#1d3d2d] shadow-sm transition-transform duration-200 hover:scale-105 dark:bg-white/10 dark:text-text-primary dark:shadow-black/20">
                 <span className="text-[#1f7a43] dark:text-primary-accent">Smart money,</span>
                 <span className="text-[#1d3d2d] dark:text-text-primary">Brighter Future</span>
               </span>
 
-              <h1 className="mt-4 max-w-[600px] animate-fade-in-up text-[2.3rem] font-bold leading-[1.05] tracking-[-0.04em] text-[#1d3d2d] [animation-delay:100ms] dark:text-text-primary sm:mt-5 sm:text-[3rem] lg:text-[3.5rem] [@media(max-height:720px)]:lg:text-[2.75rem]">
+              <h1 className="mt-4 max-w-[600px] animate-fade-in-up text-[2.3rem] font-bold leading-[1.05] tracking-[-0.04em] text-[#1d3d2d] [animation-delay:100ms] dark:text-text-primary sm:mt-5 sm:text-[3rem] lg:text-[3.25rem] [@media(max-height:720px)]:lg:text-[2.6rem]">
                 Take control of <br />
                 your money on <br />
                 <span className="text-[#1a8f57] dark:text-primary-accent">campus</span>

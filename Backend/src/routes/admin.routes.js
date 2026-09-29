@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const { serverError } = require('../utils/httpErrors');
 const User = require('../models/User');
 const Category = require('../models/Category');
 const Transaction = require('../models/Transaction');
@@ -13,11 +14,17 @@ const ImportBatch = require('../models/ImportBatch');
 const Anomaly = require('../models/Anomaly');
 const TipState = require('../models/TipState');
 const SupportMessage = require('../models/SupportMessage');
+const Session = require('../models/Session');
+const AiConversation = require('../models/AiConversation');
+const Backup = require('../models/Backup');
+const TransactionRevision = require('../models/TransactionRevision');
+const SavingsGoal = require('../models/SavingsGoal');
+const { runDailyBackups, createBackup, formatBackup } = require('../services/backup.service');
 const { ensureTemplates } = require('../services/savingTips.service');
 const { getSystemTemplates, seedDefaultCategories } = require('../services/defaultCategories.service');
 const { protect, requireAdmin } = require('../middleware/auth');
 const { validateIdParam } = require('../utils/objectId');
-const { isEmailConfigured } = require('../services/email.service');
+const { isEmailConfigured, emailStatus, sendTestEmail, sendAnnouncementEmails, sendSupportReplyEmail } = require('../services/email.service');
 const { issuePasswordReset } = require('../services/passwordReset.service');
 
 // All admin routes require auth + admin role
@@ -40,7 +47,7 @@ router.get('/users', async (req, res) => {
       ];
     }
 
-    const pageNum = Math.max(1, parseInt(page) || 1);
+    const pageNum = Math.min(100000, Math.max(1, parseInt(page) || 1));
     const pageSizeNum = Math.min(100, Math.max(1, parseInt(pageSize) || 20));
     const skip = (pageNum - 1) * pageSizeNum;
 
@@ -65,8 +72,7 @@ router.get('/users', async (req, res) => {
 
     res.json({ data: { items, page: pageNum, pageSize: pageSizeNum, totalItems, totalPages: Math.ceil(totalItems / pageSizeNum) } });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -105,8 +111,7 @@ router.get('/users/:id', async (req, res) => {
       },
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -137,11 +142,12 @@ router.patch('/users/:id', async (req, res) => {
 
     const user = await User.findByIdAndUpdate(req.params.id, update, { returnDocument: 'after', runValidators: true });
     if (!user) return res.status(404).json({ message: 'User not found' });
+    // Suspending signs the student out of every device straight away.
+    if (update.isActive === false) await Session.updateMany({ userId: user._id, revokedAt: null }, { $set: { revokedAt: new Date() } });
     const txCount = await Transaction.countDocuments({ userId: user._id });
     res.json({ data: { ...user.toPublic(), transactionCount: txCount } });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -156,6 +162,9 @@ async function deleteUserData(userId, { includeCategories }) {
     ImportBatch.deleteMany({ user: userId }),
     Anomaly.deleteMany({ user: userId }),
     TipState.deleteMany({ userId }),
+    AiConversation.deleteMany({ userId }),
+    SavingsGoal.deleteMany({ userId }),
+    TransactionRevision.deleteMany({ userId }),
     includeCategories ? Category.deleteMany({ userId }) : null,
   ]);
 }
@@ -199,8 +208,7 @@ router.post('/users/:id/reset', async (req, res) => {
 
     res.json({ data: { ...user.toPublic(), transactionCount: 0 }, message: 'Account data reset' });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -217,11 +225,11 @@ router.delete('/users/:id', async (req, res) => {
     if (!user) return res.status(404).json({ message: 'User not found' });
 
     await deleteUserData(user._id, { includeCategories: true });
+    await Promise.all([Session.deleteMany({ userId: user._id }), Backup.deleteMany({ userId: user._id })]);
 
     res.json({ data: null, message: 'User deleted' });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -257,8 +265,7 @@ router.get('/categories', async (req, res) => {
       }),
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -266,15 +273,15 @@ router.get('/categories', async (req, res) => {
 router.post('/categories', async (req, res) => {
   try {
     const { name, type, icon, color } = req.body;
-    if (!name?.trim() || !type) return res.status(400).json({ message: 'Name and type are required' });
+    if (typeof name !== 'string' || !name.trim() || !type) return res.status(400).json({ message: 'Name and type are required' });
     if (!['income', 'expense'].includes(type)) return res.status(400).json({ message: "type must be 'income' or 'expense'" });
-    if (color !== undefined && color !== null && !COLOR_RE.test(color)) return res.status(400).json({ message: 'color must be a hex value like #22c55e' });
-    const cat = await Category.create({ name: name.trim().slice(0, 40), type, icon, color: color || '#94a3b8', userId: null, isDefault: true });
+    if (color !== undefined && color !== null && (typeof color !== 'string' || !COLOR_RE.test(color))) return res.status(400).json({ message: 'color must be a hex value like #22c55e' });
+    if (icon !== undefined && icon !== null && icon !== '' && (typeof icon !== 'string' || !/^[a-z0-9-]{1,40}$/.test(icon))) return res.status(400).json({ message: 'Unknown icon' });
+    const cat = await Category.create({ name: name.trim().slice(0, 40), type, icon: icon || undefined, color: color || '#94a3b8', userId: null, isDefault: true });
     res.status(201).json({ data: formatCat(cat) });
   } catch (err) {
     if (err.code === 11000) return res.status(409).json({ message: 'Category already exists' });
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -294,7 +301,10 @@ router.patch('/categories/:id', async (req, res) => {
     }
     if (name) cat.name = name;
     if (req.body.color !== undefined) cat.color = req.body.color;
-    if (typeof req.body.icon === 'string') cat.icon = req.body.icon.slice(0, 40);
+    if (typeof req.body.icon === 'string') {
+      if (!/^[a-z0-9-]{1,40}$/.test(req.body.icon)) return res.status(400).json({ message: 'Unknown icon' });
+      cat.icon = req.body.icon;
+    }
     await cat.save();
 
     let studentsUpdated = 0;
@@ -315,8 +325,7 @@ router.patch('/categories/:id', async (req, res) => {
     res.json({ data: { ...formatCat(cat), studentsUpdated } });
   } catch (err) {
     if (err.code === 11000) return res.status(409).json({ message: 'A default category with that name already exists' });
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -356,12 +365,22 @@ router.delete('/categories/:id', async (req, res) => {
     }
     res.json({ data: { studentsRemoved }, message: 'Category removed' });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
 /* ─────────────────────────── ANNOUNCEMENTS ─────────────────────────── */
+
+// Emails a newly published announcement to its audience (students with
+// email notifications on, and/or admins) the first time it goes live.
+async function emailAnnouncement(ann) {
+  if (!ann.publishedAt || ann.emailedAt || !isEmailConfigured()) return;
+  const roleFilter = ann.audience === 'students' ? { role: 'student' } : ann.audience === 'admins' ? { role: 'admin' } : {};
+  const users = await User.find({ ...roleFilter, isActive: true, 'settings.emailNotifications': { $ne: false } }).select('email').lean();
+  ann.emailedAt = new Date();
+  await ann.save();
+  await sendAnnouncementEmails(users.map((u) => u.email), ann);
+}
 
 function formatAnn(a) {
   return { id: a._id.toString(), title: a.title, body: a.body, audience: a.audience, publishedAt: a.publishedAt, createdAt: a.createdAt, updatedAt: a.updatedAt };
@@ -373,8 +392,7 @@ router.get('/announcements', async (req, res) => {
     const anns = await Announcement.find().sort({ createdAt: -1 });
     res.json({ data: anns.map(formatAnn) });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -382,15 +400,18 @@ router.get('/announcements', async (req, res) => {
 router.post('/announcements', async (req, res) => {
   try {
     const { title, body, audience, publishNow } = req.body;
-    if (!title?.trim() || !body?.trim() || !audience) return res.status(400).json({ message: 'title, body and audience are required' });
+    if (typeof title !== 'string' || typeof body !== 'string' || !title.trim() || !body.trim() || !audience) {
+      return res.status(400).json({ message: 'title, body and audience are required' });
+    }
+    if (title.length > 160 || body.length > 5000) return res.status(400).json({ message: 'Title must be under 160 characters and the message under 5000.' });
     if (!['all', 'students', 'admins'].includes(audience)) {
       return res.status(400).json({ message: "audience must be 'all', 'students' or 'admins'" });
     }
-    const ann = await Announcement.create({ title, body, audience, publishedAt: publishNow ? new Date() : null, createdBy: req.user._id });
+    const ann = await Announcement.create({ title: title.trim(), body: body.trim(), audience, publishedAt: publishNow ? new Date() : null, createdBy: req.user._id });
+    await emailAnnouncement(ann).catch((err) => console.error('Announcement email failed:', err));
     res.status(201).json({ data: formatAnn(ann) });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -402,13 +423,19 @@ router.patch('/announcements/:id', async (req, res) => {
     if (req.body.audience !== undefined && !['all', 'students', 'admins'].includes(req.body.audience)) {
       return res.status(400).json({ message: "audience must be 'all', 'students' or 'admins'" });
     }
-    ['title', 'body', 'audience'].forEach((k) => { if (req.body[k] !== undefined) ann[k] = req.body[k]; });
+    for (const k of ['title', 'body']) {
+      if (req.body[k] === undefined) continue;
+      if (typeof req.body[k] !== 'string' || !req.body[k].trim()) return res.status(400).json({ message: `${k} cannot be empty` });
+      ann[k] = req.body[k].trim();
+    }
+    if (req.body.audience !== undefined) ann.audience = req.body.audience;
     if (req.body.publishNow) ann.publishedAt = new Date();
     if (req.body.unpublish === true) {
       ann.publishedAt = null;
       await Notification.deleteMany({ type: 'announcement', 'meta.announcementId': ann._id });
     }
     await ann.save();
+    await emailAnnouncement(ann).catch((err) => console.error('Announcement email failed:', err));
     // Keep already-delivered copies in step with the edit.
     await Notification.updateMany(
       { type: 'announcement', 'meta.announcementId': ann._id },
@@ -416,8 +443,7 @@ router.patch('/announcements/:id', async (req, res) => {
     );
     res.json({ data: formatAnn(ann) });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -429,8 +455,7 @@ router.delete('/announcements/:id', async (req, res) => {
     await Notification.deleteMany({ type: 'announcement', 'meta.announcementId': ann._id });
     res.json({ data: null, message: 'Announcement deleted' });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -448,8 +473,7 @@ router.get('/saving-tips', async (_req, res) => {
     const tips = await SavingTip.find({ isAiGenerated: { $ne: true } }).sort({ createdAt: -1 });
     res.json({ data: tips.map(formatTip) });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -465,8 +489,7 @@ router.post('/saving-tips', async (req, res) => {
     });
     res.status(201).json({ data: formatTip(tip) });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -480,8 +503,7 @@ router.patch('/saving-tips/:id', async (req, res) => {
     await tip.save();
     res.json({ data: formatTip(tip) });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -493,29 +515,81 @@ router.delete('/saving-tips/:id', async (req, res) => {
     await TipState.deleteMany({ tipKey: `template:${tip._id}` });
     res.json({ data: null, message: 'Tip deleted' });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
 /* ─────────────────────────── SUPPORT INBOX ─────────────────────────── */
 
-function formatSupport(m) {
-  return { id: m._id.toString(), name: m.name, email: m.email, topic: m.topic, message: m.message, status: m.status, userId: m.userId ? m.userId.toString() : null, createdAt: m.createdAt, resolvedAt: m.resolvedAt };
-}
+const { formatThread } = require('./support.routes');
+const formatSupport = (m) => formatThread(m, { forAdmin: true });
 
 // GET /api/v1/admin/support?status=open|resolved
 router.get('/support', async (req, res) => {
   try {
     const filter = ['open', 'resolved'].includes(req.query.status) ? { status: req.query.status } : {};
-    const [items, openCount] = await Promise.all([
-      SupportMessage.find(filter).sort({ createdAt: -1 }).limit(200),
+    const [items, openCount, unreadCount] = await Promise.all([
+      SupportMessage.find(filter).sort({ lastActivityAt: -1, createdAt: -1 }).limit(200),
       SupportMessage.countDocuments({ status: 'open' }),
+      SupportMessage.countDocuments({ unreadByAdmin: true }),
     ]);
-    res.json({ data: items.map(formatSupport), meta: { openCount } });
+    res.json({ data: items.map(formatSupport), meta: { openCount, unreadCount } });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
+  }
+});
+
+// GET /api/v1/admin/support/:id — one conversation; marks it read.
+router.get('/support/:id', async (req, res) => {
+  try {
+    const m = await SupportMessage.findById(req.params.id);
+    if (!m) return res.status(404).json({ message: 'Message not found' });
+    if (m.unreadByAdmin) {
+      m.unreadByAdmin = false;
+      await m.save();
+    }
+    res.json({ data: formatSupport(m) });
+  } catch (err) {
+    return serverError(res, err);
+  }
+});
+
+// POST /api/v1/admin/support/:id/replies  { text, resolve? } — the student
+// gets an in-app notification (if they have an account) and an email.
+router.post('/support/:id/replies', async (req, res) => {
+  try {
+    const text = typeof req.body?.text === 'string' ? req.body.text.trim().slice(0, 4000) : '';
+    if (!text) return res.status(400).json({ message: 'Write a reply first', fieldErrors: { text: 'Required' } });
+    const m = await SupportMessage.findById(req.params.id);
+    if (!m) return res.status(404).json({ message: 'Message not found' });
+
+    m.replies.push({ from: 'admin', authorId: req.user._id, authorName: req.user.fullName, text });
+    m.unreadByUser = true;
+    m.unreadByAdmin = false;
+    m.lastActivityAt = new Date();
+    if (req.body?.resolve === true) {
+      m.status = 'resolved';
+      m.resolvedAt = new Date();
+    }
+    await m.save();
+
+    // Guests who wrote in with the email of an existing account still see
+    // the reply in-app.
+    const owner = m.userId ? await User.findById(m.userId).select('_id').lean() : await User.findOne({ email: m.email }).select('_id').lean();
+    if (owner) {
+      await Notification.create({
+        userId: owner._id,
+        type: 'support-reply',
+        title: 'Support replied to your message',
+        message: text.length > 160 ? `${text.slice(0, 157)}…` : text,
+        severity: 'info',
+        meta: { supportMessageId: m._id },
+      });
+    }
+    const emailResult = await sendSupportReplyEmail(m.email, m.name, text, Boolean(owner));
+    res.status(201).json({ data: formatSupport(m), meta: { emailed: Boolean(emailResult?.sent), inApp: Boolean(owner) } });
+  } catch (err) {
+    return serverError(res, err);
   }
 });
 
@@ -525,25 +599,24 @@ router.patch('/support/:id', async (req, res) => {
     if (!['open', 'resolved'].includes(req.body?.status)) return res.status(400).json({ message: "status must be 'open' or 'resolved'" });
     const m = await SupportMessage.findByIdAndUpdate(
       req.params.id,
-      { status: req.body.status, resolvedAt: req.body.status === 'resolved' ? new Date() : null },
+      { status: req.body.status, resolvedAt: req.body.status === 'resolved' ? new Date() : null, unreadByAdmin: false },
       { returnDocument: 'after' },
     );
     if (!m) return res.status(404).json({ message: 'Message not found' });
     res.json({ data: formatSupport(m) });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
 // DELETE /api/v1/admin/support/:id
 router.delete('/support/:id', async (req, res) => {
   try {
-    await SupportMessage.findByIdAndDelete(req.params.id);
+    const m = await SupportMessage.findByIdAndDelete(req.params.id);
+    if (!m) return res.status(404).json({ message: 'Message not found' });
     res.json({ data: null, message: 'Message deleted' });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -600,8 +673,83 @@ router.get('/statistics', async (req, res) => {
       },
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
+  }
+});
+
+/* ────────────────────────────── BACKUPS ────────────────────────────── */
+
+// GET /api/v1/admin/backups — how well the automatic backups are covering
+// students.
+router.get('/backups', async (_req, res) => {
+  try {
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const [total, sizeAgg, studentsWithBackup, backedUpToday, activeUsers, latest] = await Promise.all([
+      Backup.countDocuments(),
+      Backup.aggregate([{ $group: { _id: null, bytes: { $sum: '$sizeBytes' } } }]),
+      Backup.distinct('userId').then((ids) => ids.length),
+      Backup.distinct('userId', { createdAt: { $gt: since } }).then((ids) => ids.length),
+      User.countDocuments({ isActive: true }),
+      Backup.findOne().sort({ createdAt: -1 }).select('createdAt kind').lean(),
+    ]);
+    res.json({
+      data: {
+        totalBackups: total,
+        totalBytes: sizeAgg[0]?.bytes ?? 0,
+        usersWithBackup: studentsWithBackup,
+        usersBackedUpLast24h: backedUpToday,
+        activeUsers,
+        lastBackupAt: latest?.createdAt ?? null,
+        cronConfigured: Boolean(process.env.CRON_SECRET),
+      },
+    });
+  } catch (err) {
+    return serverError(res, err);
+  }
+});
+
+// POST /api/v1/admin/backups/run — back up every student who is due now.
+router.post('/backups/run', async (_req, res) => {
+  try {
+    const result = await runDailyBackups({ budgetMs: 40_000 });
+    res.json({ data: result, message: `Backed up ${result.done} account${result.done === 1 ? '' : 's'}${result.remaining ? ` (${result.remaining} left for the next run)` : ''}.` });
+  } catch (err) {
+    return serverError(res, err);
+  }
+});
+
+// POST /api/v1/admin/users/:id/backup — manual backup of one student.
+router.post('/users/:id/backup', async (req, res) => {
+  try {
+    if (!(await User.exists({ _id: req.params.id }))) return res.status(404).json({ message: 'User not found' });
+    const backup = await createBackup(req.params.id, 'manual');
+    res.status(201).json({ data: formatBackup(backup), message: 'Backup created' });
+  } catch (err) {
+    return serverError(res, err);
+  }
+});
+
+/* ─────────────────────────────── EMAIL ─────────────────────────────── */
+
+// GET /api/v1/admin/email/status — which providers are set up and the last
+// delivery error from each (never the keys themselves).
+router.get('/email/status', (_req, res) => {
+  res.json({ data: emailStatus() });
+});
+
+// POST /api/v1/admin/email/test — { to? } sends a test email (defaults to
+// the admin's own address) and reports the provider's exact error if any.
+router.post('/email/test', async (req, res) => {
+  const to = typeof req.body?.to === 'string' && req.body.to.trim() ? req.body.to.trim() : req.user.email;
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) return res.status(400).json({ message: 'Enter a valid email address' });
+  if (!isEmailConfigured()) {
+    return res.status(503).json({ message: 'No email provider is configured. Set BREVO_API_KEY (recommended), RESEND_API_KEY or EMAIL_HOST/EMAIL_USER/EMAIL_PASS on the server.', code: 'EMAIL_NOT_CONFIGURED', data: emailStatus() });
+  }
+  try {
+    const result = await sendTestEmail(to);
+    res.json({ data: { ...emailStatus(), provider: result.provider }, message: `Test email sent to ${to} via ${result.provider}.` });
+  } catch (err) {
+    res.status(502).json({ message: `Sending failed: ${String(err.message || err).slice(0, 300)}`, code: 'EMAIL_SEND_FAILED', data: emailStatus() });
   }
 });
 
