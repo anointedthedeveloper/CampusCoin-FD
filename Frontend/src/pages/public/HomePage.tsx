@@ -126,7 +126,10 @@ function HeroBackground() {
           alt=""
           aria-hidden="true"
           className={cn(
-            'absolute inset-0 h-full w-full object-cover object-[62%_center] transition-opacity duration-1000 ease-in-out sm:object-[26%_center] lg:object-[62%_center] dark:brightness-[0.55] dark:saturate-[0.9]',
+            'absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 ease-in-out dark:brightness-[0.55] dark:saturate-[0.9]',
+            index === 2
+              ? 'object-[82%_center] sm:object-[82%_center] lg:object-[82%_center]'
+              : 'object-[62%_center] sm:object-[26%_center] lg:object-[62%_center]',
             index === active ? 'opacity-100' : 'opacity-0',
           )}
         />
