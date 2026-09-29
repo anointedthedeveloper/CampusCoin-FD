@@ -1,0 +1,13 @@
+{
+  "name": "CampusCoin — Match the app",
+  "id": "campuscoin-match-the-app",
+  "api": "1.0.0",
+  "main": "code.js",
+  "editorType": ["figma"],
+  "documentAccess": "dynamic-page",
+  "networkAccess": { "allowedDomains": ["none"] },
+  "menu": [
+    { "name": "Match the app look (backs up the page first)", "command": "restyle" },
+    { "name": "Add loader & app style frames only", "command": "loader" }
+  ]
+}
