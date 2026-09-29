@@ -6,6 +6,8 @@ import {
   Bot,
   ChevronDown,
   ChevronRight,
+  HelpCircle,
+  LifeBuoy,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -62,6 +64,7 @@ const ROUTE_LABELS: Record<string, string> = {
   [STUDENT_ROUTES.import]: 'Import',
   [STUDENT_ROUTES.profile]: 'Profile',
   [STUDENT_ROUTES.settings]: 'Settings',
+  [STUDENT_ROUTES.help]: 'Help & Support',
   [STUDENT_ROUTES.notifications]: 'Notifications',
 };
 
@@ -72,7 +75,7 @@ const ROUTE_PARENTS: Record<string, string> = {
   [STUDENT_ROUTES.bookmarks]: STUDENT_ROUTES.savingTips,
 };
 
-function Breadcrumbs({ pathname }: { pathname: string }) {
+function Breadcrumbs({ pathname, className }: { pathname: string; className?: string }) {
   const crumbs: { to: string; label: string }[] = [];
   if (ROUTE_LABELS[pathname]) {
     const parent = ROUTE_PARENTS[pathname];
@@ -85,7 +88,7 @@ function Breadcrumbs({ pathname }: { pathname: string }) {
   if (pathname !== STUDENT_ROUTES.dashboard) crumbs.unshift({ to: STUDENT_ROUTES.dashboard, label: 'Home' });
 
   return (
-    <nav aria-label="Breadcrumb" className="hidden min-w-0 lg:block">
+    <nav aria-label="Breadcrumb" className={cn('min-w-0', className ?? 'hidden lg:block')}>
       <ol className="flex items-center gap-1.5 text-sm">
         {crumbs.map((crumb, index) => {
           const isLast = index === crumbs.length - 1;
@@ -206,7 +209,7 @@ export function StudentLayout() {
                   ? isActive && location.pathname !== STUDENT_ROUTES.newTransaction
                   : isActive;
                 return cn(
-                  'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium',
+                  'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium [@media(max-height:760px)]:py-1',
                   'text-gray-400 transition-all duration-150',
                   'hover:bg-white/[0.06] hover:text-gray-100',
                   active
@@ -252,7 +255,7 @@ export function StudentLayout() {
               to={STUDENT_ROUTES.profile}
               className={({ isActive }) =>
                 cn(
-                  'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-400',
+                  'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-400 [@media(max-height:760px)]:py-1',
                   'hover:bg-white/[0.06] hover:text-gray-100 transition-all duration-150',
                   isActive && 'bg-brand-600/20 text-brand-400 font-semibold',
                 )
@@ -267,7 +270,7 @@ export function StudentLayout() {
               to={STUDENT_ROUTES.settings}
               className={({ isActive }) =>
                 cn(
-                  'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-400',
+                  'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-400 [@media(max-height:760px)]:py-1',
                   'hover:bg-white/[0.06] hover:text-gray-100 transition-all duration-150',
                   isActive && 'bg-brand-600/20 text-brand-400 font-semibold',
                 )
@@ -277,6 +280,21 @@ export function StudentLayout() {
                 <Settings className="h-4 w-4" />
               </span>
               Settings
+            </NavLink>
+            <NavLink
+              to={STUDENT_ROUTES.help}
+              className={({ isActive }) =>
+                cn(
+                  'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-400 [@media(max-height:760px)]:py-1',
+                  'hover:bg-white/[0.06] hover:text-gray-100 transition-all duration-150',
+                  isActive && 'bg-brand-600/20 text-brand-400 font-semibold',
+                )
+              }
+            >
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-gray-500 group-hover:text-gray-300">
+                <LifeBuoy className="h-4 w-4" />
+              </span>
+              Help &amp; Support
             </NavLink>
           </div>
         </nav>
@@ -380,10 +398,27 @@ export function StudentLayout() {
             >
               <Bell className="h-4 w-4" />
               {unreadCount > 0 && (
-                <span className="absolute right-1 top-1 flex h-2 w-2 items-center justify-center rounded-full bg-brand-600 dark:bg-primary-accent">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-60" />
+                <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold leading-none text-white ring-2 ring-white dark:ring-surface" aria-label={`${unreadCount} unread`}>
+                  {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
               )}
+            </NavLink>
+
+            {/* Help */}
+            <NavLink
+              to={STUDENT_ROUTES.help}
+              className={({ isActive }) =>
+                cn(
+                  'flex h-8 w-8 items-center justify-center rounded-lg transition-colors',
+                  'text-gray-500 hover:bg-gray-100 hover:text-gray-900',
+                  'dark:text-text-secondary dark:hover:bg-white/[0.08] dark:hover:text-text-primary',
+                  isActive && 'bg-gray-100 text-gray-900 dark:bg-white/[0.08] dark:text-text-primary',
+                )
+              }
+              aria-label="Help and support"
+              title="Help & support"
+            >
+              <HelpCircle className="h-4 w-4" />
             </NavLink>
 
             {/* AI */}
@@ -472,7 +507,10 @@ export function StudentLayout() {
           </div>
         </header>
 
-        <main className="flex-1 p-4 sm:p-6">
+        <main className="mx-auto w-full max-w-[1400px] flex-1 p-4 sm:p-6 lg:px-8">
+          {location.pathname !== STUDENT_ROUTES.dashboard && (
+            <Breadcrumbs pathname={location.pathname} className="mb-3 lg:hidden [&_ol]:text-xs" />
+          )}
           <Outlet />
         </main>
       </div>

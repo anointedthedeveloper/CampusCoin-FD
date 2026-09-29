@@ -10,7 +10,7 @@ interface AuthContextValue {
   isLoading: boolean;
   login: (credentials: LoginCredentials) => Promise<User>;
   register: (payload: RegisterPayload) => Promise<void>;
-  loginWithGoogle: (idToken: string) => Promise<User>;
+  loginWithGoogle: (idToken: string, linkAccount?: boolean) => Promise<User>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -80,8 +80,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(result.user);
   }, []);
 
-  const loginWithGoogle = useCallback(async (idToken: string) => {
-    const result = await authService.loginWithGoogle(idToken);
+  const loginWithGoogle = useCallback(async (idToken: string, linkAccount = false) => {
+    const result = await authService.loginWithGoogle(idToken, linkAccount);
     setUser(result.user);
     return result.user;
   }, []);

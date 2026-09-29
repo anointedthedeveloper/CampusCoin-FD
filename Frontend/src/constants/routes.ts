@@ -7,6 +7,8 @@ export const PUBLIC_ROUTES = {
   adminLogin: '/adlg',
   register: '/register',
   forgotPassword: '/forgot-password',
+  setPassword: '/set-password',
+  help: '/help',
 } as const;
 
 export const STUDENT_ROUTES = {
@@ -29,6 +31,7 @@ export const STUDENT_ROUTES = {
   settings: '/settings',
   notifications: '/notifications',
   recurring: '/recurring',
+  help: '/support',
 } as const;
 
 export const ADMIN_ROUTES = {
@@ -38,6 +41,8 @@ export const ADMIN_ROUTES = {
   categories: '/admin/categories',
   announcements: '/admin/announcements',
   statistics: '/admin/statistics',
+  profile: '/admin/profile',
+  support: '/admin/support',
 } as const;
 
 export function buildPath(pattern: string, params: Record<string, string>): string {

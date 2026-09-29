@@ -24,11 +24,11 @@ function toGroqMessages(contents, systemInstruction) {
   return messages;
 }
 
-async function callGroq(contents, systemInstruction, generationConfig = {}) {
-  if (!process.env.GROQ_API_KEY) throw new Error('GROQ_NOT_CONFIGURED');
+async function callGroq(contents, systemInstruction, generationConfig = {}, apiKey = process.env.GROQ_API_KEY) {
+  if (!apiKey) throw new Error('GROQ_NOT_CONFIGURED');
 
   const groq = new Groq({
-    apiKey: process.env.GROQ_API_KEY,
+    apiKey,
     timeout: GROQ_TIMEOUT_MS,
     // The SDK retries twice by default, which can stack 3× the timeout —
     // longer than the frontend or the serverless function will wait.

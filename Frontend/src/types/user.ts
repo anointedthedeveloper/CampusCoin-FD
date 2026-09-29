@@ -43,6 +43,8 @@ export interface User {
   monthlyAllowanceBaseline?: number;
   savingsGoalAmount?: number;
   avatarUrl?: string;
+  hasPassword?: boolean;
+  hasGoogle?: boolean;
   onboarding?: OnboardingProfile;
   createdAt: string;
   updatedAt: string;

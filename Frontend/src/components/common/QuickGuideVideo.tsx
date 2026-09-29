@@ -5,7 +5,9 @@ import { QUICK_GUIDE_VIDEO_URL } from '@/constants/config';
 import { cn } from '@/utils/cn';
 
 const OPEN_EVENT = 'campus-coin:open-quick-guide';
-const DISMISS_KEY = 'campus-coin.quickGuidePillDismissed';
+// Remembered permanently: once the visitor has opened the guide or closed the
+// pill, the floating prompt never comes back (the inline buttons still work).
+const SEEN_KEY = 'campus-coin.quickGuideSeen';
 
 /** Opens the quick-guide video modal from anywhere on the page. */
 // eslint-disable-next-line react-refresh/only-export-components
@@ -41,7 +43,7 @@ export function QuickGuideVideo({ scrollThreshold = 320 }: { scrollThreshold?: n
   const [hasScrolled, setHasScrolled] = useState(false);
   const [isPillDismissed, setIsPillDismissed] = useState(() => {
     try {
-      return sessionStorage.getItem(DISMISS_KEY) === '1';
+      return localStorage.getItem(SEEN_KEY) === '1';
     } catch {
       return false;
     }
@@ -56,7 +58,10 @@ export function QuickGuideVideo({ scrollThreshold = 320 }: { scrollThreshold?: n
   }, [scrollThreshold]);
 
   useEffect(() => {
-    const open = () => setIsOpen(true);
+    const open = () => {
+      setIsOpen(true);
+      dismissPill();
+    };
     window.addEventListener(OPEN_EVENT, open);
     return () => window.removeEventListener(OPEN_EVENT, open);
   }, []);
@@ -79,7 +84,7 @@ export function QuickGuideVideo({ scrollThreshold = 320 }: { scrollThreshold?: n
   function dismissPill() {
     setIsPillDismissed(true);
     try {
-      sessionStorage.setItem(DISMISS_KEY, '1');
+      localStorage.setItem(SEEN_KEY, '1');
     } catch {
       // ignore
     }
@@ -99,7 +104,7 @@ export function QuickGuideVideo({ scrollThreshold = 320 }: { scrollThreshold?: n
       >
         <button
           type="button"
-          onClick={() => setIsOpen(true)}
+          onClick={() => { setIsOpen(true); dismissPill(); }}
           tabIndex={showPill ? 0 : -1}
           className="group flex items-center gap-2.5 rounded-full py-1 pl-1 pr-2 text-sm font-semibold text-[#1d3d2d] dark:text-text-primary"
         >

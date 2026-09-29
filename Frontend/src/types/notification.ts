@@ -1,4 +1,13 @@
-export type NotificationType = 'budget-warning' | 'budget-exceeded' | 'budget-near' | 'insight-ready' | 'system';
+export type NotificationType =
+  | 'budget-warning'
+  | 'budget-exceeded'
+  | 'budget-near'
+  | 'insight-ready'
+  | 'system'
+  | 'announcement'
+  | 'overspending'
+  | 'allowance-exceeded'
+  | 'goal-reached';
 
 export interface AppNotification {
   id: string;

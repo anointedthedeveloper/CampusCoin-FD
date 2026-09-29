@@ -6,7 +6,8 @@ const productLinks = [
   { to: PUBLIC_ROUTES.home, label: 'Home' },
   { to: PUBLIC_ROUTES.features, label: 'How it works' },
   { to: PUBLIC_ROUTES.about, label: "What it's about" },
-  { to: PUBLIC_ROUTES.faq, label: 'FAQ & Help' },
+  { to: PUBLIC_ROUTES.faq, label: 'FAQ' },
+  { to: PUBLIC_ROUTES.help, label: 'Help centre & contact' },
 ];
 
 const trackLinks = [
@@ -22,7 +23,8 @@ const planLinks = [
   { to: STUDENT_ROUTES.reports, label: 'Reports' },
   { to: STUDENT_ROUTES.savingTips, label: 'Saving Tips' },
   { to: STUDENT_ROUTES.insights, label: 'AI Assistant' },
-  { to: STUDENT_ROUTES.bookmarks, label: 'Bookmarks' },
+  { to: STUDENT_ROUTES.bookmarks, label: 'Pinned tips' },
+  { to: STUDENT_ROUTES.recurring, label: 'Recurring entries' },
 ];
 
 const accountLinks = [

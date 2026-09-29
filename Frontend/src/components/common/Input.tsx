@@ -1,4 +1,4 @@
-import { forwardRef, type InputHTMLAttributes, type ReactNode } from 'react';
+import { forwardRef, type InputHTMLAttributes, type ReactNode, useId } from 'react';
 import { AlertCircle } from 'lucide-react';
 import { cn } from '@/utils/cn';
 
@@ -13,7 +13,10 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ label, error, hint, icon, trailing, id, className, compact = false, ...props }, ref) => {
-    const inputId = id ?? props.name;
+    // Always link the label to the field (screen readers, click-to-focus),
+    // even when the caller passes neither id nor name.
+    const generatedId = useId();
+    const inputId = id ?? props.name ?? generatedId;
 
     return (
       <div className={cn('flex flex-col', compact ? 'gap-1' : 'gap-1.5')}>

@@ -19,6 +19,7 @@ const dashboardRoutes = require('./src/routes/dashboard.routes');
 const myMoneyRoutes = require('./src/routes/my-money.routes');
 const recurringRoutes = require('./src/routes/recurring.routes');
 const aiRoutes = require('./src/routes/ai.routes');
+const supportRoutes = require('./src/routes/support.routes');
 
 if (!process.env.JWT_SECRET) {
   const message = 'JWT_SECRET is not set. Set it in the environment before starting the server.';
@@ -102,7 +103,7 @@ app.get('/', (_req, res) => res.json({ message: 'CampusCoin API is running' }));
 // only, never the values) so a deployment can be verified at a glance.
 async function healthHandler(_req, res) {
   const { isEmailConfigured } = require('./src/services/email.service');
-  const { hasAiProvider, getConfiguredProvider } = require('./src/services/ai.service');
+  const { hasAiProvider, getConfiguredProvider, getKeyCounts } = require('./src/services/ai.service');
   const database = await connectDB();
   res.status(database ? 200 : 503).json({
     data: {
@@ -112,6 +113,7 @@ async function healthHandler(_req, res) {
       emailProvider: process.env.RESEND_API_KEY ? 'resend' : isEmailConfigured() ? 'smtp' : null,
       ai: hasAiProvider(),
       aiProvider: hasAiProvider() ? getConfiguredProvider().provider : null,
+      aiKeys: getKeyCounts(),
       googleSignIn: Boolean(process.env.GOOGLE_CLIENT_ID),
       clientUrl: Boolean(process.env.CLIENT_URL),
     },
@@ -141,6 +143,7 @@ function registerRoutes(prefix) {
   app.use(`${prefix}/budgets`, budgetsRoutes);
   app.use(`${prefix}/reports`, reportsRoutes);
   app.use(`${prefix}/ai`, aiRoutes);
+  app.use(`${prefix}/support`, supportRoutes);
   // insights.routes handles /insights, /saving-tips, /money-moves, /bookmarks
   app.use(`${prefix}`, insightsRoutes);
   app.use(`${prefix}/notifications`, notificationsRoutes);

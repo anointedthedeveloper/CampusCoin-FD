@@ -19,3 +19,4 @@ export * from './ScrollToTop';
 export * from './TawkToVisibility';
 export * from './QuickGuideVideo';
 export * from './ConfirmDialog';
+export * from './Markdown';

@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowRight, Menu, X } from 'lucide-react';
-import { PUBLIC_ROUTES } from '@/constants/routes';
+import { ArrowRight, ChevronRight, Menu, X } from 'lucide-react';
+import { ADMIN_ROUTES, PUBLIC_ROUTES, STUDENT_ROUTES } from '@/constants/routes';
+import { useAuth } from '@/hooks/useAuth';
 import { Logo, ThemeToggle } from '@/components/common';
 import { Footer } from '@/components/layout/Footer';
 import { cn } from '@/utils/cn';
@@ -12,12 +13,16 @@ const navLinks = [
   { to: PUBLIC_ROUTES.features, label: 'Features', end: false },
   { to: PUBLIC_ROUTES.about, label: 'About', end: false },
   { to: PUBLIC_ROUTES.faq, label: 'FAQ', end: false },
+  { to: PUBLIC_ROUTES.help, label: 'Help', end: false },
 ];
 
 export function PublicLayout() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
+  const { user } = useAuth();
+  const appHome = user?.role === 'admin' ? ADMIN_ROUTES.dashboard : STUDENT_ROUTES.dashboard;
+  const currentLink = navLinks.find((link) => link.to !== PUBLIC_ROUTES.home && location.pathname.startsWith(link.to));
 
   // Close the mobile menu whenever the route changes.
   useEffect(() => {
@@ -87,18 +92,20 @@ export function PublicLayout() {
             </nav>
 
             <div className="hidden shrink-0 items-center gap-4 lg:flex">
-              <Link
-                to={PUBLIC_ROUTES.login}
-                className="text-sm font-semibold text-gray-700 transition-colors duration-200 hover:text-gray-900 dark:text-text-secondary dark:hover:text-text-primary"
-              >
-                Login
-              </Link>
+              {!user && (
+                <Link
+                  to={PUBLIC_ROUTES.login}
+                  className="text-sm font-semibold text-gray-700 transition-colors duration-200 hover:text-gray-900 dark:text-text-secondary dark:hover:text-text-primary"
+                >
+                  Login
+                </Link>
+              )}
               <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
                 <Link
-                  to={PUBLIC_ROUTES.register}
+                  to={user ? appHome : PUBLIC_ROUTES.register}
                   className="group inline-flex items-center gap-1.5 rounded-full bg-[#1c8f53] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-[#177e48] dark:bg-primary dark:hover:bg-primary-accent"
                 >
-                  Get Started
+                  {user ? 'Go to dashboard' : 'Get Started'}
                   <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
                 </Link>
               </motion.div>
@@ -148,17 +155,19 @@ export function PublicLayout() {
                 ))}
               </nav>
               <div className="flex flex-col gap-2 border-t border-gray-100 p-3 dark:border-white/10">
+                {!user && (
+                  <Link
+                    to={PUBLIC_ROUTES.login}
+                    className="rounded-full px-4 py-2.5 text-center text-sm font-semibold text-gray-700 transition-colors duration-200 hover:bg-gray-50 dark:text-text-secondary dark:hover:bg-white/5"
+                  >
+                    Login
+                  </Link>
+                )}
                 <Link
-                  to={PUBLIC_ROUTES.login}
-                  className="rounded-full px-4 py-2.5 text-center text-sm font-semibold text-gray-700 transition-colors duration-200 hover:bg-gray-50 dark:text-text-secondary dark:hover:bg-white/5"
-                >
-                  Login
-                </Link>
-                <Link
-                  to={PUBLIC_ROUTES.register}
+                  to={user ? appHome : PUBLIC_ROUTES.register}
                   className="rounded-full bg-[#1c8f53] px-4 py-2.5 text-center text-sm font-semibold text-white transition-colors duration-200 hover:bg-[#177e48] dark:bg-primary dark:hover:bg-primary-accent"
                 >
-                  Get Started
+                  {user ? 'Go to dashboard' : 'Get Started'}
                 </Link>
               </div>
             </div>
@@ -167,6 +176,15 @@ export function PublicLayout() {
       </motion.header>
 
       <main className="flex-1">
+        {currentLink && (
+          <nav aria-label="Breadcrumb" className="mx-auto max-w-[1280px] px-4 pt-6 sm:px-6">
+            <ol className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-text-muted">
+              <li><Link to={PUBLIC_ROUTES.home} className="hover:text-[#1c8f53] dark:hover:text-primary-accent">Home</Link></li>
+              <li aria-hidden="true"><ChevronRight className="h-3 w-3" /></li>
+              <li aria-current="page" className="font-semibold text-gray-800 dark:text-text-primary">{currentLink.label}</li>
+            </ol>
+          </nav>
+        )}
         <Outlet />
       </main>
 

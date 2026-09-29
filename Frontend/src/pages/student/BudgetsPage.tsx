@@ -240,7 +240,7 @@ export function BudgetsPage() {
                   value={formatNumericInput(limitAmount)}
                   onChange={(e) => setLimitAmount(normalizeNumericInput(e.target.value))}
                   className={cn(
-                    'w-full rounded-lg border bg-white py-2.5 pl-8 pr-3.5 text-sm text-gray-900 shadow-inset',
+                    'w-full rounded-lg border bg-white py-2.5 pl-14 pr-3.5 text-sm text-gray-900 shadow-inset',
                     'border-gray-200 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/20',
                     'dark:border-white/[0.08] dark:bg-surface dark:text-text-primary dark:focus:border-primary-accent/70',
                   )}

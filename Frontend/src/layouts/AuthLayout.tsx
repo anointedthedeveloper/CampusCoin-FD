@@ -51,11 +51,13 @@ export function AuthLayout() {
       <div className="relative z-10 flex flex-1 flex-col overflow-y-auto">
         <div
           className={cn(
-            'flex min-h-full flex-1 items-center justify-center px-4 sm:px-6',
-            isShort ? 'py-2' : hasRoomForDetails ? 'py-6 lg:p-10 xl:p-14' : 'py-3',
+            // Auto margins (not items-center) so a form taller than the
+            // viewport scrolls from its top instead of being cut off above.
+            'flex min-h-full flex-1 flex-col px-4 sm:px-6',
+            isShort ? 'py-4 lg:px-8' : hasRoomForDetails ? 'py-6 lg:p-10 xl:p-14' : 'py-3',
           )}
         >
-          <div className="w-full max-w-md animate-fade-in-up lg:max-w-lg">
+          <div className="m-auto w-full max-w-md animate-fade-in-up lg:max-w-lg">
             <div
               className={cn(
                 'auth-glow-border glass-panel rounded-2xl transition-shadow duration-300',

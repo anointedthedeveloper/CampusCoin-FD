@@ -1,22 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import {
-  ArrowRight,
-  BarChart3,
-  Bell,
-  Bot,
-  FileSpreadsheet,
-  LayoutDashboard,
-  Lightbulb,
-  PiggyBank,
-  Receipt,
-  Sparkles,
-  Tags,
-  Users,
-  Wallet,
-} from 'lucide-react';
+import { ArrowRight, BarChart3, Bell, Bot, FileSpreadsheet, LayoutDashboard, Lightbulb, PiggyBank, Receipt, Sparkles, Tags, Users, Wallet, PlayCircle, HelpCircle, LifeBuoy } from 'lucide-react';
 import { PUBLIC_ROUTES, STUDENT_ROUTES } from '@/constants/routes';
-import { QuickGuideVideo, Ripple, ScreenshotSlideshow, WatchGuideButton } from '@/components/common';
+import { QuickGuideVideo, Ripple, ScreenshotSlideshow, WatchGuideButton, openQuickGuide } from '@/components/common';
 import { FeatureGrid } from '@/components/home/FeatureGrid';
 import { assets } from '@/assets/images';
 import { useRipple } from '@/hooks/useRipple';
@@ -184,13 +170,13 @@ export function HomePage() {
         <HeroBackground />
         <div className="relative z-20 mx-auto flex min-h-[calc(100svh-6rem)] max-w-[1280px] items-center px-4 py-6 sm:px-6 md:py-8">
           <div className="grid w-full items-center gap-6 lg:grid-cols-[1.05fr_1fr] lg:gap-10">
-            <div className="glass-panel max-w-[520px] rounded-[28px] p-6 sm:p-8 lg:max-w-[620px]">
+            <div className="glass-panel max-w-[520px] rounded-[28px] p-6 sm:p-8 lg:max-w-[620px] [@media(max-height:720px)]:p-6">
               <span className="inline-flex animate-fade-in-up items-center gap-1.5 rounded-full bg-white/80 px-4 py-1.5 text-xs font-semibold text-[#1d3d2d] shadow-sm transition-transform duration-200 hover:scale-105 dark:bg-white/10 dark:text-text-primary dark:shadow-black/20">
                 <span className="text-[#1f7a43] dark:text-primary-accent">Smart money,</span>
                 <span className="text-[#1d3d2d] dark:text-text-primary">Brighter Future</span>
               </span>
 
-              <h1 className="mt-4 max-w-[600px] animate-fade-in-up text-[2.3rem] font-bold leading-[1.05] tracking-[-0.04em] text-[#1d3d2d] [animation-delay:100ms] dark:text-text-primary sm:mt-5 sm:text-[3rem] lg:text-[3.5rem]">
+              <h1 className="mt-4 max-w-[600px] animate-fade-in-up text-[2.3rem] font-bold leading-[1.05] tracking-[-0.04em] text-[#1d3d2d] [animation-delay:100ms] dark:text-text-primary sm:mt-5 sm:text-[3rem] lg:text-[3.5rem] [@media(max-height:720px)]:lg:text-[2.75rem]">
                 Take control of <br />
                 your money on <br />
                 <span className="text-[#1a8f57] dark:text-primary-accent">campus</span>
@@ -329,6 +315,29 @@ export function HomePage() {
           >
             Get Started Free
           </Link>
+        </div>
+      </section>
+
+      {/* ── Help band ── */}
+      <section className="mx-auto mt-12 max-w-[1280px] px-4 sm:px-6">
+        <div className="grid gap-3 sm:grid-cols-3">
+          {[
+            { icon: PlayCircle, title: 'Watch the 2-minute guide', text: 'See the whole app before you sign up.', onClick: openQuickGuide },
+            { icon: HelpCircle, title: 'Read the FAQ', text: 'Quick answers to common questions.', to: PUBLIC_ROUTES.faq },
+            { icon: LifeBuoy, title: 'Get help', text: 'Guides, live chat and a contact form.', to: PUBLIC_ROUTES.help },
+          ].map(({ icon: Icon, title, text, to, onClick }) => {
+            const body = (
+              <>
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#d7f0d1] text-[#1c8f53] dark:bg-white/10 dark:text-primary-accent"><Icon className="h-5 w-5" /></span>
+                <span className="min-w-0 text-left">
+                  <span className="block text-sm font-bold text-[#1d3d2d] dark:text-text-primary">{title}</span>
+                  <span className="block text-xs text-gray-600 dark:text-text-secondary">{text}</span>
+                </span>
+              </>
+            );
+            const cls = 'flex items-center gap-3 rounded-[20px] bg-[#f6f4ee] p-4 transition-all duration-300 hover:-translate-y-0.5 hover:bg-white hover:shadow-md dark:bg-surface-elevated dark:hover:bg-white/[0.04]';
+            return to ? <Link key={title} to={to} className={cls}>{body}</Link> : <button key={title} type="button" onClick={onClick} className={cls}>{body}</button>;
+          })}
         </div>
       </section>
 

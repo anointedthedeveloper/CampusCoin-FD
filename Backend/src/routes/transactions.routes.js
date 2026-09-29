@@ -4,7 +4,7 @@ const Transaction = require('../models/Transaction');
 const Category = require('../models/Category');
 const { protect } = require('../middleware/auth');
 const { ensureRecurringProcessed } = require('./recurring.routes');
-const { checkBudgetAfterTransaction } = require('../services/budgetAlert.service');
+const { checkBudgetAfterTransaction, checkMonthlyLimits } = require('../services/budgetAlert.service');
 const { validateIdParam, isValidObjectId } = require('../utils/objectId');
 
 const TRANSACTION_TYPES = ['income', 'expense'];
@@ -174,6 +174,8 @@ router.post('/', async (req, res) => {
       );
     }
 
+    await checkMonthlyLimits(req.user._id, tx.occurredAt);
+
     res.status(201).json({ data: formatTx(tx) });
   } catch (err) {
     console.error(err);
@@ -208,6 +210,7 @@ router.patch('/:id', async (req, res) => {
     if (tx.type === 'expense') {
       await checkBudgetAfterTransaction(req.user._id, tx.categoryId, tx.occurredAt);
     }
+    await checkMonthlyLimits(req.user._id, tx.occurredAt);
 
     res.json({ data: formatTx(tx) });
   } catch (err) {

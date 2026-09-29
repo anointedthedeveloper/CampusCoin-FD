@@ -244,3 +244,25 @@
     0 1px 2px rgba(0,0,0,0.05),
     0 0 0 1px rgba(15,40,30,0.06);
 }
+
+/* ── Dark mode form controls ─────────────────────────────────────────────
+   Native controls (select menus, date pickers, number spinners) follow
+   color-scheme, and any field that only carries light-mode colour classes
+   still gets a dark surface + light text, so a white box can never end up
+   holding white text. */
+:root.dark {
+  color-scheme: dark;
+}
+:root.dark :is(input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']), select, textarea):is(.bg-white, .bg-gray-50, .bg-gray-100) {
+  background-color: rgb(var(--surface));
+}
+:root.dark :is(input, select, textarea):is(.text-gray-900, .text-gray-800, .text-gray-700) {
+  color: rgb(var(--text-primary));
+}
+:root.dark :is(input, textarea)::placeholder {
+  color: rgb(var(--text-muted, 148 163 184) / 0.8);
+}
+:root.dark select option {
+  background-color: rgb(var(--surface));
+  color: rgb(var(--text-primary));
+}

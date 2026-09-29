@@ -108,4 +108,20 @@ async function sendPasswordResetCode(toEmail, code) {
   });
 }
 
-module.exports = { sendPasswordResetCode, isEmailConfigured };
+/**
+ * Emails SUPPORT_EMAIL (or EMAIL_FROM / EMAIL_USER) when someone uses the
+ * Help page contact form. Silently skipped when email isn't configured —
+ * the message is still stored for the admin Support inbox.
+ */
+async function notifyAdminsOfSupportMessage(msg) {
+  const to = process.env.SUPPORT_EMAIL || process.env.EMAIL_USER;
+  if (!isEmailConfigured() || !to) return { sent: false };
+  return sendMail({
+    to,
+    subject: `Campus Coin support: ${msg.topic} — ${msg.name}`,
+    text: `From: ${msg.name} <${msg.email}>\nTopic: ${msg.topic}\n\n${msg.message}\n\nReply directly to ${msg.email}, or open the admin Support inbox.`,
+    html: `<p><strong>From:</strong> ${escapeHtml(msg.name)} &lt;${escapeHtml(msg.email)}&gt;<br/><strong>Topic:</strong> ${escapeHtml(msg.topic)}</p><p style="white-space:pre-wrap">${escapeHtml(msg.message)}</p><p style="color:#6b7280;font-size:13px">Reply directly to ${escapeHtml(msg.email)}, or open the admin Support inbox.</p>`,
+  });
+}
+
+module.exports = { sendPasswordResetCode, isEmailConfigured, notifyAdminsOfSupportMessage };

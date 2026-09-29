@@ -13,13 +13,6 @@ export const httpClient = axios.create({
   },
 });
 
-httpClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-  const token = localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
-  if (token) {
-    config.headers.set('Authorization', `Bearer ${token}`);
-  }
-  return config;
-});
 
 // Access tokens are short-lived (15 min) so a session that's merely sitting
 // on a page, or a plain page reload after that window, would otherwise look
@@ -62,6 +55,45 @@ async function refreshAccessToken(): Promise<string> {
   localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, nextRefreshToken);
   return accessToken;
 }
+
+/** Seconds-since-epoch expiry of a JWT, or null if it can't be read. */
+function tokenExpiry(token: string): number | null {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+    return typeof payload.exp === 'number' ? payload.exp : null;
+  } catch {
+    return null;
+  }
+}
+
+// Refresh BEFORE sending when the access token has (nearly) expired. Without
+// this, every visit after 15 minutes started with a red "401 Unauthorized"
+// in the console (the request was rejected, then retried after refreshing).
+httpClient.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
+  let token = localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
+  const isAuthCall = NO_REFRESH_PATHS.some((path) => config.url?.includes(path));
+  if (token && !isAuthCall && localStorage.getItem(REFRESH_TOKEN_STORAGE_KEY)) {
+    const exp = tokenExpiry(token);
+    if (exp !== null && exp * 1000 < Date.now() + 30_000) {
+      try {
+        refreshPromise ??= refreshAccessToken().finally(() => { refreshPromise = null; });
+        token = await refreshPromise;
+      } catch (refreshError) {
+        const status = axios.isAxiosError(refreshError) ? refreshError.response?.status : undefined;
+        if (!axios.isAxiosError(refreshError) || (status !== undefined && status >= 400 && status < 500)) {
+          clearSessionAndNotify();
+          token = null;
+        }
+        // Otherwise (offline, 5xx) send with the old token; the response
+        // interceptor below handles the outcome.
+      }
+    }
+  }
+  if (token) {
+    config.headers.set('Authorization', `Bearer ${token}`);
+  }
+  return config;
+});
 
 httpClient.interceptors.response.use(
   (response) => response,

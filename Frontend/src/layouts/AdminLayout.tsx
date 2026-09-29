@@ -11,22 +11,29 @@ import {
   Menu,
   ShieldCheck,
   Users,
+  Inbox,
+  UserCircle,
   X,
 } from 'lucide-react';
 import { ADMIN_ROUTES, PUBLIC_ROUTES } from '@/constants/routes';
 import { useAuth } from '@/hooks/useAuth';
 import { Avatar, Logo, ThemeToggle } from '@/components/common';
 import { cn } from '@/utils/cn';
+import { supportApi } from '@/api/support.api';
 
 const navItems = [
   { to: ADMIN_ROUTES.dashboard,     label: 'Overview',             icon: LayoutDashboard, description: 'Platform overview and quick actions' },
   { to: ADMIN_ROUTES.users,         label: 'Users',                icon: Users,           description: 'View, suspend, reset or delete accounts' },
   { to: ADMIN_ROUTES.categories,    label: 'Categories',           icon: ListTree,        description: 'Default income and expense categories' },
   { to: ADMIN_ROUTES.announcements, label: 'Announcements & Tips', icon: Megaphone,       description: 'Announcements and saving-tip templates' },
+  { to: ADMIN_ROUTES.support,       label: 'Support inbox',        icon: Inbox,           description: 'Messages from the Help page' },
   { to: ADMIN_ROUTES.statistics,    label: 'Statistics',           icon: BarChart3,       description: 'Usage analytics' },
 ];
 
+const profileSection = { to: ADMIN_ROUTES.profile, label: 'My Profile', icon: UserCircle, description: 'Your account and password' };
+
 function currentSection(pathname: string) {
+  if (pathname === profileSection.to) return profileSection;
   return navItems.find((item) => pathname === item.to || pathname.startsWith(`${item.to}/`)) ?? navItems[0];
 }
 
@@ -34,6 +41,21 @@ export function AdminLayout() {
   const { user, logout } = useAuth();
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [openSupport, setOpenSupport] = useState(0);
+
+  // Unread-style badge for the Support inbox.
+  useEffect(() => {
+    let cancelled = false;
+    const load = () => supportApi.list('open').then((r) => { if (!cancelled) setOpenSupport(r.openCount); }).catch(() => undefined);
+    void load();
+    const timer = window.setInterval(load, 120_000);
+    window.addEventListener('campus-coin:support-updated', load);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+      window.removeEventListener('campus-coin:support-updated', load);
+    };
+  }, []);
   const section = currentSection(location.pathname);
   const isDetail = location.pathname !== section.to;
 
@@ -110,6 +132,9 @@ export function AdminLayout() {
                       <Icon className="h-4 w-4" />
                     </span>
                     <span className="truncate">{label}</span>
+                    {to === ADMIN_ROUTES.support && openSupport > 0 && (
+                      <span className="ml-auto rounded-full bg-amber-400 px-1.5 py-0.5 text-[10px] font-bold leading-none text-gray-900">{openSupport}</span>
+                    )}
                   </>
                 );
               }}
@@ -126,11 +151,13 @@ export function AdminLayout() {
             View public site
           </Link>
           <div className="flex items-center gap-2.5 rounded-xl bg-white/[0.04] px-3 py-2.5">
-            <Avatar name={user?.fullName ?? 'Admin'} size="sm" />
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-semibold text-white">{user?.fullName ?? 'Administrator'}</p>
-              <p className="truncate text-[11px] text-emerald-50/50">{user?.email}</p>
-            </div>
+            <Link to={ADMIN_ROUTES.profile} className="flex min-w-0 flex-1 items-center gap-2.5" title="My profile">
+              <Avatar name={user?.fullName ?? 'Admin'} size="sm" />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs font-semibold text-white">{user?.fullName ?? 'Administrator'}</p>
+                <p className="truncate text-[11px] text-emerald-50/50">{user?.email}</p>
+              </div>
+            </Link>
             <button
               type="button"
               onClick={() => void logout()}
@@ -176,10 +203,10 @@ export function AdminLayout() {
 
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <div className="hidden items-center gap-2 rounded-full border border-gray-200 bg-white py-1 pl-1 pr-3 dark:border-white/10 dark:bg-surface-elevated sm:flex">
+            <Link to={ADMIN_ROUTES.profile} className="flex items-center gap-2 rounded-full border border-gray-200 bg-white py-1 pl-1 pr-1 transition-colors hover:border-brand-300 dark:border-white/10 dark:bg-surface-elevated dark:hover:border-primary/40 sm:pr-3" title="My profile">
               <Avatar name={user?.fullName ?? 'Admin'} size="sm" />
-              <span className="text-sm font-medium text-gray-700 dark:text-text-secondary">{user?.fullName ?? 'Administrator'}</span>
-            </div>
+              <span className="hidden text-sm font-medium text-gray-700 dark:text-text-secondary sm:inline">{user?.fullName ?? 'Administrator'}</span>
+            </Link>
           </div>
         </header>
 

@@ -112,7 +112,7 @@ export function AuthHero() {
             Manage your money, track your spending, and build better financial habits — all in one place.
           </p>
 
-          <div className="mt-4 grid grid-cols-2 gap-3 lg:mt-8 lg:grid-cols-1 lg:gap-4">
+          <div className="mt-4 grid grid-cols-2 gap-3 lg:mt-8 lg:grid-cols-1 lg:gap-4 [@media(max-height:760px)]:hidden">
             {features.map(({ icon: Icon, title, body }, index) => (
               <div
                 key={title}
@@ -131,7 +131,7 @@ export function AuthHero() {
           </div>
         </div>
 
-        <p className="glass-chip w-fit animate-fade-in-up rounded-full px-4 py-1.5 text-xs font-medium italic text-gray-800 dark:text-white/80 [animation-delay:200ms] lg:text-sm">
+        <p className="glass-chip w-fit animate-fade-in-up [@media(max-height:700px)]:hidden rounded-full px-4 py-1.5 text-xs font-medium italic text-gray-800 dark:text-white/80 [animation-delay:200ms] lg:text-sm">
           Smarter Students. Better Tomorrow.
         </p>
       </div>
