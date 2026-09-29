@@ -6,6 +6,7 @@ import faqIllustration from './faq-illustration.webp';
 import heroBackground from './herobg-desk.webp';
 import heroPhone from './herophone.png';
 import heroSlideOne from './herosld1.png';
+import heroSlideThree from './herosld3.png';
 import logo from './logo.webp';
 import aiAssistantScreenshot from './screenshots/ai-assistant.webp';
 import aiAssistantScreenshotDark from './screenshots/ai-assistant-dark.webp';
@@ -25,6 +26,7 @@ export const assets = {
   heroBackground,
   heroPhone,
   heroSlideOne,
+  heroSlideThree,
   logo,
   screenshots: {
     aiAssistant: aiAssistantScreenshot,

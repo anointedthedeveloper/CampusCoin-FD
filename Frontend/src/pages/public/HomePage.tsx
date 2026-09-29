@@ -101,7 +101,7 @@ const appFeatureHighlights = [
 ];
 
 function HeroBackground() {
-  const slides = [assets.heroBackground, assets.heroSlideOne];
+  const slides = [assets.heroBackground, assets.heroSlideOne, assets.heroSlideThree];
   const [active, setActive] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
