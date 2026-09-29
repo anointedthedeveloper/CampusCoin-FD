@@ -15,6 +15,14 @@ export const adminUserService = {
     return items;
   },
 
+  update(id: string, payload: { role?: 'student' | 'admin'; fullName?: string; school?: string; academicYear?: string }) {
+    return adminUsersApi.update(id, payload);
+  },
+
+  sendPasswordReset(id: string) {
+    return adminUsersApi.sendPasswordReset(id);
+  },
+
   async resetAccount(id: string): Promise<void> {
     await adminUsersApi.resetAccount(id);
   },

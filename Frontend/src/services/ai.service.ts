@@ -7,7 +7,7 @@ export const aiService = {
   isCategorizationEnabled: () => FEATURE_FLAGS.aiCategorization,
   isInsightsEnabled: () => FEATURE_FLAGS.aiInsights,
 
-  answer: (message: string, history?: AIConversationTurn[]) => aiApi.answer(message, history),
+  answer: (message: string, history?: AIConversationTurn[]) => aiApi.answer(message, { history }),
 
   // Gated by the student's own "Automatic categorization" setting (checked
   // by the caller) rather than a build-time flag, so it works as soon as

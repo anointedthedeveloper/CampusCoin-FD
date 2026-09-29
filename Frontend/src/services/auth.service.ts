@@ -21,8 +21,8 @@ export const authService = {
     return result;
   },
 
-  async loginWithGoogle(idToken: string): Promise<AuthResponse> {
-    const result = await authApi.loginWithGoogle(idToken);
+  async loginWithGoogle(idToken: string, linkAccount = false): Promise<AuthResponse> {
+    const result = await authApi.loginWithGoogle(idToken, linkAccount);
     tokenService.setTokens(result.accessToken, result.refreshToken);
     return result;
   },

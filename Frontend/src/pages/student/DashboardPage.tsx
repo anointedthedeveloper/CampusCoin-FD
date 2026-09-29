@@ -38,6 +38,8 @@ import type { Category } from '@/types/category';
 import type { AppNotification } from '@/types/notification';
 import type { MonthlyReport } from '@/types/report';
 import type { SavingTip, Insight } from '@/types/insight';
+import { aiApi, type AIConversationSummary } from '@/api/ai.api';
+import { AskAssistantCard } from '@/components/dashboard/AskAssistantCard';
 
 function monthKey() {
   return new Date().toISOString().slice(0, 7);
@@ -50,6 +52,7 @@ interface DashboardData {
   report: MonthlyReport | null;
   notifications: AppNotification[];
   tips: SavingTip[];
+  chats: AIConversationSummary[];
   insight: Insight | null;
 }
 
@@ -89,7 +92,7 @@ export function DashboardPage() {
 
     async function load() {
       setIsLoading(true);
-      const [txResult, cats, budgetSum, report, notifs, tips, insights] = await Promise.allSettled([
+      const [txResult, cats, budgetSum, report, notifs, tips, insights, chats] = await Promise.allSettled([
         transactionService.list(user!.id),
         categoryService.list(user!.id),
         budgetService.summary(user!.id, month),
@@ -97,6 +100,7 @@ export function DashboardPage() {
         notificationsApi.list(),
         insightsApi.listSavingTips(),
         insightsApi.listInsights({ month }),
+        aiApi.listConversations(),
       ]);
       if (cancelled) return;
       setData({
@@ -107,6 +111,7 @@ export function DashboardPage() {
         notifications: notifs.status === 'fulfilled' ? notifs.value : [],
         tips:          tips.status === 'fulfilled' ? tips.value : [],
         insight:       insights.status === 'fulfilled' ? (insights.value.find((i) => i.kind === 'monthly-summary') ?? null) : null,
+        chats:         chats.status === 'fulfilled' ? chats.value.slice(0, 3) : [],
       });
       setIsLoading(false);
     }
@@ -119,7 +124,7 @@ export function DashboardPage() {
   if (!user) return null;
   if (showLoader) return <PageSpinner label="Loading your dashboard…" />;
 
-  const { transactions, categories, budgetSummary, report, notifications, tips, insight } = data!;
+  const { transactions, categories, budgetSummary, report, notifications, tips, insight, chats } = data!;
   const catMap = Object.fromEntries(categories.map((c) => [c.id, c.name]));
   const hasAnyTransactions = transactions.length > 0;
   // Onboarding creates real budgets/categories with zero transactions logged
@@ -507,6 +512,8 @@ export function DashboardPage() {
           </Card>
         </div>
       </div>
+
+      <AskAssistantCard chats={chats} />
 
       {/* AI insight */}
       {insight && (

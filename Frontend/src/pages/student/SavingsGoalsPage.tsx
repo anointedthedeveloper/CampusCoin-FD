@@ -827,7 +827,7 @@ export function SavingsGoalsPage() {
         break; // celebrate one at a time
       }
     }
-  }, [goals, user]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [goals, user]);  
 
   // ── Derived stats ────────────────────────────────────────────────────────────
   const totalSaved    = goals.reduce((s, g) => s + g.savedAmount, 0);

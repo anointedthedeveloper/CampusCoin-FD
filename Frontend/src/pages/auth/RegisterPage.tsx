@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { Link, useNavigate, useOutletContext } from 'react-router-dom';
+import { Link, useNavigate, useOutletContext, Navigate } from 'react-router-dom';
 import { ArrowRight, Eye, EyeOff, Lock, Mail, User } from 'lucide-react';
 import { Button, GoogleButton, Input } from '@/components/common';
 import { AuthPageHeader } from '@/components/auth';
@@ -9,9 +9,10 @@ import { isStrongPassword, isValidEmail } from '@/utils/validation';
 import { ApiError } from '@/types/api';
 import { cn } from '@/utils/cn';
 import type { AuthPageOutletContext } from './authOutletContext';
+import { postLoginPath, useGoogleSignIn } from '@/hooks/useGoogleSignIn';
 
 export function RegisterPage() {
-  const { register, loginWithGoogle } = useAuth();
+  const { register , user: signedInUser, isLoading: isAuthLoading } = useAuth();
   const navigate = useNavigate();
   const { compact } = useOutletContext<AuthPageOutletContext>();
 
@@ -22,22 +23,8 @@ export function RegisterPage() {
   const [showPassword, setShowPassword]       = useState(false);
   const [error, setError]                     = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting]       = useState(false);
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
-  async function handleGoogleSignup(idToken: string) {
-    setError(null);
-    setIsGoogleLoading(true);
-    try {
-      const signedUpUser = await loginWithGoogle(idToken);
-      const onboardingStatus = signedUpUser.onboarding?.status ?? 'not_started';
-      const needsOnboarding = onboardingStatus === 'not_started' || onboardingStatus === 'in_progress';
-      navigate(needsOnboarding ? STUDENT_ROUTES.onboarding : STUDENT_ROUTES.dashboard, { replace: true });
-    } catch (err) {
-      setError(err instanceof ApiError || err instanceof Error ? err.message : 'Google sign-in failed. Please try again.');
-    } finally {
-      setIsGoogleLoading(false);
-    }
-  }
+  const google = useGoogleSignIn();
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -58,6 +45,11 @@ export function RegisterPage() {
     }
   }
 
+
+  // Already signed in (e.g. a returning Google user) — skip the form.
+  if (!isAuthLoading && signedInUser) {
+    return <Navigate to={postLoginPath(signedInUser)} replace />;
+  }
   return (
     <div>
       <AuthPageHeader
@@ -68,9 +60,10 @@ export function RegisterPage() {
       />
 
       {/* Google first */}
+      {google.linkDialog}
       <GoogleButton
-        onCredential={(idToken) => void handleGoogleSignup(idToken)}
-        isLoading={isGoogleLoading}
+        onCredential={(idToken) => void google.signIn(idToken)}
+        isLoading={google.isLoading}
         label="Sign up with Google"
       />
 
@@ -145,12 +138,12 @@ export function RegisterPage() {
           required
         />
 
-        {error && (
+        {(error || google.error) && (
           <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3.5 py-3 dark:border-red-500/30 dark:bg-red-950/30">
             <svg className="mt-0.5 h-4 w-4 shrink-0 text-red-500 dark:text-red-400" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
               <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1Zm-.75 3.75a.75.75 0 0 1 1.5 0v3.5a.75.75 0 0 1-1.5 0v-3.5ZM8 11.5a.875.875 0 1 1 0-1.75.875.875 0 0 1 0 1.75Z" />
             </svg>
-            <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+            <p className="text-sm text-red-700 dark:text-red-300">{error ?? google.error}</p>
           </div>
         )}
 

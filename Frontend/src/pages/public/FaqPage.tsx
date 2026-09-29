@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
   BookOpen,
   Bot,
@@ -41,6 +41,16 @@ const categories = [
           "Yes, it's completely free. Create an account and use every feature — transactions, budgets, reports, saving tips, and the AI assistant — at no cost.",
       },
       {
+        question: 'Can I sign in with Google?',
+        answer:
+          'Yes. Use "Continue with Google" on the login or sign-up page. New Google accounts are asked to choose a password too, so you can sign in either way. If you already have a Campus Coin account with the same email, you\'ll be asked whether to link them.',
+      },
+      {
+        question: 'I forgot my password — what do I do?',
+        answer:
+          'Click "Forgot password?" on the login page and enter your email. You\'ll receive a 6-digit code and a one-click link to choose a new password. The code expires after 15 minutes.',
+      },
+      {
         question: 'How do I create an account?',
         answer:
           'Click "Get Started" on the home page, fill in your name, email, and a password, and you\'re in. You can optionally add your school, academic year, monthly allowance baseline, and a savings goal from your profile page at any time.',
@@ -71,7 +81,7 @@ const categories = [
       {
         question: 'Does Campus Coin support recurring transactions?',
         answer:
-          'Yes. When adding a transaction you can mark it as recurring (e.g. monthly allowance or a subscription charge) and it will be automatically re-logged each period.',
+          'Yes. When adding a transaction, pick a "Repeat" option (weekly, monthly or yearly), or manage everything on the Recurring page. Recurring entries like an allowance or a subscription are logged automatically each period, and you can pause or delete them any time.',
       },
     ],
   },
@@ -89,12 +99,12 @@ const categories = [
       {
         question: 'Will I be notified when I\'m close to my limit?',
         answer:
-          'Yes. Campus Coin sends an in-app notification when a category reaches 80% of its budget, and another when it exceeds 100%. You can view all alerts on the Notifications page.',
+          'Yes. You get an in-app notification when a category reaches your alert threshold (80% by default — change it in Settings) and another when it goes over. You are also alerted when your spending passes your income or your monthly allowance, and when you reach your savings goal. Announcements from the Campus Coin team appear in the same place.',
       },
       {
         question: 'Can I set a savings goal?',
         answer:
-          'Yes. Go to your Profile page and enter a Savings Goal amount. Your dashboard will then show a progress bar tracking your current balance against that goal.',
+          'Yes. Set a savings goal on your Profile page and track it on the dashboard, or create several named goals (like "New laptop") with target dates on the Savings Goals page. Each goal shows your progress and how much you need to save per week to hit it.',
       },
     ],
   },
@@ -107,17 +117,17 @@ const categories = [
       {
         question: 'What reports does Campus Coin generate?',
         answer:
-          'The Reports page shows: a category-wise spending breakdown (donut chart), an income vs. expense trend over the last 6 months, weekly spending bars, a daily spending heatmap, and a full category and daily breakdown table. You can filter by month and by expense category.',
+          'The Reports page shows: a category-wise spending breakdown (donut chart), an income vs. expense trend over the last 6 months, weekly spending bars, a daily spending heatmap, and a full category and daily breakdown table. You can filter by month, type, category or income source and a date range, and see every transaction in a table.',
       },
       {
         question: 'Can I export my reports?',
         answer:
-          'Yes. Click "Export CSV" on the Reports page to download a full report for the selected month, including the summary, category breakdown, and daily spending data.',
+          'Yes. The Reports page can export the selected month as a PDF, as an image (PNG) or as a CSV spreadsheet.',
       },
       {
         question: 'What are Saving Tips?',
         answer:
-          'Saving Tips are personalized suggestions generated from your own transaction history. They compare your current spending against your historical averages and budget goals, then surface the most impactful changes you could make. You can bookmark tips you find useful or dismiss ones that don\'t apply.',
+          'Saving Tips are personalized suggestions generated from your own transaction history. They compare your current spending against your historical averages and budget goals, then surface the most impactful changes you could make. They are ranked by how much they could save you. You can pin tips you find useful or dismiss ones that don\'t apply (and restore them later).',
       },
     ],
   },
@@ -130,7 +140,7 @@ const categories = [
       {
         question: 'What does the AI Assistant do?',
         answer:
-          'The AI Assistant can answer questions about your budget and spending using your real data, suggest a category when you describe a purchase (e.g. "Bought food at Campus Cafe — ₦3,500"), and let you log that expense directly from the chat.',
+          'The AI Assistant answers questions about your budget and spending using your real data, can show answers as tables, and has templates like "Can I afford this?" and "When can I afford this?". It also suggests a category when you describe a purchase and lets you log it from the chat. Your chats are saved so you can continue them later.',
       },
       {
         question: 'Does the AI post transactions automatically?',
@@ -138,9 +148,9 @@ const categories = [
           'No. Any AI suggestion — whether for categorizing a transaction or summarizing your month — is always shown for you to review first. Nothing is finalized without your confirmation.',
       },
       {
-        question: 'Is the AI a live language model?',
+        question: 'Which AI powers the assistant?',
         answer:
-          'The current assistant is rule-based and works entirely from your own data — it does not call an external AI API. This means it\'s fast, private, and works offline, but it answers a defined set of questions rather than open-ended conversation.',
+          'The assistant uses a hosted language model (Groq or Google Gemini), given only a summary of your own Campus Coin figures. If the AI service is unavailable it still answers from your numbers. Its answers are advisory — not certified financial advice.',
       },
     ],
   },
@@ -181,7 +191,7 @@ const categories = [
       {
         question: 'Can I delete my account?',
         answer:
-          'Yes. Contact support or use the account settings to request deletion. All your data will be permanently removed.',
+          'Yes. Contact support through the Help page (live chat or the contact form) and an administrator will delete the account and all its data permanently.',
       },
     ],
   },
@@ -207,20 +217,62 @@ function FaqIllustration() {
   );
 }
 
+const STOP_WORDS = new Set(['how', 'do', 'does', 'can', 'the', 'my', 'is', 'to', 'an', 'and', 'or', 'of', 'in', 'on', 'for', 'what', 'where', 'why', 'with', 'it', 'me', 'am', 'are', 'be', 'if', 'at', 'this', 'that', 'there', 'your', 'you']);
+const SYNONYMS: Record<string, string[]> = {
+  reset: ['forgot', 'new password', 'change'],
+  forgot: ['reset'],
+  login: ['sign in', 'log in'],
+  signin: ['sign in', 'log in'],
+  delete: ['remove', 'deletion'],
+  export: ['download', 'pdf', 'csv'],
+  recurring: ['repeat', 'automatic'],
+  alert: ['notification', 'notified'],
+  alerts: ['notification', 'notified'],
+  ai: ['assistant'],
+  bank: ['bank account'],
+};
+
 export function FaqPage() {
-  const [query, setQuery] = useState('');
+  const [searchParams] = useSearchParams();
+  const [query, setQuery] = useState(() => searchParams.get('q') ?? '');
   const [expandedKey, setExpandedKey] = useState<string | null>(null);
   const isSearching = query.trim().length > 0;
 
   const filteredCategories = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return categories;
+    // Word-based search: ignore filler words, accept common synonyms, and
+    // keep questions matching at least half of the meaningful words — so
+    // "reset password" still finds "I forgot my password…".
+    const words = query
+      .trim()
+      .toLowerCase()
+      .split(/[^a-z0-9]+/)
+      .filter((w) => w.length > 1 && !STOP_WORDS.has(w));
+    if (!words.length) return categories;
+    const matches = (haystack: string, word: string) =>
+      [word, word.replace(/s$/, ''), ...(SYNONYMS[word] ?? [])].some((w) => haystack.includes(w));
+    // Prefer questions matching every word; only if none do, fall back to
+    // those matching at least half of them.
+    const everyWordHits = categories.some((category) =>
+      category.faqs.some((faq) => {
+        const haystack = `${faq.question} ${faq.answer} ${category.label}`.toLowerCase();
+        return words.every((w) => matches(haystack, w));
+      }),
+    );
+    const needed = everyWordHits ? words.length : Math.max(1, Math.ceil(words.length / 2));
     return categories
       .map((category) => ({
         ...category,
-        faqs: category.faqs.filter(
-          (faq) => faq.question.toLowerCase().includes(q) || faq.answer.toLowerCase().includes(q),
-        ),
+        faqs: category.faqs
+          .map((faq) => {
+            const haystack = `${faq.question} ${faq.answer} ${category.label}`.toLowerCase();
+            const questionText = faq.question.toLowerCase();
+            const score = words.filter((w) => matches(haystack, w)).length;
+            const titleScore = words.filter((w) => matches(questionText, w)).length;
+            return { faq, score, titleScore };
+          })
+          .filter((r) => r.score >= needed)
+          .sort((a, b) => b.titleScore - a.titleScore || b.score - a.score)
+          .map((r) => r.faq),
       }))
       .filter((category) => category.faqs.length > 0);
   }, [query]);
@@ -257,7 +309,10 @@ export function FaqPage() {
 
             <form
               role="search"
-              onSubmit={(event) => event.preventDefault()}
+              onSubmit={(event) => {
+                event.preventDefault();
+                document.getElementById('faq-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }}
               className="mt-7 flex max-w-md items-center gap-1.5 rounded-full bg-white p-1.5 shadow-card dark:bg-surface-elevated dark:shadow-dark-card"
             >
               <Search className="ml-3 h-4 w-4 shrink-0 text-gray-400 dark:text-text-muted" aria-hidden="true" />
@@ -298,7 +353,7 @@ export function FaqPage() {
       </section>
 
       {/* ── Topics + accordion ── */}
-      <section className="mx-auto max-w-[1200px] px-4 py-10 sm:px-6 sm:py-14">
+      <section id="faq-results" className="scroll-mt-24 mx-auto max-w-[1280px] px-4 py-10 sm:px-6 sm:py-14">
         <div className="grid gap-8 lg:grid-cols-[210px_1fr] lg:gap-16">
           <nav aria-label="FAQ topics" className="lg:block">
             <p className="mb-3 text-xs font-bold uppercase tracking-[0.14em] text-gray-500 dark:text-text-muted">Browse by topic</p>
@@ -372,7 +427,7 @@ export function FaqPage() {
       </section>
 
       {/* ── CTA ── */}
-      <section className="mx-auto max-w-[1200px] px-4 py-14 sm:px-6 sm:py-20">
+      <section className="mx-auto max-w-[1280px] px-4 py-14 sm:px-6 sm:py-20">
         <div className="flex flex-col gap-6 rounded-[28px] bg-[#122a1f] px-6 py-10 text-white dark:bg-surface-elevated dark:shadow-lg dark:shadow-black/20 sm:flex-row sm:items-center sm:justify-between sm:px-10 sm:py-12">
           <div className="flex items-start gap-4">
             <Lock className="mt-1 h-5 w-5 shrink-0 text-[#78d99a] dark:text-primary-accent" />

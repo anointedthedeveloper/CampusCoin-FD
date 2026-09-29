@@ -91,6 +91,54 @@ async function checkBudgetAfterTransaction(userIdInput, categoryIdInput, occurre
   }
 }
 
+/**
+ * Month-level limit alerts, each sent at most once per month:
+ *  - overspending: expenses have passed recorded income
+ *  - allowance-exceeded: expenses have passed the student's monthly allowance baseline
+ *  - goal-reached: income minus expenses has reached their savings goal
+ */
+async function checkMonthlyLimits(userIdInput, occurredAt) {
+  try {
+    const userId = toObjectId(userIdInput);
+    const date = new Date(occurredAt);
+    const month = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`;
+    const start = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1));
+    const end = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 1));
+
+    const [user, totals] = await Promise.all([
+      User.findById(userId).select('monthlyAllowanceBaseline savingsGoalAmount settings.currency').lean(),
+      Transaction.aggregate([
+        { $match: { userId, occurredAt: { $gte: start, $lt: end } } },
+        { $group: { _id: '$type', total: { $sum: '$amount' } } },
+      ]),
+    ]);
+    if (!user) return;
+    const income = totals.find((t) => t._id === 'income')?.total ?? 0;
+    const expenses = totals.find((t) => t._id === 'expense')?.total ?? 0;
+    const currency = user.settings?.currency || 'NGN';
+    const money = (n) => `${currency} ${Math.round(n).toLocaleString('en-US')}`;
+
+    const alerts = [];
+    if (income > 0 && expenses > income) {
+      alerts.push({ type: 'overspending', severity: 'high', title: 'Spending is above your income', message: `Your expenses for ${month} (${money(expenses)}) are now higher than the income you recorded (${money(income)}).` });
+    }
+    if (user.monthlyAllowanceBaseline > 0 && expenses > user.monthlyAllowanceBaseline) {
+      alerts.push({ type: 'allowance-exceeded', severity: 'high', title: 'Monthly allowance limit passed', message: `You've spent ${money(expenses)} in ${month}, more than your monthly allowance of ${money(user.monthlyAllowanceBaseline)}.` });
+    }
+    if (user.savingsGoalAmount > 0 && income - expenses >= user.savingsGoalAmount) {
+      alerts.push({ type: 'goal-reached', severity: 'info', title: 'Savings goal reached 🎉', message: `You've kept ${money(income - expenses)} this month — that meets your savings goal of ${money(user.savingsGoalAmount)}.` });
+    }
+
+    for (const alert of alerts) {
+      const exists = await Notification.exists({ userId, type: alert.type, 'meta.month': month });
+      if (!exists) await Notification.create({ userId, ...alert, meta: { month, income, expenses } });
+    }
+  } catch (err) {
+    console.error('Monthly limit alert error:', err);
+  }
+}
+
 module.exports = {
   checkBudgetAfterTransaction,
+  checkMonthlyLimits,
 };

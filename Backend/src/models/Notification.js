@@ -9,7 +9,9 @@ const notificationSchema = new mongoose.Schema(
       // budget-exceeded: over limit (≥100%)
       // insight-ready: a new AI/generated insight is available
       // system: general platform message
-      enum: ['budget-near', 'budget-warning', 'budget-exceeded', 'insight-ready', 'system'],
+      // announcement: copy of an admin announcement for this user
+      // overspending / allowance-exceeded / goal-reached: monthly limit alerts
+      enum: ['budget-near', 'budget-warning', 'budget-exceeded', 'insight-ready', 'system', 'announcement', 'overspending', 'allowance-exceeded', 'goal-reached'],
       required: true,
     },
     title: { type: String, required: true },

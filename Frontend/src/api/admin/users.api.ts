@@ -23,6 +23,16 @@ export const adminUsersApi = {
     return data.data;
   },
 
+  async update(id: string, payload: { role?: 'student' | 'admin'; fullName?: string; school?: string; academicYear?: string }): Promise<AdminUserSummary> {
+    const { data } = await httpClient.patch<ApiSuccess<AdminUserSummary>>(`/admin/users/${id}`, payload);
+    return data.data;
+  },
+
+  async sendPasswordReset(id: string): Promise<string> {
+    const { data } = await httpClient.post<ApiSuccess<null>>(`/admin/users/${id}/send-password-reset`);
+    return data.message ?? 'Password reset email sent.';
+  },
+
   async resetAccount(id: string): Promise<AdminUserSummary> {
     const { data } = await httpClient.post<ApiSuccess<AdminUserSummary>>(`/admin/users/${id}/reset`);
     return data.data;

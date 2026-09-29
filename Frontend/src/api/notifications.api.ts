@@ -20,6 +20,10 @@ export const notificationsApi = {
     await httpClient.patch(`/notifications/${id}/read`);
   },
 
+  async clearAll(): Promise<void> {
+    await httpClient.patch('/notifications/clear-all');
+  },
+
   async markAllAsRead(): Promise<void> {
     await httpClient.patch('/notifications/read-all');
   },

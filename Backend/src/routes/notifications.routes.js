@@ -22,9 +22,39 @@ function formatNotif(n) {
   };
 }
 
+// Copies any published announcement the user hasn't received yet into their
+// own notification feed, so announcements count toward the unread badge and
+// can be marked read/cleared like everything else.
+async function syncAnnouncements(user) {
+  const audiences = user.role === 'admin' ? ['all', 'students', 'admins'] : ['all', 'students'];
+  const anns = await Announcement.find({ audience: { $in: audiences }, publishedAt: { $ne: null } })
+    .sort({ publishedAt: -1 })
+    .limit(50)
+    .lean();
+  if (!anns.length) return;
+  const existing = await Notification.find({
+    userId: user._id,
+    type: 'announcement',
+    'meta.announcementId': { $in: anns.map((a) => a._id) },
+  }).select('meta.announcementId').lean();
+  const have = new Set(existing.map((n) => String(n.meta?.announcementId)));
+  const missing = anns.filter((a) => !have.has(String(a._id)));
+  if (!missing.length) return;
+  await Notification.insertMany(missing.map((a) => ({
+    userId: user._id,
+    type: 'announcement',
+    title: a.title,
+    message: a.body,
+    severity: 'info',
+    meta: { announcementId: a._id },
+    createdAt: a.publishedAt,
+  })));
+}
+
 // GET /api/v1/notifications
 router.get('/', async (req, res) => {
   try {
+    await syncAnnouncements(req.user).catch((err) => console.error('Announcement sync failed:', err.message));
     const notifications = await Notification.find({
       userId: req.user._id,
       isDismissed: { $ne: true },
@@ -82,6 +112,17 @@ router.patch('/read-all', async (req, res) => {
   try {
     await Notification.updateMany({ userId: req.user._id, isRead: false }, { isRead: true });
     res.json({ data: null, message: 'All notifications marked as read' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// PATCH /api/v1/notifications/clear-all — hide every notification
+router.patch('/clear-all', async (req, res) => {
+  try {
+    await Notification.updateMany({ userId: req.user._id, isDismissed: { $ne: true } }, { isDismissed: true, isRead: true });
+    res.json({ data: null, message: 'Notifications cleared' });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });

@@ -26,6 +26,8 @@ const { protect } = require('../middleware/auth');
 const Category = require('../models/Category');
 const Insight = require('../models/Insight');
 const Transaction = require('../models/Transaction');
+const AiConversation = require('../models/AiConversation');
+const { isValidObjectId } = require('../utils/objectId');
 
 // Services
 const {
@@ -120,9 +122,41 @@ function buildUnavailableAiAnswer(summary) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// LEGACY — POST /answer
-// Kept for backwards compatibility with existing frontend callers.
+// POST /answer — AI Assistant chat (used by the frontend)
 // ─────────────────────────────────────────────────────────────────────────────
+const MAX_STORED_MESSAGES = 200;
+const MONEY_TEMPLATE_KINDS = ['afford', 'when-afford'];
+
+function markdownAmount(amount, currency) {
+  return formatAmount(Number(amount) || 0, currency);
+}
+
+/** A deterministic Markdown answer for affordability templates (used when AI is unavailable). */
+function affordabilityMarkdown(calc, itemName) {
+  const c = calc.currency;
+  const rows = [
+    ['Item', itemName],
+    ['Price', markdownAmount(calc.targetAmount, c)],
+    ['Your average monthly surplus', markdownAmount(calc.estimatedMonthlySurplus, c)],
+  ];
+  if (calc.targetMonths) {
+    rows.push(['Needed per month', markdownAmount(calc.requiredMonthlySaving, c)]);
+    rows.push(['Monthly gap', calc.monthlyGap > 0 ? markdownAmount(calc.monthlyGap, c) : 'None — covered']);
+  }
+  rows.push(['Time at current pace', calc.estimatedMonthsAtCurrentRate != null ? `${calc.estimatedMonthsAtCurrentRate} month(s)` : 'Not possible yet (no surplus)']);
+  const table = ['| Detail | Value |', '|---|---|', ...rows.map(([k, v]) => `| ${k} | ${v} |`)].join('\n');
+  const verdict = calc.estimatedMonthsAtCurrentRate == null
+    ? 'Right now your spending matches or exceeds your income, so there is no surplus to save from yet.'
+    : calc.estimatedMonthsAtCurrentRate <= 1
+      ? 'Based on your recent surplus, this fits within about a month of saving.'
+      : `At your current pace you could afford it in about **${Math.ceil(calc.estimatedMonthsAtCurrentRate)} months**.`;
+  return `${verdict}\n\n${table}\n\n_${calc.hasEnoughHistory ? '' : 'Estimate based on limited history. '}This is a projection, not financial advice._`;
+}
+
+// POST /ai/answer — the AI Assistant chat.
+// Body: { message, conversationId?, history?, template? }
+//   template: { kind: 'afford' | 'when-afford', amount, itemName?, targetMonths? }
+// Conversations are stored server-side; the reply includes conversationId.
 router.post('/answer', async (req, res) => {
   const message =
     typeof req.body?.message === 'string' ? req.body.message.trim() : '';
@@ -131,56 +165,181 @@ router.post('/answer', async (req, res) => {
       .status(400)
       .json({ message: 'Message must be between 1 and 1200 characters' });
   }
-  if (!hasAiProvider()) {
-    return res
-      .status(503)
-      .json({ message: 'AI answers are not configured on the server' });
+
+  let conversation = null;
+  if (req.body.conversationId) {
+    if (!isValidObjectId(req.body.conversationId)) return res.status(400).json({ message: 'Invalid conversationId' });
+    conversation = await AiConversation.findOne({ _id: req.body.conversationId, userId: req.user._id });
+    if (!conversation) return res.status(404).json({ message: 'Conversation not found' });
   }
 
-  let summary;
-  try {
-    const currency = req.user.settings?.currency || 'NGN';
-    summary = await getMonthlySummary(req.user._id, currency);
-    const studentPlan = {
-      monthlyIncomeBaseline: req.user.monthlyAllowanceBaseline ?? null,
-      savingsGoalAmount: req.user.savingsGoalAmount ?? null,
-      incomeSources: req.user.onboarding?.incomeSources ?? [],
-      incomeFrequency: req.user.onboarding?.incomeFrequency ?? null,
-      spendingCategories: req.user.onboarding?.spendingCategories ?? [],
-      goals: req.user.onboarding?.goals ?? [],
-    };
-    const sysInstruction =
-      SYSTEM_INSTRUCTION + '\nMonthly summary and student-provided plan: ' + JSON.stringify({ summary, studentPlan });
+  const template = req.body.template && MONEY_TEMPLATE_KINDS.includes(req.body.template.kind) ? req.body.template : null;
+  const currency = req.user.settings?.currency || 'NGN';
+  let context;
+  let calculation = null;
+  let answer;
+  let aiInfo = null;
+  let degraded = false;
 
-    const aiResult = await callAIWithInfo(
-      [
-        ...normalizeHistory(req.body.history),
-        { role: 'user', parts: [{ text: message }] },
-      ],
-      sysInstruction,
-      { maxOutputTokens: 500 },
-    );
-    return res.json({
+  try {
+    context = await buildAiContext(req.user._id, req.user);
+    if (template) {
+      const amount = Number(template.amount);
+      const months = template.targetMonths != null ? Number(template.targetMonths) : null;
+      if (Number.isFinite(amount) && amount > 0) {
+        calculation = await getAffordabilityAnalysis(
+          req.user._id, req.user, currency, amount,
+          Number.isInteger(months) && months > 0 ? months : null,
+        );
+      }
+    }
+  } catch (err) {
+    console.error('AI /answer context failed:', err.message);
+    return res.status(500).json({ message: 'Could not load your financial data. Please try again.' });
+  }
+
+  const history = conversation
+    ? conversation.messages.slice(-10).map((m) => ({ role: m.role, text: m.text }))
+    : req.body.history;
+
+  if (hasAiProvider()) {
+    try {
+      const studentPlan = {
+        monthlyIncomeBaseline: req.user.monthlyAllowanceBaseline ?? null,
+        savingsGoalAmount: req.user.savingsGoalAmount ?? null,
+        goals: req.user.onboarding?.goals ?? [],
+      };
+      const sysInstruction =
+        buildSystemInstruction({ ...context, studentPlan, ...(calculation ? { affordabilityCalculation: calculation } : {}) }) +
+        (calculation
+          ? '\nThe student used an affordability template. Base the answer ONLY on affordabilityCalculation and include a Markdown table of its key figures.'
+          : '');
+      aiInfo = await callAIWithInfo(
+        [...normalizeHistory(history), { role: 'user', parts: [{ text: message }] }],
+        sysInstruction,
+        { maxOutputTokens: 900 },
+      );
+      answer = aiInfo.text;
+    } catch (err) {
+      console.error('AI /answer failed:', err.message);
+      degraded = true;
+    }
+  } else {
+    degraded = true;
+  }
+
+  if (!answer) {
+    // No provider, or every key failed: answer from the student's own numbers.
+    const summary = await getMonthlySummary(req.user._id, currency).catch(() => null);
+    answer = calculation
+      ? affordabilityMarkdown(calculation, template.itemName || 'this')
+      : hasAiProvider()
+        ? buildUnavailableAiAnswer(summary)
+        : 'AI answers are not configured on the server yet. ' + buildUnavailableAiAnswer(summary).replace(/^The AI service is temporarily unavailable[,.]\s*/i, '');
+  }
+
+  try {
+    if (!conversation) {
+      conversation = new AiConversation({ userId: req.user._id, title: message.slice(0, 60) });
+    }
+    conversation.messages.push({ role: 'user', text: message });
+    conversation.messages.push({ role: 'assistant', text: answer.slice(0, 12000), provider: aiInfo?.provider, model: aiInfo?.model });
+    if (conversation.messages.length > MAX_STORED_MESSAGES) {
+      conversation.messages = conversation.messages.slice(-MAX_STORED_MESSAGES);
+    }
+    await conversation.save();
+  } catch (err) {
+    console.error('Saving AI conversation failed:', err.message);
+  }
+
+  return res.json({
+    data: {
+      answer,
+      ai: aiInfo ? { provider: aiInfo.provider, model: aiInfo.model } : undefined,
+      degraded,
+      conversationId: conversation?._id?.toString(),
+      title: conversation?.title,
+      calculation,
+    },
+  });
+});
+
+function formatConversationSummary(c) {
+  const last = c.messages[c.messages.length - 1];
+  return {
+    id: c._id.toString(),
+    title: c.title,
+    messageCount: c.messages.length,
+    preview: last ? last.text.slice(0, 120) : '',
+    updatedAt: c.updatedAt,
+    createdAt: c.createdAt,
+  };
+}
+
+// GET /ai/conversations — the student's saved chats, newest first.
+router.get('/conversations', async (req, res) => {
+  try {
+    const list = await AiConversation.find({ userId: req.user._id }).sort({ updatedAt: -1 }).limit(50);
+    res.json({ data: list.map(formatConversationSummary) });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// GET /ai/conversations/:conversationId
+router.get('/conversations/:conversationId', async (req, res) => {
+  try {
+    if (!isValidObjectId(req.params.conversationId)) return res.status(400).json({ message: 'Invalid conversation id' });
+    const c = await AiConversation.findOne({ _id: req.params.conversationId, userId: req.user._id });
+    if (!c) return res.status(404).json({ message: 'Conversation not found' });
+    res.json({
       data: {
-        answer: aiResult.text,
-        ai: { provider: aiResult.provider, model: aiResult.model },
+        ...formatConversationSummary(c),
+        messages: c.messages.map((m) => ({ id: m._id.toString(), role: m.role, text: m.text, ai: m.provider ? { provider: m.provider, model: m.model } : undefined, createdAt: m.createdAt })),
       },
     });
   } catch (err) {
-    console.error('AI /answer failed:', err.message);
-    // Any provider-side failure (Gemini or Groq: HTTP errors, empty output,
-    // timeouts) degrades to a rules-based answer from the student's own
-    // numbers instead of a bare 500. Only a failure before the summary was
-    // built (a database problem) falls through to the error handler.
-    if (summary) {
-      return res.json({
-        data: {
-          answer: buildUnavailableAiAnswer(summary),
-          degraded: true,
-        },
-      });
-    }
-    return handleGeminiError(err, res);
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// PATCH /ai/conversations/:conversationId — rename
+router.patch('/conversations/:conversationId', async (req, res) => {
+  try {
+    if (!isValidObjectId(req.params.conversationId)) return res.status(400).json({ message: 'Invalid conversation id' });
+    const title = typeof req.body?.title === 'string' ? req.body.title.trim().slice(0, 80) : '';
+    if (!title) return res.status(400).json({ message: 'Title is required' });
+    const c = await AiConversation.findOneAndUpdate({ _id: req.params.conversationId, userId: req.user._id }, { $set: { title } }, { returnDocument: 'after' });
+    if (!c) return res.status(404).json({ message: 'Conversation not found' });
+    res.json({ data: formatConversationSummary(c) });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// DELETE /ai/conversations/:conversationId
+router.delete('/conversations/:conversationId', async (req, res) => {
+  try {
+    if (!isValidObjectId(req.params.conversationId)) return res.status(400).json({ message: 'Invalid conversation id' });
+    await AiConversation.deleteOne({ _id: req.params.conversationId, userId: req.user._id });
+    res.json({ data: null, message: 'Conversation deleted' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// DELETE /ai/conversations — clear all history
+router.delete('/conversations', async (req, res) => {
+  try {
+    await AiConversation.deleteMany({ userId: req.user._id });
+    res.json({ data: null, message: 'Chat history cleared' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
@@ -483,8 +642,7 @@ router.post('/affordability', async (req, res) => {
           (targetMonths ? ` in ${targetMonths} month(s)` : '') +
           `.\n\nBackend calculation:\n${JSON.stringify(calculation)}\n\n` +
           `Explain the result in 3-5 friendly, practical sentences. ` +
-          `Show the key numbers. Do not make the decision for the student. ` +
-          `Do not use markdown.`;
+          `Show the key numbers in a small Markdown table. Do not make the decision for the student.`;
 
         explanation = await callAI(
           [

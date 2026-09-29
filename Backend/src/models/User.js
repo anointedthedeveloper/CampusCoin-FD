@@ -87,6 +87,9 @@ userSchema.methods.toPublic = function () {
     savingsGoalAmount: this.savingsGoalAmount,
     avatarUrl: this.avatarUrl,
     isActive: this.isActive,
+    // Google-only accounts are asked to choose a password after signing up.
+    hasPassword: Boolean(this.passwordHash),
+    hasGoogle: Boolean(this.googleId),
     settings: this.settings,
     onboarding: this.onboarding,
     createdAt: this.createdAt,

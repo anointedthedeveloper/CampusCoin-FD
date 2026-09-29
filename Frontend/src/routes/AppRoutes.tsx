@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import { lazyWithRetry } from '@/utils/lazyWithRetry';
-import { Route, Routes, useLocation } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { PublicLayout } from '@/layouts/PublicLayout';
 import { AuthLayout } from '@/layouts/AuthLayout';
 import { StudentLayout } from '@/layouts/StudentLayout';
@@ -19,6 +19,9 @@ const FaqPage = lazyWithRetry(() =>
 const FeaturesPage = lazyWithRetry(() =>
   import('@/pages/public/FeaturesPage').then((page) => ({ default: page.FeaturesPage })),
 );
+const HelpPage = lazyWithRetry(() =>
+  import('@/pages/public/HelpPage').then((page) => ({ default: page.HelpPage })),
+);
 const HomePage = lazyWithRetry(() =>
   import('@/pages/public/HomePage').then((page) => ({ default: page.HomePage })),
 );
@@ -34,6 +37,9 @@ const ForgotPasswordPage = lazyWithRetry(() =>
 );
 const LoginPage = lazyWithRetry(() =>
   import('@/pages/auth/LoginPage').then((page) => ({ default: page.LoginPage })),
+);
+const SetPasswordPage = lazyWithRetry(() =>
+  import('@/pages/auth/SetPasswordPage').then((page) => ({ default: page.SetPasswordPage })),
 );
 const RegisterPage = lazyWithRetry(() =>
   import('@/pages/auth/RegisterPage').then((page) => ({ default: page.RegisterPage })),
@@ -129,6 +135,12 @@ const AdminUserDetailPage = lazyWithRetry(() =>
     default: page.AdminUserDetailPage,
   })),
 );
+const AdminSupportPage = lazyWithRetry(() =>
+  import('@/pages/admin/AdminSupportPage').then((page) => ({ default: page.AdminSupportPage })),
+);
+const AdminProfilePage = lazyWithRetry(() =>
+  import('@/pages/admin/AdminProfilePage').then((page) => ({ default: page.AdminProfilePage })),
+);
 const AdminUsersPage = lazyWithRetry(() =>
   import('@/pages/admin/AdminUsersPage').then((page) => ({ default: page.AdminUsersPage })),
 );
@@ -146,6 +158,8 @@ export function AppRoutes() {
           <Route path={PUBLIC_ROUTES.about} element={<AboutPage />} />
           <Route path={PUBLIC_ROUTES.features} element={<FeaturesPage />} />
           <Route path={PUBLIC_ROUTES.faq} element={<FaqPage />} />
+          <Route path={PUBLIC_ROUTES.help} element={<HelpPage />} />
+          <Route path="/contact" element={<Navigate to={`${PUBLIC_ROUTES.help}#contact`} replace />} />
         </Route>
 
         {/* Auth flows */}
@@ -154,6 +168,9 @@ export function AppRoutes() {
           <Route path={PUBLIC_ROUTES.adminLogin} element={<AdminLoginPage />} />
           <Route path={PUBLIC_ROUTES.register} element={<RegisterPage />} />
           <Route path={PUBLIC_ROUTES.forgotPassword} element={<ForgotPasswordPage />} />
+          <Route element={<ProtectedRoute />}>
+            <Route path={PUBLIC_ROUTES.setPassword} element={<SetPasswordPage />} />
+          </Route>
         </Route>
 
         {/* Student application (requires authentication) */}
@@ -180,6 +197,7 @@ export function AppRoutes() {
             <Route path={STUDENT_ROUTES.settings} element={<SettingsPage />} />
             <Route path={STUDENT_ROUTES.notifications} element={<NotificationsPage />} />
             <Route path={STUDENT_ROUTES.recurring} element={<RecurringPage />} />
+            <Route path={STUDENT_ROUTES.help} element={<HelpPage inApp />} />
           </Route>
 
           {/* Admin console (requires authentication + admin role) */}
@@ -191,6 +209,8 @@ export function AppRoutes() {
               <Route path={ADMIN_ROUTES.categories} element={<AdminCategoriesPage />} />
               <Route path={ADMIN_ROUTES.announcements} element={<AdminAnnouncementsPage />} />
               <Route path={ADMIN_ROUTES.statistics} element={<AdminStatisticsPage />} />
+              <Route path={ADMIN_ROUTES.profile} element={<AdminProfilePage />} />
+              <Route path={ADMIN_ROUTES.support} element={<AdminSupportPage />} />
             </Route>
           </Route>
         </Route>

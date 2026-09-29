@@ -1,18 +1,19 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Link, useLocation, useNavigate, useOutletContext } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate, useOutletContext } from 'react-router-dom';
 import { ArrowRight, Eye, EyeOff, Lock, LogIn, Mail } from 'lucide-react';
 import { Button, GoogleButton, Input } from '@/components/common';
 import { AuthPageHeader } from '@/components/auth';
 import { useAuth } from '@/hooks/useAuth';
-import { ADMIN_ROUTES, PUBLIC_ROUTES, STUDENT_ROUTES } from '@/constants/routes';
+import { PUBLIC_ROUTES } from '@/constants/routes';
 import { isValidEmail } from '@/utils/validation';
 import { ApiError } from '@/types/api';
 import { cn } from '@/utils/cn';
 import type { AuthPageOutletContext } from './authOutletContext';
 import { LOGOUT_REASON_STORAGE_KEY } from '@/api/httpClient';
+import { postLoginPath, useGoogleSignIn } from '@/hooks/useGoogleSignIn';
 
 export function LoginPage() {
-  const { login, loginWithGoogle } = useAuth();
+  const { login , user: signedInUser, isLoading: isAuthLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { compact } = useOutletContext<AuthPageOutletContext>();
@@ -22,7 +23,6 @@ export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError]               = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const redirectFrom = (location.state as { from?: Location })?.from?.pathname;
   // Why the previous session ended (e.g. the account was suspended). Read
@@ -43,24 +43,7 @@ export function LoginPage() {
   }, []);
   const notice = (location.state as { notice?: string } | null)?.notice;
 
-  async function handleGoogleLogin(idToken: string) {
-    setError(null);
-    setIsGoogleLoading(true);
-    try {
-      const loggedInUser = await loginWithGoogle(idToken);
-      if (loggedInUser.role === 'admin') {
-        navigate(redirectFrom ?? ADMIN_ROUTES.dashboard, { replace: true });
-        return;
-      }
-      const onboardingStatus = loggedInUser.onboarding?.status ?? 'not_started';
-      const needsOnboarding = onboardingStatus === 'not_started' || onboardingStatus === 'in_progress';
-      navigate(redirectFrom ?? (needsOnboarding ? STUDENT_ROUTES.onboarding : STUDENT_ROUTES.dashboard), { replace: true });
-    } catch (err) {
-      setError(err instanceof ApiError || err instanceof Error ? err.message : 'Google sign-in failed. Please try again.');
-    } finally {
-      setIsGoogleLoading(false);
-    }
-  }
+  const google = useGoogleSignIn(redirectFrom);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -71,13 +54,7 @@ export function LoginPage() {
     setIsSubmitting(true);
     try {
       const loggedInUser = await login({ email, password });
-      if (loggedInUser.role === 'admin') {
-        navigate(redirectFrom ?? ADMIN_ROUTES.dashboard, { replace: true });
-        return;
-      }
-      const onboardingStatus = loggedInUser.onboarding?.status ?? 'not_started';
-      const needsOnboarding = onboardingStatus === 'not_started' || onboardingStatus === 'in_progress';
-      navigate(redirectFrom ?? (needsOnboarding ? STUDENT_ROUTES.onboarding : STUDENT_ROUTES.dashboard), { replace: true });
+      navigate(postLoginPath(loggedInUser, redirectFrom), { replace: true });
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Something went wrong. Please try again.');
     } finally {
@@ -85,6 +62,11 @@ export function LoginPage() {
     }
   }
 
+
+  // Already signed in (e.g. a returning Google user) — skip the form.
+  if (!isAuthLoading && signedInUser) {
+    return <Navigate to={postLoginPath(signedInUser)} replace />;
+  }
   return (
     <div>
       <AuthPageHeader
@@ -95,9 +77,10 @@ export function LoginPage() {
       />
 
       {/* Google first — research shows social login gets more clicks at the top */}
+      {google.linkDialog}
       <GoogleButton
-        onCredential={(idToken) => void handleGoogleLogin(idToken)}
-        isLoading={isGoogleLoading}
+        onCredential={(idToken) => void google.signIn(idToken)}
+        isLoading={google.isLoading}
         label="Continue with Google"
       />
 
@@ -168,12 +151,12 @@ export function LoginPage() {
           </div>
         )}
 
-        {error && (
+        {(error || google.error) && (
           <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3.5 py-3 dark:border-red-500/30 dark:bg-red-950/30">
             <svg className="mt-0.5 h-4 w-4 shrink-0 text-red-500 dark:text-red-400" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
               <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1Zm-.75 3.75a.75.75 0 0 1 1.5 0v3.5a.75.75 0 0 1-1.5 0v-3.5ZM8 11.5a.875.875 0 1 1 0-1.75.875.875 0 0 1 0 1.75Z" />
             </svg>
-            <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+            <p className="text-sm text-red-700 dark:text-red-300">{error ?? google.error}</p>
           </div>
         )}
 

@@ -1,189 +1,252 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Plus, Trash2, X } from 'lucide-react';
-import { Button, Card } from '@/components/common';
-import {
-  DEFAULT_CATEGORY_ICON,
-  EXPENSE_CATEGORY_ICONS,
-  INCOME_CATEGORY_ICONS,
-} from '@/constants/categoryIcons';
-import { adminCategoryService } from '@/services';
-import { FALLBACK_CATEGORY_NAMES, type DefaultCategoryTemplate } from '@/services/admin/category.service';
+import { ArrowDownRight, ArrowUpRight, Lock, Pencil, Plus, Tags, Trash2, X } from 'lucide-react';
+import { Button, Card, ConfirmDialog, EmptyState } from '@/components/common';
+import { adminCategoryService, type DefaultCategoryTemplate } from '@/services/admin/category.service';
 import { ApiError } from '@/types/api';
 import { cn } from '@/utils/cn';
 import type { CategoryType } from '@/types/category';
 
-function iconFor(template: DefaultCategoryTemplate) {
-  const map = template.type === 'income' ? INCOME_CATEGORY_ICONS : EXPENSE_CATEGORY_ICONS;
-  return map[template.name] ?? DEFAULT_CATEGORY_ICON;
-}
+const PALETTE = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#14b8a6', '#3b82f6', '#6366f1', '#8b5cf6', '#ec4899', '#94a3b8'];
 
-function CategoryGrid({
-  templates,
-  onDelete,
-}: {
-  templates: DefaultCategoryTemplate[];
-  onDelete: (template: DefaultCategoryTemplate) => void;
-}) {
+const inputCls =
+  'w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-white/10 dark:bg-surface dark:text-text-primary';
+
+function ColorPicker({ value, onChange }: { value: string; onChange: (color: string) => void }) {
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-      {templates.map((template) => {
-        const { icon: Icon, badgeClassName } = iconFor(template);
-        const isProtected = FALLBACK_CATEGORY_NAMES.includes(template.name);
-        return (
-          <div
-            key={template.id}
-            className="group flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm"
-          >
-            <div className="flex min-w-0 items-center gap-3">
-              <span className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-full', badgeClassName)}>
-                <Icon className="h-4 w-4" />
-              </span>
-              <p className="truncate text-sm font-medium text-gray-900 dark:text-text-primary">{template.name}</p>
-            </div>
-            {!isProtected && (
-              <button
-                type="button"
-                onClick={() => onDelete(template)}
-                className="shrink-0 rounded-lg p-1.5 text-gray-300 opacity-0 transition-all duration-200 hover:bg-red-50 hover:text-red-600 group-hover:opacity-100"
-                aria-label={`Delete ${template.name}`}
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
-            )}
-          </div>
-        );
-      })}
+    <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Colour">
+      {PALETTE.map((color) => (
+        <button
+          key={color}
+          type="button"
+          role="radio"
+          aria-checked={value === color}
+          aria-label={color}
+          onClick={() => onChange(color)}
+          className={cn('h-7 w-7 rounded-full ring-offset-2 transition-transform hover:scale-110 dark:ring-offset-surface-elevated', value === color && 'ring-2 ring-gray-900 dark:ring-white')}
+          style={{ backgroundColor: color }}
+        />
+      ))}
     </div>
   );
 }
 
 export function AdminCategoriesPage() {
+  const [templates, setTemplates] = useState<DefaultCategoryTemplate[]>([]);
+  const [refreshToken, setRefreshToken] = useState(0);
+  const [flash, setFlash] = useState<string | null>(null);
+
+  // create
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [name, setName] = useState('');
   const [type, setType] = useState<CategoryType>('expense');
+  const [color, setColor] = useState(PALETTE[5]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [allTemplates, setAllTemplates] = useState<DefaultCategoryTemplate[]>([]);
-  const [refreshToken, setRefreshToken] = useState(0);
+
+  // edit / delete
+  const [editing, setEditing] = useState<DefaultCategoryTemplate | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editColor, setEditColor] = useState(PALETTE[5]);
+  const [applyToStudents, setApplyToStudents] = useState(true);
+  const [editError, setEditError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [deleting, setDeleting] = useState<DefaultCategoryTemplate | null>(null);
+  const [removeFromStudents, setRemoveFromStudents] = useState(false);
 
   useEffect(() => {
-    void adminCategoryService.list().then(setAllTemplates).catch(() => setAllTemplates([]));
+    adminCategoryService.list().then(setTemplates).catch(() => setTemplates([]));
   }, [refreshToken]);
 
-  const expenseTemplates = allTemplates.filter((t) => t.type === 'expense');
-  const incomeTemplates = allTemplates.filter((t) => t.type === 'income');
-
-  async function handleDelete(template: DefaultCategoryTemplate) {
-    const confirmed = window.confirm(
-      `Remove "${template.name}" from the default categories? Students who already have their own "${template.name}" keep it — this changes what new sign-ups start with.`,
-    );
-    if (!confirmed) return;
-    try {
-      await adminCategoryService.remove(template.id);
-      setRefreshToken((token) => token + 1);
-    } catch (err) {
-      window.alert(err instanceof ApiError ? err.message : 'Could not remove this category.');
-    }
-  }
-
-  async function handleSubmit(event: FormEvent) {
+  async function handleCreate(event: FormEvent) {
     event.preventDefault();
     if (!name.trim()) return;
     setError(null);
-
     setIsSubmitting(true);
     try {
-      await adminCategoryService.create({ name: name.trim(), type });
+      await adminCategoryService.create({ name: name.trim(), type, color });
+      setFlash(`"${name.trim()}" added. New students will start with it and existing students see it too.`);
       setName('');
       setIsFormOpen(false);
-      setRefreshToken((token) => token + 1);
+      setRefreshToken((t) => t + 1);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Could not create this category. Please try again.');
+      setError(err instanceof ApiError ? err.message : 'Could not create this category.');
     } finally {
       setIsSubmitting(false);
     }
   }
 
+  function openEdit(template: DefaultCategoryTemplate) {
+    setEditing(template);
+    setEditName(template.name);
+    setEditColor(template.color && PALETTE.includes(template.color) ? template.color : PALETTE[9]);
+    setApplyToStudents(true);
+    setEditError(null);
+  }
+
+  async function handleSaveEdit(event: FormEvent) {
+    event.preventDefault();
+    if (!editing || !editName.trim()) return;
+    setIsSaving(true);
+    setEditError(null);
+    try {
+      const result = await adminCategoryService.update(editing.id, { name: editName.trim(), color: editColor, applyToStudents });
+      setFlash(`Saved "${editName.trim()}"${applyToStudents ? ` — updated for ${result.studentsUpdated ?? 0} student${result.studentsUpdated === 1 ? '' : 's'}` : ''}.`);
+      setEditing(null);
+      setRefreshToken((t) => t + 1);
+    } catch (err) {
+      setEditError(err instanceof ApiError ? err.message : 'Could not save this category.');
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  const groups: { type: CategoryType; label: string; icon: typeof ArrowUpRight }[] = [
+    { type: 'expense', label: 'Expense categories', icon: ArrowDownRight },
+    { type: 'income', label: 'Income sources', icon: ArrowUpRight },
+  ];
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-text-primary">Categories</h1>
-          <p className="mt-1 text-sm text-gray-500 dark:text-text-muted">
-            Manage the default categories every new student starts with.
+          <p className="mt-1 max-w-2xl text-sm text-gray-500 dark:text-text-secondary">
+            Default categories every student starts with. Edit or remove them here — you can also apply changes to students who already have them.
           </p>
         </div>
-        <Button
-          variant="primary"
-          onClick={() => {
-            setIsFormOpen((open) => !open);
-            setError(null);
-          }}
-        >
+        <Button variant="primary" onClick={() => { setIsFormOpen((open) => !open); setError(null); }}>
           {isFormOpen ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-          {isFormOpen ? 'Cancel' : 'Add Category'}
+          {isFormOpen ? 'Cancel' : 'New Category'}
         </Button>
       </div>
 
+      {flash && (
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-brand-200 bg-brand-50 px-4 py-3 text-sm text-brand-800 dark:border-primary/25 dark:bg-primary/10 dark:text-primary-accent" role="status">
+          <span>{flash}</span>
+          <button type="button" onClick={() => setFlash(null)} className="text-xs font-semibold hover:underline">Dismiss</button>
+        </div>
+      )}
+
       {isFormOpen && (
         <Card className="animate-fade-in-up p-5">
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4 sm:flex-row sm:items-end">
-            <div className="flex-1">
-              <label htmlFor="category-name" className="text-sm font-medium text-gray-700 dark:text-text-secondary">
-                Category name
+          <form onSubmit={handleCreate} className="grid gap-4 md:grid-cols-[1fr_auto]">
+            <div className="space-y-4">
+              <label className="block text-sm font-medium text-gray-700 dark:text-text-secondary">
+                Name
+                <input required maxLength={40} value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Data & Airtime" className={cn(inputCls, 'mt-1')} />
               </label>
-              <input
-                id="category-name"
-                type="text"
-                required
-                placeholder="e.g. Health & Wellness"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:text-text-primary dark:border-white/10 dark:bg-surface"
-              />
-            </div>
-            <div>
-              <span className="text-sm font-medium text-gray-700 dark:text-text-secondary">Type</span>
-              <div className="mt-1 inline-flex rounded-lg bg-gray-100 p-1 dark:bg-white/[0.06]">
-                <button
-                  type="button"
-                  onClick={() => setType('expense')}
-                  className={cn(
-                    'rounded-md px-4 py-1.5 text-sm font-semibold transition-colors duration-200',
-                    type === 'expense' ? 'bg-brand-600 text-white shadow-sm' : 'text-gray-600 hover:text-gray-900 dark:text-text-muted dark:hover:text-text-primary',
-                  )}
-                >
-                  Expense
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setType('income')}
-                  className={cn(
-                    'rounded-md px-4 py-1.5 text-sm font-semibold transition-colors duration-200',
-                    type === 'income' ? 'bg-brand-600 text-white shadow-sm' : 'text-gray-600 hover:text-gray-900 dark:text-text-muted dark:hover:text-text-primary',
-                  )}
-                >
-                  Income
-                </button>
+              <div>
+                <span className="text-sm font-medium text-gray-700 dark:text-text-secondary">Colour</span>
+                <div className="mt-2"><ColorPicker value={color} onChange={setColor} /></div>
               </div>
             </div>
-            <Button type="submit" variant="primary" isLoading={isSubmitting}>
-              Save Category
-            </Button>
+            <div className="flex flex-col justify-between gap-4">
+              <div>
+                <span className="text-sm font-medium text-gray-700 dark:text-text-secondary">Type</span>
+                <div className="mt-1 flex rounded-lg bg-gray-100 p-1 dark:bg-white/[0.06]">
+                  {(['expense', 'income'] as const).map((t) => (
+                    <button key={t} type="button" onClick={() => setType(t)} className={cn('flex-1 rounded-md px-4 py-1.5 text-sm font-semibold capitalize transition-colors', type === t ? 'bg-brand-600 text-white shadow-sm dark:bg-primary' : 'text-gray-600 dark:text-text-muted')}>
+                      {t}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <Button type="submit" variant="primary" isLoading={isSubmitting}>Add category</Button>
+            </div>
+            {error && <p className="text-sm text-red-600 dark:text-red-400 md:col-span-2">{error}</p>}
           </form>
-          {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
         </Card>
       )}
 
-      <div className="space-y-3">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-text-muted">Expense categories</h2>
-        <CategoryGrid templates={expenseTemplates} onDelete={handleDelete} />
-      </div>
+      {editing && (
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm" onClick={() => !isSaving && setEditing(null)}>
+          <Card className="w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
+            <form onSubmit={handleSaveEdit} className="space-y-4" aria-label={`Edit ${editing.name}`}>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-text-primary">Edit category</h2>
+              <label className="block text-sm font-medium text-gray-700 dark:text-text-secondary">
+                Name
+                <input required maxLength={40} value={editName} disabled={editing.isProtected} onChange={(e) => setEditName(e.target.value)} className={cn(inputCls, 'mt-1 disabled:opacity-60')} />
+                {editing.isProtected && <span className="mt-1 block text-xs text-gray-500 dark:text-text-muted">This is a fallback category, so its name can't change.</span>}
+              </label>
+              <div>
+                <span className="text-sm font-medium text-gray-700 dark:text-text-secondary">Colour</span>
+                <div className="mt-2"><ColorPicker value={editColor} onChange={setEditColor} /></div>
+              </div>
+              <label className="flex items-start gap-2 text-sm text-gray-700 dark:text-text-secondary">
+                <input type="checkbox" checked={applyToStudents} onChange={(e) => setApplyToStudents(e.target.checked)} className="mt-0.5 h-4 w-4 rounded border-gray-300 text-brand-600" />
+                <span>Also update the {editing.studentCount ?? 0} student{editing.studentCount === 1 ? '' : 's'} who already have this category</span>
+              </label>
+              {editError && <p className="text-sm text-red-600 dark:text-red-400">{editError}</p>}
+              <div className="flex justify-end gap-2">
+                <Button type="button" variant="secondary" onClick={() => setEditing(null)} disabled={isSaving}>Cancel</Button>
+                <Button type="submit" variant="primary" isLoading={isSaving}>Save changes</Button>
+              </div>
+            </form>
+          </Card>
+        </div>
+      )}
 
-      <div className="space-y-3">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-text-muted">Income categories</h2>
-        <CategoryGrid templates={incomeTemplates} onDelete={handleDelete} />
-      </div>
+      {deleting && (
+        <ConfirmDialog
+          open
+          title={`Delete "${deleting.name}"?`}
+          description={
+            <>
+              New students won&apos;t get this category any more.
+              <label className="mt-3 flex items-start gap-2 text-sm">
+                <input type="checkbox" checked={removeFromStudents} onChange={(e) => setRemoveFromStudents(e.target.checked)} className="mt-0.5 h-4 w-4 rounded border-gray-300" />
+                <span>Also remove it from students who haven&apos;t used it (copies with transactions or budgets are kept).</span>
+              </label>
+            </>
+          }
+          confirmLabel="Delete category"
+          onConfirm={async () => {
+            const result = await adminCategoryService.remove(deleting.id, removeFromStudents);
+            setFlash(`"${deleting.name}" deleted${removeFromStudents ? ` and removed from ${result.studentsRemoved} student${result.studentsRemoved === 1 ? '' : 's'}` : ''}.`);
+            setRefreshToken((t) => t + 1);
+          }}
+          onClose={() => { setDeleting(null); setRemoveFromStudents(false); }}
+        />
+      )}
+
+      {templates.length === 0 ? (
+        <EmptyState icon={Tags} title="No default categories" description="Add one with the button above." />
+      ) : (
+        groups.map(({ type: groupType, label, icon: GroupIcon }) => {
+          const list = templates.filter((t) => t.type === groupType);
+          return (
+            <section key={groupType} className="space-y-3">
+              <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-text-muted">
+                <GroupIcon className="h-4 w-4" /> {label} <span className="font-normal normal-case">({list.length})</span>
+              </h2>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                {list.map((template) => (
+                  <div key={template.id} className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 transition-shadow hover:shadow-sm dark:border-white/[0.06] dark:bg-surface-elevated">
+                    <span className="h-9 w-9 shrink-0 rounded-full" style={{ backgroundColor: template.color ?? '#94a3b8' }} aria-hidden="true" />
+                    <div className="min-w-0 flex-1">
+                      <p className="flex items-center gap-1.5 truncate text-sm font-semibold text-gray-900 dark:text-text-primary">
+                        {template.name}
+                        {template.isProtected && <Lock className="h-3 w-3 shrink-0 text-gray-400" aria-label="Fallback category" />}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-text-muted">
+                        {template.studentCount ?? 0} students · {template.transactionCount ?? 0} transactions
+                      </p>
+                    </div>
+                    <button type="button" onClick={() => openEdit(template)} aria-label={`Edit ${template.name}`} className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:text-text-muted dark:hover:bg-white/5 dark:hover:text-text-primary">
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                    {!template.isProtected && (
+                      <button type="button" onClick={() => setDeleting(template)} aria-label={`Delete ${template.name}`} className="rounded-lg p-2 text-gray-400 hover:bg-red-50 hover:text-red-600 dark:text-text-muted dark:hover:bg-red-500/10 dark:hover:text-red-400">
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </section>
+          );
+        })
+      )}
     </div>
   );
 }

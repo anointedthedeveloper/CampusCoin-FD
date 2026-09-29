@@ -30,13 +30,68 @@ export interface AIIdentity {
 // longer timeout instead of failing while the server is still answering.
 const AI_TIMEOUT_MS = 60_000;
 
+export interface AITemplate {
+  kind: 'afford' | 'when-afford';
+  amount: number;
+  itemName?: string;
+  targetMonths?: number;
+}
+
+export interface AIAnswer {
+  answer: string;
+  ai?: AIIdentity;
+  degraded?: boolean;
+  conversationId?: string;
+  title?: string;
+}
+
+export interface AIConversationSummary {
+  id: string;
+  title: string;
+  messageCount: number;
+  preview: string;
+  updatedAt: string;
+  createdAt: string;
+}
+
+export interface AIStoredMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  text: string;
+  ai?: AIIdentity;
+  createdAt: string;
+}
+
 export const aiApi = {
-  async answer(message: string, history: AIConversationTurn[] = []): Promise<{ answer: string; ai?: AIIdentity }> {
-    const { data } = await httpClient.post<ApiSuccess<{ answer: string; ai?: AIIdentity }>>('/ai/answer', {
+  async answer(
+    message: string,
+    options: { history?: AIConversationTurn[]; conversationId?: string; template?: AITemplate } = {},
+  ): Promise<AIAnswer> {
+    const { data } = await httpClient.post<ApiSuccess<AIAnswer>>('/ai/answer', {
       message,
-      history,
+      history: options.history,
+      conversationId: options.conversationId,
+      template: options.template,
     }, { timeout: AI_TIMEOUT_MS });
     return data.data;
+  },
+
+  async listConversations(): Promise<AIConversationSummary[]> {
+    const { data } = await httpClient.get<ApiSuccess<AIConversationSummary[]>>('/ai/conversations');
+    return data.data ?? [];
+  },
+
+  async getConversation(id: string): Promise<AIConversationSummary & { messages: AIStoredMessage[] }> {
+    const { data } = await httpClient.get<ApiSuccess<AIConversationSummary & { messages: AIStoredMessage[] }>>(`/ai/conversations/${id}`);
+    return data.data;
+  },
+
+  async deleteConversation(id: string): Promise<void> {
+    await httpClient.delete(`/ai/conversations/${id}`);
+  },
+
+  async clearConversations(): Promise<void> {
+    await httpClient.delete('/ai/conversations');
   },
 
   async suggestCategory(description: string, merchant?: string, type?: 'income' | 'expense'): Promise<CategorySuggestion> {

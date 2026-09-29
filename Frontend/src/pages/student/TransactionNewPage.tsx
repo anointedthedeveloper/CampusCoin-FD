@@ -186,7 +186,7 @@ export function TransactionNewPage() {
                   placeholder="0.00"
                   value={formatNumericInput(amount)}
                   onChange={(e) => setAmount(normalizeNumericInput(e.target.value))}
-                  className={cn(fieldCls, 'pl-8 text-lg font-semibold')}
+                  className={cn(fieldCls, 'pl-16 text-lg font-semibold')}
                 />
               </div>
             </div>

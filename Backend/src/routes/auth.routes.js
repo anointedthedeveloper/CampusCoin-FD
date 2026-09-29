@@ -7,7 +7,8 @@ const User = require('../models/User');
 const Category = require('../models/Category');
 const { protect } = require('../middleware/auth');
 const { toTitleCaseName } = require('../utils/formatName');
-const { sendPasswordResetCode, isEmailConfigured } = require('../services/email.service');
+const { isEmailConfigured } = require('../services/email.service');
+const { issuePasswordReset } = require('../services/passwordReset.service');
 const { authLimiter, forgotPasswordLimiter } = require('../middleware/rateLimit');
 const { seedDefaultCategories } = require('../services/defaultCategories.service');
 
@@ -103,15 +104,31 @@ router.post('/google', authLimiter, async (req, res) => {
     let isNewUser = false;
 
     if (!user) {
-      // An existing account with this email but no Google link — rather than
-      // silently signing the caller into it, make the conflict explicit and
-      // send them to password login instead.
+      // An existing email/password account with the same email: never link
+      // silently. The client asks the student first and resends the same
+      // token with linkAccount: true. Linking is only allowed when Google has
+      // verified the address, which proves the caller owns that inbox.
       const existing = await User.findOne({ email });
       if (existing) {
-        return res.status(409).json({
-          message: 'An account with this email already exists. Please log in instead.',
-          code: 'EMAIL_TAKEN',
-        });
+        if (existing.googleId) {
+          return res.status(409).json({
+            message: 'This email is already linked to a different Google account.',
+            code: 'GOOGLE_ACCOUNT_MISMATCH',
+          });
+        }
+        if (req.body.linkAccount !== true) {
+          return res.status(409).json({
+            message: `We found an existing Campus Coin account for ${email}. Link your Google account to it so you can sign in either way?`,
+            code: 'ACCOUNT_LINK_REQUIRED',
+          });
+        }
+        if (payload.email_verified === false) {
+          return res.status(403).json({ message: 'Google has not verified this email address, so it cannot be linked.', code: 'EMAIL_NOT_VERIFIED' });
+        }
+        existing.googleId = payload.sub;
+        if (!existing.avatarUrl && payload.picture) existing.avatarUrl = payload.picture;
+        await existing.save();
+        user = existing;
       }
     }
 
@@ -197,7 +214,6 @@ router.post('/refresh', async (req, res) => {
   }
 });
 
-const RESET_CODE_TTL_MS = 15 * 60 * 1000;
 const RESET_CODE_MAX_ATTEMPTS = 5;
 
 // POST /api/v1/auth/forgot-password
@@ -219,16 +235,8 @@ router.post('/forgot-password', forgotPasswordLimiter, async (req, res) => {
     // Always return 200 to prevent email enumeration
     if (!user) return res.json({ data: null, message: 'If that email exists, a reset code was sent.' });
 
-    // 6-digit numeric code — randomInt's range excludes the upper bound, so
-    // this is always exactly 6 digits (100000–999999), never a leading zero.
-    const code = String(crypto.randomInt(100000, 1000000));
-    user.resetPasswordToken = hashToken(code);
-    user.resetPasswordExpires = new Date(Date.now() + RESET_CODE_TTL_MS);
-    user.resetPasswordAttempts = 0;
-    await user.save();
-
     try {
-      await sendPasswordResetCode(user.email, code);
+      await issuePasswordReset(user);
     } catch (emailErr) {
       // Tell the student the email didn't go out rather than leaving them
       // waiting for a code that never arrives; a retry issues a fresh code.

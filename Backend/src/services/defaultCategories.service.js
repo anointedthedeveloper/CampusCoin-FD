@@ -39,7 +39,7 @@ async function ensureSystemTemplates() {
 
 async function getSystemTemplates() {
   await ensureSystemTemplates();
-  return Category.find({ userId: null }).sort({ type: 1, name: 1 });
+  return Category.find({ userId: null, isDefault: true }).sort({ type: 1, name: 1 });
 }
 
 /** Gives a student personal copies of the current system templates. */

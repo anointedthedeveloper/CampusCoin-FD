@@ -1,18 +1,5 @@
 import { Link } from 'react-router-dom';
-import {
-  BellRing,
-  FileSpreadsheet,
-  Filter,
-  Gauge,
-  LineChart,
-  ListPlus,
-  PieChart,
-  Repeat,
-  Sparkles,
-  Tags,
-  Target,
-  TrendingDown,
-} from 'lucide-react';
+import { BellRing, FileSpreadsheet, Filter, Gauge, LineChart, ListPlus, PieChart, Repeat, Sparkles, Tags, Target, TrendingDown, Bot, FileDown, Upload, Lightbulb, SunMoon } from 'lucide-react';
 import { PUBLIC_ROUTES } from '@/constants/routes';
 import { assets } from '@/assets/images';
 import { BrowserFrame } from '@/components/common';
@@ -140,11 +127,22 @@ const groups = [
   },
 ];
 
+const EXTRAS = [
+  { icon: Repeat, title: 'Recurring entries', text: 'Allowance, rent and subscriptions log themselves on schedule.' },
+  { icon: Bot, title: 'AI with templates', text: '“Can I afford it?”, “When can I?”, and answers as tables.' },
+  { icon: FileDown, title: 'PDF & image export', text: 'Share a clean monthly report, or keep it as a CSV.' },
+  { icon: BellRing, title: 'Smart alerts', text: 'Near-limit, over-budget and over-income warnings in one place.' },
+  { icon: Target, title: 'Savings goals', text: 'Name a goal, set a date, see how much to save each week.' },
+  { icon: Upload, title: 'CSV import', text: 'Bring in past records, review them, then confirm.' },
+  { icon: Lightbulb, title: 'Ranked saving tips', text: 'Personal tips sorted by how much they could save you.' },
+  { icon: SunMoon, title: 'Comfortable to use', text: 'Dark mode, adjustable text size, works on any screen.' },
+];
+
 export function FeaturesPage() {
   return (
     <div className="overflow-hidden">
       {/* ── Hero ── */}
-      <section className="mx-auto grid max-w-[1200px] items-center gap-10 px-4 pb-14 pt-12 sm:px-6 sm:pb-20 lg:grid-cols-[0.95fr_1.05fr] lg:gap-16 lg:pt-16">
+      <section className="mx-auto grid max-w-[1280px] items-center gap-10 px-4 pb-14 pt-12 sm:px-6 sm:pb-20 lg:grid-cols-[0.95fr_1.05fr] lg:gap-16 lg:pt-16">
         <div>
           <p className="flex items-center gap-3 text-xs font-bold uppercase tracking-[0.2em] text-gray-400 dark:text-text-muted">
             Features
@@ -202,7 +200,7 @@ export function FeaturesPage() {
           id={key}
           className={`scroll-mt-24 ${index % 2 === 1 ? 'bg-[#f6f4ee]/60 dark:bg-white/[0.015]' : ''}`}
         >
-          <div className={`mx-auto grid max-w-[1200px] items-center gap-9 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-2 lg:gap-16 ${reverse ? 'lg:[&>*:first-child]:order-2' : ''}`}>
+          <div className={`mx-auto grid max-w-[1280px] items-center gap-9 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-2 lg:gap-16 ${reverse ? 'lg:[&>*:first-child]:order-2' : ''}`}>
             <div className="py-2">
               <p className={`text-xs font-bold uppercase tracking-[0.14em] ${accent}`}>{eyebrow}</p>
               <h2 className="mt-3 max-w-xl text-3xl font-bold leading-tight text-[#1d3d2d] dark:text-text-primary sm:text-4xl">{title}</h2>
@@ -228,8 +226,23 @@ export function FeaturesPage() {
         </section>
       ))}
 
+      {/* ── Also included ── */}
+      <section className="mx-auto max-w-[1280px] px-4 pt-6 sm:px-6">
+        <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#1a8f57] dark:text-primary-accent">Also included</p>
+        <h2 className="mt-2 text-2xl font-bold text-[#1d3d2d] dark:text-text-primary sm:text-3xl">The small things that make it stick.</h2>
+        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {EXTRAS.map(({ icon: Icon, title, text }) => (
+            <div key={title} className="rounded-[20px] bg-[#f6f4ee] p-5 transition-all duration-300 hover:-translate-y-1 hover:bg-white hover:shadow-md dark:bg-surface-elevated dark:hover:bg-white/[0.04]">
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#d7f0d1] text-[#1c8f53] dark:bg-white/10 dark:text-primary-accent"><Icon className="h-4 w-4" /></span>
+              <p className="mt-3 text-sm font-bold text-[#1d3d2d] dark:text-text-primary">{title}</p>
+              <p className="mt-1 text-sm leading-6 text-gray-600 dark:text-text-secondary">{text}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* ── CTA ── */}
-      <section className="mx-auto max-w-[1200px] px-4 py-14 sm:px-6 sm:py-20">
+      <section className="mx-auto max-w-[1280px] px-4 py-14 sm:px-6 sm:py-20">
         <div className="flex flex-col gap-6 rounded-[28px] bg-[#d7f0d1] px-6 py-10 dark:bg-surface-elevated dark:shadow-lg dark:shadow-black/20 sm:flex-row sm:items-center sm:justify-between sm:px-10 sm:py-12">
           <div>
             <h2 className="text-2xl font-bold text-[#1d3d2d] dark:text-text-primary">Put your money in view.</h2>

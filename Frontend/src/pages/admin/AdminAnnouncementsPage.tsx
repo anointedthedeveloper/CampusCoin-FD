@@ -71,7 +71,24 @@ function AnnouncementsPanel() {
   const [error, setError] = useState<string | null>(null);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [deleting, setDeleting] = useState<Announcement | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [refreshToken, setRefreshToken] = useState(0);
+
+  function startEdit(announcement: Announcement) {
+    setEditingId(announcement.id);
+    setTitle(announcement.title);
+    setBody(announcement.body);
+    setAudience(announcement.audience);
+    setPublishNow(Boolean(announcement.publishedAt));
+    setError(null);
+    setIsFormOpen(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  async function unpublish(id: string) {
+    await adminAnnouncementService.update(id, { unpublish: true });
+    setRefreshToken((t) => t + 1);
+  }
 
   useEffect(() => {
     void adminAnnouncementService.list().then(setAnnouncements).catch(() => setAnnouncements([]));
@@ -83,7 +100,19 @@ function AnnouncementsPanel() {
     setError(null);
     setIsSubmitting(true);
     try {
-      await adminAnnouncementService.create({ title: title.trim(), body: body.trim(), audience, publishNow });
+      if (editingId) {
+        const original = announcements.find((a) => a.id === editingId);
+        await adminAnnouncementService.update(editingId, {
+          title: title.trim(),
+          body: body.trim(),
+          audience,
+          ...(publishNow && !original?.publishedAt ? { publishNow: true } : {}),
+          ...(!publishNow && original?.publishedAt ? { unpublish: true } : {}),
+        });
+      } else {
+        await adminAnnouncementService.create({ title: title.trim(), body: body.trim(), audience, publishNow });
+      }
+      setEditingId(null);
       setTitle('');
       setBody('');
       setIsFormOpen(false);
@@ -103,7 +132,7 @@ function AnnouncementsPanel() {
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <Button variant="primary" onClick={() => { setIsFormOpen((open) => !open); setError(null); }}>
+        <Button variant="primary" onClick={() => { setIsFormOpen((open) => !open); setError(null); setEditingId(null); setTitle(''); setBody(''); setPublishNow(true); }}>
           {isFormOpen ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
           {isFormOpen ? 'Cancel' : 'New Announcement'}
         </Button>
@@ -160,7 +189,7 @@ function AnnouncementsPanel() {
                 </label>
               </div>
               <Button type="submit" variant="primary" isLoading={isSubmitting}>
-                {publishNow ? 'Publish' : 'Save draft'}
+                {editingId ? 'Save changes' : publishNow ? 'Publish' : 'Save draft'}
               </Button>
             </div>
             {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
@@ -191,6 +220,19 @@ function AnnouncementsPanel() {
                     <Send className="h-3.5 w-3.5" /> Publish
                   </button>
                 )}
+                {announcement.publishedAt && (
+                  <button type="button" onClick={() => void unpublish(announcement.id)} className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-gray-500 hover:bg-gray-100 dark:text-text-muted dark:hover:bg-white/5">
+                    Unpublish
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => startEdit(announcement)}
+                  className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-text-muted dark:hover:bg-white/5 dark:hover:text-text-primary"
+                  aria-label={`Edit ${announcement.title}`}
+                >
+                  <Pencil className="h-4 w-4" />
+                </button>
                 <button
                   type="button"
                   onClick={() => setDeleting(announcement)}

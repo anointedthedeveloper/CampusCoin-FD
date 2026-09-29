@@ -24,7 +24,9 @@ async function protect(req, res, next) {
   // had died and log the user out on any transient DB hiccup.
   let user;
   try {
-    user = await User.findById(decoded.id).select('-passwordHash -resetPasswordToken -resetPasswordExpires');
+    // passwordHash stays loaded (it is never serialised — toPublic omits it)
+    // so toPublic can report hasPassword correctly.
+    user = await User.findById(decoded.id).select('-resetPasswordToken -resetPasswordExpires');
   } catch (err) {
     console.error('Auth user lookup failed:', err.message);
     return res.status(503).json({ message: 'Service temporarily unavailable. Please try again.', code: 'SERVICE_UNAVAILABLE' });

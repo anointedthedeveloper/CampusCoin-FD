@@ -55,6 +55,7 @@ export interface AnnouncementPayload {
   body: string;
   audience: AnnouncementAudience;
   publishNow?: boolean;
+  unpublish?: boolean;
 }
 
 export interface SystemStatistics {
