@@ -656,7 +656,12 @@ async function addLoader(page) {
 
 // ---------------------------------------------------------------- run
 
-(async function main() {
+if (typeof figma === 'undefined') {
+  // Someone ran `node code.js`: this file only works inside Figma.
+  console.log('This is a Figma plugin, not a Node script. In the Figma desktop app open your file, then use\n' +
+    'Menu > Plugins > Development > Import plugin from manifest... and pick manifest.json from this folder.\n' +
+    'Then run it from Menu > Plugins > Development > CampusCoin — Match the app.');
+} else (async function main() {
   var page = figma.currentPage;
   try {
     if (page.name.indexOf(BACKUP_SUFFIX) !== -1) {
