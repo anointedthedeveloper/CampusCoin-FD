@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { PlayCircle, X } from 'lucide-react';
-import quickGuideVideo from '@/assets/videos/ccvid.mp4';
+import { quickGuideVideo } from '@/assets';
 import { cn } from '@/utils/cn';
 
 const OPEN_EVENT = 'campus-coin:open-quick-guide';

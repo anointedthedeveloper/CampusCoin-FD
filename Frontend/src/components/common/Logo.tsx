@@ -1,5 +1,5 @@
 import { cn } from '@/utils/cn';
-import { assets } from '@/assets/images';
+import { assets } from '@/assets';
 
 interface LogoProps {
   className?: string;

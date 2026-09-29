@@ -3,7 +3,7 @@ import { ArrowLeft } from 'lucide-react';
 import { PUBLIC_ROUTES } from '@/constants/routes';
 import { AUTH_HERO_DETAIL_QUERY, AuthHero } from '@/components/auth';
 import { useMediaQuery } from '@/hooks/useMinHeight';
-import { assets } from '@/assets/images';
+import { assets } from '@/assets';
 import { cn } from '@/utils/cn';
 import type { AuthPageOutletContext } from '@/pages/auth/authOutletContext';
 

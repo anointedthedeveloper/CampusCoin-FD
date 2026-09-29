@@ -15,7 +15,7 @@ import {
   X,
 } from 'lucide-react';
 import { PUBLIC_ROUTES } from '@/constants/routes';
-import { assets } from '@/assets/images';
+import { assets } from '@/assets';
 import { cn } from '@/utils/cn';
 
 const categories = [

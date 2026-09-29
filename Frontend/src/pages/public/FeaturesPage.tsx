@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { BellRing, FileSpreadsheet, Filter, Gauge, LineChart, ListPlus, PieChart, Repeat, Sparkles, Tags, Target, TrendingDown, Bot, FileDown, Upload, Lightbulb, SunMoon } from 'lucide-react';
 import { PUBLIC_ROUTES } from '@/constants/routes';
-import { assets } from '@/assets/images';
+import { assets } from '@/assets';
 import { BrowserFrame } from '@/components/common';
 
 const groups = [

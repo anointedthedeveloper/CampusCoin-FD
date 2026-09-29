@@ -1031,24 +1031,7 @@ export function OnboardingPage() {
 
             {step === 5 && (
               <PreviewCard initial={avatarInitial} title="Campus Coin Assistant" description="Ask about your spending, describe purchases, get insights.">
-                {/* Mock chat UI */}
-                <div className="flex flex-col gap-3">
-                  <div className="self-start max-w-[85%] rounded-2xl rounded-bl-sm border border-gray-100 bg-gray-50 px-4 py-2.5 text-sm text-gray-700 dark:border-white/[0.06] dark:bg-surface dark:text-text-secondary">
-                    Hi! I&apos;m your Campus Coin Assistant. What would you like to know?
-                  </div>
-                  <div className="self-end max-w-[85%] rounded-2xl rounded-br-sm bg-brand-600 px-4 py-2.5 text-sm text-white dark:bg-primary">
-                    How much did I spend on food this month?
-                  </div>
-                  <div className="self-start max-w-[85%] rounded-2xl rounded-bl-sm border border-gray-100 bg-gray-50 px-4 py-2.5 text-sm text-gray-700 dark:border-white/[0.06] dark:bg-surface dark:text-text-secondary">
-                    You&apos;ve spent ₦8,400 on Food & Drinks this month — that&apos;s 34% of your total expenses.
-                  </div>
-                  <div className="self-end max-w-[85%] rounded-2xl rounded-br-sm bg-brand-600 px-4 py-2.5 text-sm text-white dark:bg-primary">
-                    Bought suya — ₦1,200
-                  </div>
-                  <div className="self-start max-w-[85%] rounded-2xl rounded-bl-sm border border-gray-100 bg-gray-50 px-4 py-2.5 text-sm text-gray-700 dark:border-white/[0.06] dark:bg-surface dark:text-text-secondary">
-                    Got it — ₦1,200 in Food & Drinks. Want me to log it?
-                  </div>
-                </div>
+                <PreviewEmpty text="Assistant chat will be available after setup." />
               </PreviewCard>
             )}
           </div>

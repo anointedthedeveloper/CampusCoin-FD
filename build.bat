@@ -71,12 +71,6 @@ if errorlevel 1 (
 )
 popd
 
-echo Preparing local evaluator accounts...
-pushd "Backend"
-call npm run seed:demo
-if errorlevel 1 echo Demo accounts were not seeded. Check that local MongoDB is running and Backend\.env uses localhost.
-popd
-
 echo.
 echo Starting Campus Coin. Ensure MongoDB is running locally, or update Backend\.env MONGO_URI to your Atlas connection string.
 echo Frontend: http://localhost:5173

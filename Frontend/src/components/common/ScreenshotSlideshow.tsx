@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/utils/cn';
-import { assets } from '@/assets/images';
+import { assets } from '@/assets';
 
 interface Slide {
   src: string;

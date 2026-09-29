@@ -4,7 +4,7 @@ import { ArrowRight, BarChart3, Bell, Bot, FileSpreadsheet, LayoutDashboard, Lig
 import { PUBLIC_ROUTES, STUDENT_ROUTES } from '@/constants/routes';
 import { QuickGuideVideo, Ripple, ScreenshotSlideshow, WatchGuideButton, openQuickGuide } from '@/components/common';
 import { FeatureGrid } from '@/components/home/FeatureGrid';
-import { assets } from '@/assets/images';
+import { assets } from '@/assets';
 import { useRipple } from '@/hooks/useRipple';
 import { cn } from '@/utils/cn';
 

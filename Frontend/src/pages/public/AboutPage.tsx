@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { EyeOff, Lightbulb, ListChecks, Sparkles, Wallet, Landmark, ArrowLeftRight, CreditCard, ShieldCheck, Bot, BadgeX } from 'lucide-react';
 import { PUBLIC_ROUTES } from '@/constants/routes';
-import { assets } from '@/assets/images';
+import { assets } from '@/assets';
 import { QuickGuideVideo, WatchGuideButton } from '@/components/common';
 
 const values = [

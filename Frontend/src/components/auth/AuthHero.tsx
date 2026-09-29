@@ -4,7 +4,7 @@ import { PUBLIC_ROUTES } from '@/constants/routes';
 import { APP_TAGLINE } from '@/constants/config';
 import { Logo } from '@/components/common';
 import { useMediaQuery } from '@/hooks/useMinHeight';
-import { assets } from '@/assets/images';
+import { assets } from '@/assets';
 
 // Below the lg breakpoint (1024px wide), the full multi-line hero only has
 // room to render without clipping once the viewport is tall enough; below
