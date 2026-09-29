@@ -36,9 +36,9 @@ const slides: Slide[] = [
   {
     src: assets.screenshots.aiAssistant,
     darkSrc: assets.screenshots.aiAssistantDark,
-    alt: 'Campus Coin AI assistant page with saving tips and chat',
-    title: 'Saving tips from your own habits',
-    description: 'Plain-language suggestions generated from your transactions, not a generic template.',
+    alt: 'Campus Coin AI assistant chat preparing an expense for the student to approve',
+    title: 'An assistant that does the typing',
+    description: 'Say “I spent ₦2,500 on suya” — it prepares the entry, and nothing is saved until you approve.',
   },
 ];
 

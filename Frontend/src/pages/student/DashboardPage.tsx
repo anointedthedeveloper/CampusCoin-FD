@@ -153,6 +153,8 @@ export function DashboardPage() {
     spendingCategoryLabels.length || goalLabels.length || incomeFrequencyLabel ||
     (budgetSummary?.totalBudgeted ?? 0) > 0,
   );
+  // The savings goal is monthly: measure it against what's left this month.
+  const monthSaved = report?.netSavings ?? 0;
   const balance = transactions.reduce((sum, t) => sum + (t.type === 'income' ? t.amount : -t.amount), 0);
   const unreadNotifications = notifications.filter((n) => !n.isRead);  const topBudget = budgetSummary?.budgets.slice().sort((a, b) => getBudgetUtilization(b) - getBudgetUtilization(a))[0];
   const topBudgetCategoryName = topBudget ? catMap[topBudget.categoryId] ?? 'Category' : null;
@@ -360,7 +362,7 @@ export function DashboardPage() {
               <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-teal-100 text-teal-600 dark:bg-teal-400/15 dark:text-teal-400">
                 <Target className="h-4 w-4" />
               </span>
-              <h2 className="text-sm font-semibold text-gray-900 dark:text-text-primary">Savings Goal</h2>
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-text-primary">Monthly savings goal</h2>
             </div>
             {!user.savingsGoalAmount && (
               <Link to={STUDENT_ROUTES.profile} className="text-xs font-semibold text-brand-600 hover:text-brand-700 dark:text-primary-accent">
@@ -374,19 +376,19 @@ export function DashboardPage() {
             <>
               <div className="mt-3 flex items-baseline justify-between gap-2">
                 <span className="text-xl font-bold text-gray-900 dark:text-text-primary">
-                  {formatCurrency(Math.max(balance, 0), currency)}
+                  {formatCurrency(Math.max(monthSaved, 0), currency)}
                   <span className="ml-1 text-sm font-normal text-gray-400 dark:text-text-muted">
                     / {formatCurrency(user.savingsGoalAmount, currency)}
                   </span>
                 </span>
                 <span className="text-sm font-bold text-teal-600 dark:text-teal-400">
-                  {Math.min(Math.round((Math.max(balance, 0) / user.savingsGoalAmount) * 100), 100)}%
+                  {Math.min(Math.round((Math.max(monthSaved, 0) / user.savingsGoalAmount) * 100), 100)}%
                 </span>
               </div>
               <div className="mt-2.5 h-2 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-white/[0.08]">
                 <div
                   className="h-full rounded-full bg-teal-500 dark:bg-teal-400 transition-all duration-700"
-                  style={{ width: `${Math.min((Math.max(balance, 0) / user.savingsGoalAmount) * 100, 100)}%` }}
+                  style={{ width: `${Math.min((Math.max(monthSaved, 0) / user.savingsGoalAmount) * 100, 100)}%` }}
                 />
               </div>
             </>

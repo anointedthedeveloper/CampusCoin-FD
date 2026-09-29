@@ -10,8 +10,11 @@ interface ThemeContextValue {
 // eslint-disable-next-line react-refresh/only-export-components
 export const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
-// Keep this in sync with the inline anti-flash script in index.html.
-export const THEME_STORAGE_KEY = 'campus-coin.theme';
+// Keep this in sync with the inline anti-flash script in index.html. Only
+// an explicit toggle is saved; everyone else gets light mode (the default).
+// (The older 'campus-coin.theme' key also saved the system setting, so it
+// is ignored — otherwise light could never become the default.)
+export const THEME_STORAGE_KEY = 'campus-coin.theme-choice';
 
 function getInitialTheme(): Theme {
   try {
@@ -20,8 +23,7 @@ function getInitialTheme(): Theme {
   } catch {
     // ignore storage access failures (e.g. private browsing)
   }
-  // No saved preference yet — fall back to the system setting.
-  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  return 'light';
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
@@ -29,15 +31,18 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
-    try {
-      localStorage.setItem(THEME_STORAGE_KEY, theme);
-    } catch {
-      // ignore storage failures (e.g. private browsing)
-    }
   }, [theme]);
 
   const toggleTheme = useCallback(() => {
-    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
+    setTheme((prev) => {
+      const next = prev === 'light' ? 'dark' : 'light';
+      try {
+        localStorage.setItem(THEME_STORAGE_KEY, next);
+      } catch {
+        // ignore storage failures (e.g. private browsing)
+      }
+      return next;
+    });
   }, []);
 
   const value = useMemo(() => ({ theme, toggleTheme }), [theme, toggleTheme]);

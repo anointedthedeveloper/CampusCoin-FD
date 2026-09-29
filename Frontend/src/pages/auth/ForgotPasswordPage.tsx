@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, CheckCircle2, KeyRound, Lock, Mail } from 'lucide-react';
 import { Button, Input } from '@/components/common';
@@ -21,21 +21,46 @@ export function ForgotPasswordPage() {
   const [password, setPassword]               = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError]                     = useState<string | null>(null);
+  const [errorCode, setErrorCode]             = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting]       = useState(false);
+  const [resendIn, setResendIn]               = useState(0);
 
-  async function handleRequestCode(event: FormEvent) {
-    event.preventDefault();
+  // A short cooldown on "Resend" so a double-click never burns the
+  // server's 5-requests-per-15-minutes limit.
+  useEffect(() => {
+    if (resendIn <= 0) return undefined;
+    const timer = window.setTimeout(() => setResendIn((s) => s - 1), 1000);
+    return () => window.clearTimeout(timer);
+  }, [resendIn]);
+
+  async function sendCode() {
     setError(null);
-    if (!isValidEmail(email)) { setError('Enter a valid email address.'); return; }
+    setErrorCode(null);
+    if (!isValidEmail(email)) { setError('Enter a valid email address.'); return false; }
     setIsSubmitting(true);
     try {
-      await authService.forgotPassword({ email });
-      setStep('verify');
+      await authService.forgotPassword({ email: email.trim() });
+      setResendIn(60);
+      return true;
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Could not send the reset code. Please try again.');
+      setErrorCode(err instanceof ApiError ? err.code ?? null : null);
+      return false;
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  async function handleRequestCode(event: FormEvent) {
+    event.preventDefault();
+    if (await sendCode()) {
+      setCode('');
+      setStep('verify');
+    }
+  }
+
+  async function handleResend() {
+    await sendCode();
   }
 
   async function handleVerifyAndReset(event: FormEvent) {
@@ -67,7 +92,7 @@ export function ForgotPasswordPage() {
             <p className="mt-0.5 text-xs text-brand-700/80 dark:text-primary-accent/80">
               {linkCode
                 ? <>Choose a new password for <span className="font-medium">{email}</span>.</>
-                : <>If an account exists for <span className="font-medium">{email}</span>, a 6-digit code is on its way (check spam too). It expires in 15 minutes.</>}
+                : <>We sent a 6-digit code to <span className="font-medium">{email}</span>. Check your inbox (and spam folder). It expires in 15 minutes.</>}
             </p>
           </div>
         </div>
@@ -132,10 +157,19 @@ export function ForgotPasswordPage() {
           Didn&apos;t receive the code?{' '}
           <button
             type="button"
+            onClick={handleResend}
+            disabled={resendIn > 0 || isSubmitting}
+            className="font-bold text-brand-600 hover:text-brand-700 disabled:cursor-not-allowed disabled:opacity-60 dark:text-primary-accent"
+          >
+            {resendIn > 0 ? `Resend in ${resendIn}s` : 'Resend code'}
+          </button>
+          {' · '}
+          <button
+            type="button"
             onClick={() => { setStep('request'); setError(null); }}
             className="font-bold text-brand-600 hover:text-brand-700 dark:text-primary-accent"
           >
-            Try again
+            Use a different email
           </button>
         </p>
       </div>
@@ -165,8 +199,14 @@ export function ForgotPasswordPage() {
         />
 
         {error && (
-          <div className="rounded-lg border border-red-200 bg-red-50 px-3.5 py-3 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-950/30 dark:text-red-300">
+          <div role="alert" className="rounded-lg border border-red-200 bg-red-50 px-3.5 py-3 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-950/30 dark:text-red-300">
             {error}
+            {errorCode === 'ACCOUNT_NOT_FOUND' && (
+              <>
+                {' '}
+                <Link to={PUBLIC_ROUTES.register} className="font-bold underline">Create an account</Link>
+              </>
+            )}
           </div>
         )}
 

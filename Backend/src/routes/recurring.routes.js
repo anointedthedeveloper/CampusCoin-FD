@@ -1,12 +1,15 @@
 const router = require('express').Router();
+const { serverError } = require('../utils/httpErrors');
 
 const MoneyRoutine = require('../models/MoneyRoutine');
 const Transaction = require('../models/Transaction');
 const Category = require('../models/Category');
 const { protect } = require('../middleware/auth');
+const { validateIdParam } = require('../utils/objectId');
 const { checkBudgetAfterTransaction } = require('../services/budgetAlert.service');
 
 router.use(protect);
+router.param('id', validateIdParam);
 
 function formatRecurring(item) {
   return {
@@ -60,8 +63,7 @@ router.get('/', async (req, res) => {
 
     res.json({ data: items.map(formatRecurring) });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -124,8 +126,7 @@ router.post('/', async (req, res) => {
 
     res.status(201).json({ data: formatRecurring(recurring) });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -161,8 +162,7 @@ router.patch('/:id', async (req, res) => {
 
     res.json({ data: formatRecurring(recurring) });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -182,8 +182,7 @@ router.delete('/:id', async (req, res) => {
 
     res.json({ data: null, message: 'Recurring transaction deleted' });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -305,8 +304,7 @@ router.post('/process', async (req, res) => {
     const processed = await processDueRecurringTransactionsForUser(req.user._id);
     res.json({ data: { processed }, message: 'Recurring transactions processed' });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 

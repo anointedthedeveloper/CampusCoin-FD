@@ -33,50 +33,61 @@ const TAWK_SCRIPT_ID = 'tawkto-embed-script';
  * StrictMode double-invokes effects in dev, and the guard needs to survive
  * that as a script tag already present in the DOM, not component state.
  */
+function loadTawkScript() {
+  if (document.getElementById(TAWK_SCRIPT_ID)) return;
+
+  window.Tawk_API = window.Tawk_API || {};
+  window.Tawk_LoadStart = new Date();
+
+  const script = document.createElement('script');
+  script.id = TAWK_SCRIPT_ID;
+  script.async = true;
+  script.src = TAWKTO_EMBED_SRC;
+  script.charset = 'UTF-8';
+  script.setAttribute('crossorigin', '*');
+
+  const firstScript = document.getElementsByTagName('script')[0];
+  firstScript?.parentNode?.insertBefore(script, firstScript);
+}
+
+/**
+ * Kept for the app root; the script itself is now loaded lazily by
+ * useTawkToVisibility the first time a public page is shown, so students
+ * who go straight to their dashboard never download the widget at all.
+ */
 export function useTawkTo() {
   useEffect(() => {
-    if (document.getElementById(TAWK_SCRIPT_ID)) return;
-
     window.Tawk_API = window.Tawk_API || {};
-    window.Tawk_LoadStart = new Date();
-
-    const script = document.createElement('script');
-    script.id = TAWK_SCRIPT_ID;
-    script.async = true;
-    script.src = TAWKTO_EMBED_SRC;
-    script.charset = 'UTF-8';
-    script.setAttribute('crossorigin', '*');
-
-    const firstScript = document.getElementsByTagName('script')[0];
-    firstScript?.parentNode?.insertBefore(script, firstScript);
   }, []);
 }
 
-// The auth card sits close to the widget's bottom-right corner, and Tawk's
-// own greeting popup (configured in the Tawk.to dashboard, not something the
-// embed script can reposition) can land directly on top of the card's own
-// buttons there. Simplest reliable fix: don't show the widget on these pages
-// at all, rather than fighting a popup we can't reposition from here.
-const TAWK_HIDDEN_ROUTES: string[] = [
-  PUBLIC_ROUTES.login,
-  PUBLIC_ROUTES.adminLogin,
-  PUBLIC_ROUTES.register,
-  PUBLIC_ROUTES.forgotPassword,
+// Live chat is for visitors on the public site. Inside the app students chat
+// with the team from Help & Support ("My conversations"), so the floating
+// widget stays out of the way on every dashboard, admin and sign-in page.
+const TAWK_VISIBLE_ROUTES: string[] = [
+  PUBLIC_ROUTES.home,
+  PUBLIC_ROUTES.about,
+  PUBLIC_ROUTES.features,
+  PUBLIC_ROUTES.faq,
+  PUBLIC_ROUTES.help,
+  '/contact',
 ];
 
 /**
- * Hides the Tawk.to widget on auth pages and shows it everywhere else.
- * Must be rendered inside the router (it reads the current route) — see
- * ScrollToTop for the same pattern.
+ * Shows the Tawk.to widget on the public marketing pages and hides it
+ * everywhere else. Must be rendered inside the router (it reads the current
+ * route) — see ScrollToTop for the same pattern.
  */
 export function useTawkToVisibility() {
   const { pathname } = useLocation();
 
   useEffect(() => {
-    const shouldHide = TAWK_HIDDEN_ROUTES.includes(pathname);
+    const shouldHide = !TAWK_VISIBLE_ROUTES.includes(pathname.replace(/\/+$/, '') || '/');
+    if (!shouldHide) loadTawkScript();
 
     function apply() {
       if (shouldHide) {
+        window.Tawk_API?.minimize?.();
         window.Tawk_API?.hideWidget?.();
       } else {
         window.Tawk_API?.showWidget?.();

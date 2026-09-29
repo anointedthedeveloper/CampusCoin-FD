@@ -21,7 +21,7 @@ export function CoinLoader({ label = 'Loading…', className }: { label?: string
           </defs>
           <circle cx="32" cy="32" r="29" fill="url(#coin-loader-face)" stroke="#0b3b20" strokeWidth="2" />
           <circle cx="32" cy="32" r="22" fill="none" stroke="#ffffff" strokeOpacity="0.35" strokeWidth="1.5" />
-          <text x="32" y="41" textAnchor="middle" fontSize="25" fontWeight="800" fill="#ffffff" fontFamily="'Plus Jakarta Sans', sans-serif">
+          <text x="32" y="41" textAnchor="middle" fontSize="25" fontWeight="800" fill="#ffffff" fontFamily="'Naira', 'Plus Jakarta Sans', sans-serif">
             ₦
           </text>
         </svg>

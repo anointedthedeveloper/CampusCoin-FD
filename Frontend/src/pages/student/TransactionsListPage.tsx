@@ -13,6 +13,8 @@ import { cn } from '@/utils/cn';
 import type { Category } from '@/types/category';
 import type { Transaction } from '@/types/transaction';
 import type { CategoryType } from '@/types/category';
+import { ExportMenu } from '@/components/transactions/ExportMenu';
+import { RecentlyDeleted } from '@/components/transactions/RecentlyDeleted';
 
 type TypeFilter = 'all' | CategoryType;
 
@@ -114,8 +116,19 @@ export function TransactionsListPage() {
             to={STUDENT_ROUTES.import}
             className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3.5 py-2 text-sm font-semibold text-gray-700 shadow-btn transition-all hover:bg-gray-50 hover:border-gray-300 hover:-translate-y-px dark:border-white/10 dark:bg-surface dark:text-text-primary dark:hover:bg-white/5"
           >
-            <Upload className="h-4 w-4" /> Import CSV
+            <Upload className="h-4 w-4" /> Import
           </Link>
+          <ExportMenu
+            currency={currency}
+            owner={user?.fullName ?? ''}
+            filters={{
+              type: typeFilter === 'all' ? undefined : typeFilter,
+              categoryId: categoryFilter === 'all' ? undefined : categoryFilter,
+              search: search.trim() || undefined,
+              startDate: startDate || undefined,
+              endDate: endDate || undefined,
+            }}
+          />
           <Link to={STUDENT_ROUTES.newTransaction}>
             <Button variant="primary" size="md">
               Add Transaction
@@ -229,6 +242,8 @@ export function TransactionsListPage() {
           onClose={() => setPendingDelete(null)}
         />
       )}
+
+      <RecentlyDeleted currency={currency} refreshKey={totalItems} onRestored={() => void load()} />
 
       {/* Recently viewed / edited (kept across sessions) */}
       {recent.length > 0 && !isFiltered && (

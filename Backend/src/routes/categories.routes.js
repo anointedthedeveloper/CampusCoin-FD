@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const { serverError } = require('../utils/httpErrors');
 const Category = require('../models/Category');
 const Transaction = require('../models/Transaction');
 const Budget = require('../models/Budget');
@@ -57,24 +58,42 @@ router.get('/', async (req, res) => {
       .sort((a, b) => a.name.localeCompare(b.name));
     res.json({ data: categories.map(formatCategory) });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
+
+const ICON_RE = /^[a-z0-9-]{1,40}$/;
+const COLOR_RE = /^#[0-9a-f]{6}$/i;
+
+/** Validates optional icon (slug) and color (#rrggbb) fields. */
+function parseLook(body) {
+  const value = {};
+  if (body.icon !== undefined && body.icon !== null && body.icon !== '') {
+    if (typeof body.icon !== 'string' || !ICON_RE.test(body.icon)) return { error: 'Unknown icon' };
+    value.icon = body.icon;
+  }
+  if (body.color !== undefined && body.color !== null && body.color !== '') {
+    if (typeof body.color !== 'string' || !COLOR_RE.test(body.color)) return { error: 'Colour must look like #1c8f53' };
+    value.color = body.color;
+  }
+  return { value };
+}
 
 // POST /api/v1/categories
 router.post('/', async (req, res) => {
   try {
-    const { name, type, icon, color } = req.body;
-    if (!name?.trim() || !type) return res.status(400).json({ message: 'Name and type are required' });
+    const { name, type } = req.body;
+    if (typeof name !== 'string' || !name.trim() || !type) return res.status(400).json({ message: 'Name and type are required' });
     if (!CATEGORY_TYPES.includes(type)) return res.status(400).json({ message: "type must be 'income' or 'expense'" });
+    if (name.trim().length > 40) return res.status(400).json({ message: 'Category names can be up to 40 characters' });
+    const look = parseLook(req.body);
+    if (look.error) return res.status(400).json({ message: look.error });
 
-    const category = await Category.create({ name: name.trim(), type, icon, color, userId: req.user._id, isDefault: false });
+    const category = await Category.create({ name: name.trim(), type, ...look.value, userId: req.user._id, isDefault: false });
     res.status(201).json({ data: formatCategory(category) });
   } catch (err) {
     if (err.code === 11000) return res.status(409).json({ message: 'A category with this name and type already exists' });
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -84,14 +103,20 @@ router.patch('/:id', async (req, res) => {
     const category = await Category.findOne({ _id: req.params.id, userId: req.user._id });
     if (!category) return res.status(404).json({ message: 'Category not found' });
 
-    const allowed = ['name', 'icon', 'color'];
-    allowed.forEach((key) => { if (req.body[key] !== undefined) category[key] = req.body[key]; });
+    if (req.body.name !== undefined) {
+      if (typeof req.body.name !== 'string' || !req.body.name.trim()) return res.status(400).json({ message: 'Name cannot be empty' });
+      if (req.body.name.trim().length > 40) return res.status(400).json({ message: 'Category names can be up to 40 characters' });
+      category.name = req.body.name.trim();
+    }
+    const look = parseLook(req.body);
+    if (look.error) return res.status(400).json({ message: look.error });
+    Object.assign(category, look.value);
     await category.save();
 
     res.json({ data: formatCategory(category) });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    if (err.code === 11000) return res.status(409).json({ message: 'A category with this name and type already exists' });
+    return serverError(res, err);
   }
 });
 
@@ -147,8 +172,7 @@ router.delete('/:id', async (req, res) => {
     await category.deleteOne();
     res.json({ data: { reassignedCount }, message: 'Category deleted' });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 

@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { isSessionActive } = require('../services/session.service');
 
 async function protect(req, res, next) {
   const header = req.headers.authorization;
@@ -23,10 +24,14 @@ async function protect(req, res, next) {
   // not a bad token. Reporting it as 401 made the client think the session
   // had died and log the user out on any transient DB hiccup.
   let user;
+  let sessionActive;
   try {
     // passwordHash stays loaded (it is never serialised — toPublic omits it)
     // so toPublic can report hasPassword correctly.
-    user = await User.findById(decoded.id).select('-resetPasswordToken -resetPasswordExpires');
+    [user, sessionActive] = await Promise.all([
+      User.findById(decoded.id).select('-resetPasswordToken -resetPasswordExpires'),
+      isSessionActive(decoded),
+    ]);
   } catch (err) {
     console.error('Auth user lookup failed:', err.message);
     return res.status(503).json({ message: 'Service temporarily unavailable. Please try again.', code: 'SERVICE_UNAVAILABLE' });
@@ -34,10 +39,14 @@ async function protect(req, res, next) {
   if (!user) {
     return res.status(401).json({ message: 'User no longer exists', code: 'USER_NOT_FOUND' });
   }
+  if (!sessionActive) {
+    return res.status(401).json({ message: 'This session was signed out. Please log in again.', code: 'SESSION_REVOKED' });
+  }
   if (!user.isActive) {
     return res.status(403).json({ message: 'Your account has been suspended. Please contact the Campus Coin administrator.', code: 'ACCOUNT_SUSPENDED' });
   }
   req.user = user;
+  req.sessionId = decoded.sid || null;
   next();
 }
 

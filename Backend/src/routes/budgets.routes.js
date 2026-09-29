@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const { serverError } = require('../utils/httpErrors');
 const { checkBudgetAfterTransaction } = require('../services/budgetAlert.service');
 const Category = require('../models/Category');
 const Budget = require('../models/Budget');
@@ -65,8 +66,7 @@ router.get('/', async (req, res) => {
       },
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -79,7 +79,7 @@ router.post('/', async (req, res) => {
     }
     if (!isValidObjectId(categoryId)) return res.status(400).json({ message: 'Invalid categoryId' });
     if (!MONTH_RE.test(month)) return res.status(400).json({ message: 'month must be in YYYY-MM format' });
-    if (!(Number(limitAmount) >= 0)) return res.status(400).json({ message: 'limitAmount must be a non-negative number' });
+    if (!(Number(limitAmount) >= 0 && Number(limitAmount) <= 1e12)) return res.status(400).json({ message: 'limitAmount must be a non-negative number' });
 
     const category = await Category.findOne({ _id: categoryId, type: 'expense', $or: [{ userId: req.user._id }, { userId: null }] });
     if (!category) return res.status(400).json({ message: 'Choose one of your expense categories' });
@@ -91,8 +91,7 @@ router.post('/', async (req, res) => {
     res.status(201).json({ data: formatBudget(budget, spentMap[budget.categoryId.toString()] || 0) });
   } catch (err) {
     if (err.code === 11000) return res.status(409).json({ message: 'A budget for this category and month already exists' });
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -103,7 +102,7 @@ router.patch('/:id', async (req, res) => {
     if (!budget) return res.status(404).json({ message: 'Budget not found' });
 
     if (req.body.limitAmount !== undefined) {
-      if (!(Number(req.body.limitAmount) >= 0)) return res.status(400).json({ message: 'limitAmount must be a non-negative number' });
+      if (!(Number(req.body.limitAmount) >= 0 && Number(req.body.limitAmount) <= 1e12)) return res.status(400).json({ message: 'limitAmount must be a non-negative number' });
       budget.limitAmount = Number(req.body.limitAmount);
     }
     await budget.save();
@@ -112,8 +111,7 @@ router.patch('/:id', async (req, res) => {
     const spentMap = await getSpentAmounts(req.user._id, budget.month, [budget.categoryId]);
     res.json({ data: formatBudget(budget, spentMap[budget.categoryId.toString()] || 0) });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -125,8 +123,7 @@ router.delete('/:id', async (req, res) => {
     await budget.deleteOne();
     res.json({ data: null, message: 'Budget deleted' });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 

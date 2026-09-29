@@ -161,6 +161,7 @@ async function getMonthlySummary(userId, currency, month = currentMonth()) {
 
   // ── Recent transactions (last 10) ─────────────────────────────────────────
   const recentTransactions = transactions.slice(0, 10).map((tx) => ({
+    id: String(tx._id),
     type: tx.type,
     amount: tx.amount,
     category: tx.categoryId?.name || 'Uncategorized',

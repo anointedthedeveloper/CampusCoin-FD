@@ -16,7 +16,8 @@ const importBatchSchema = new mongoose.Schema(
     errors: [{ row: Number, message: String }],
     previewData: { type: Array }, // staged rows before confirm
   },
-  { timestamps: true }
+  // `errors` predates this note and is only ever read/written as plain data.
+  { timestamps: true, suppressReservedKeysWarning: true }
 );
 
 importBatchSchema.index({ user: 1, createdAt: -1 });

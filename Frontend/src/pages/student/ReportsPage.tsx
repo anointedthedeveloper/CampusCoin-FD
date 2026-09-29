@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowDownRight, ArrowUpRight, ChevronLeft, ChevronRight, Download, FileText, Flame, Image as ImageIcon, PieChart, Wallet, BarChart2 } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, ChevronLeft, ChevronRight, Download, FileText, Flame, Image as ImageIcon, Mail, PieChart, Wallet, BarChart2 } from 'lucide-react';
+import { EmailReportDialog } from '@/components/reports/EmailReportDialog';
 import { reportsApi } from '@/api/reports.api';
 import { Card, EmptyState, PageSpinner } from '@/components/common';
 import { CategoryDonutChart } from '@/components/dashboard/CategoryDonutChart';
@@ -91,6 +92,7 @@ export function ReportsPage() {
   const [endDate, setEndDate]           = useState('');
   const [exporting, setExporting]       = useState<null | 'pdf' | 'image'>(null);
   const [exportError, setExportError]   = useState<string | null>(null);
+  const [emailOpen, setEmailOpen]       = useState(false);
   const reportRef = useRef<HTMLDivElement>(null);
   const currency = user?.settings?.currency ?? DEFAULT_CURRENCY;
   const [report, setReport]             = useState<MonthlyReport | null>(null);
@@ -257,13 +259,14 @@ export function ReportsPage() {
             { key: 'pdf', label: exporting === 'pdf' ? 'Preparing…' : 'PDF', icon: FileText, onClick: () => void handleExportPdf() },
             { key: 'image', label: exporting === 'image' ? 'Preparing…' : 'Image', icon: ImageIcon, onClick: () => void handleExportImage() },
             { key: 'csv', label: 'CSV', icon: Download, onClick: handleExport },
+            { key: 'email', label: 'Email', icon: Mail, onClick: () => setEmailOpen(true) },
           ].map(({ key, label, icon: Icon, onClick }) => (
             <button
               key={key}
               type="button"
               onClick={onClick}
               disabled={exporting !== null}
-              aria-label={`Export report as ${key.toUpperCase()}`}
+              aria-label={key === 'email' ? 'Email this report' : `Export report as ${key.toUpperCase()}`}
               className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3.5 py-2 text-sm font-semibold text-gray-700 shadow-btn transition-all hover:-translate-y-px hover:border-gray-300 hover:bg-gray-50 disabled:opacity-60 dark:border-white/10 dark:bg-surface dark:text-text-primary dark:hover:bg-white/5"
             >
               <Icon className="h-4 w-4" /> {label}
@@ -271,6 +274,7 @@ export function ReportsPage() {
           ))}
         </div>
       </div>
+      {emailOpen && <EmailReportDialog month={month} monthLabel={formatMonthLabel(month)} defaultEmail={user?.email ?? ''} onClose={() => setEmailOpen(false)} />}
       {exportError && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-500/10 dark:text-red-300">{exportError}</p>}
 
       {/* Month nav + category filter */}

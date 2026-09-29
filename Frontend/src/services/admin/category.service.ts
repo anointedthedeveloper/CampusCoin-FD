@@ -11,7 +11,7 @@ export const adminCategoryService = {
     return type ? all.filter((c) => c.type === type) : all;
   },
 
-  create(payload: { name: string; type: CategoryType; color?: string }) {
+  create(payload: { name: string; type: CategoryType; color?: string; icon?: string }) {
     return adminCategoriesApi.create(payload);
   },
 

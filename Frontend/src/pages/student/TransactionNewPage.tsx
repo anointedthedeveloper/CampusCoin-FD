@@ -1,9 +1,9 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, MoreHorizontal, Plus, Sparkles } from 'lucide-react';
+import { ArrowLeft, Plus, Sparkles } from 'lucide-react';
 import { Button, Card } from '@/components/common';
 import { STUDENT_ROUTES } from '@/constants/routes';
-import { EXPENSE_CATEGORY_ICONS, INCOME_CATEGORY_ICONS } from '@/constants/categoryIcons';
+import { categoryBadgeStyle, resolveCategoryIcon } from '@/constants/categoryIcons';
 import { aiService, categoryService, transactionService } from '@/services';
 import { recurringApi, nextOccurrence } from '@/api/recurring.api';
 import { recordRecentTransaction } from '@/utils/recentTransactions';
@@ -33,11 +33,14 @@ export function TransactionNewPage() {
   const { user }         = useAuth();
   const navigate         = useNavigate();
   const [searchParams]   = useSearchParams();
-  const initialType      = searchParams.get('type') === 'expense' ? 'expense' : 'income';
+  // Expenses are what students log most, so they're the default.
+  const initialType: CategoryType = searchParams.get('type') === 'income' ? 'income' : 'expense';
 
   const [type, setType]             = useState<CategoryType>(initialType);
   const [amount, setAmount]         = useState('');
   const [categoryId, setCategoryId] = useState('');
+  // The quick-add menu can switch type while this page is already open.
+  useEffect(() => { setType(initialType); setCategoryId(''); }, [initialType]);  
   const [description, setDescription] = useState('');
   const [date, setDate]             = useState(todayIso());
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -78,7 +81,6 @@ export function TransactionNewPage() {
     categoryService.list(user.id, type).then(setCategories).catch(() => setCategories([]));
   }, [user?.id, type]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const quickIcons = type === 'income' ? INCOME_CATEGORY_ICONS : EXPENSE_CATEGORY_ICONS;
 
   function handleTypeChange(next: CategoryType) {
     setType(next);
@@ -319,8 +321,7 @@ export function TransactionNewPage() {
           </div>
           <div className="space-y-1.5">
             {categories.map((c) => {
-              const quick = quickIcons[c.name];
-              const Icon  = quick?.icon ?? MoreHorizontal;
+              const Icon  = resolveCategoryIcon(c);
               const isSelected = categoryId === c.id;
               return (
                 <button
@@ -335,12 +336,13 @@ export function TransactionNewPage() {
                       : 'border-gray-100 text-gray-700 hover:border-gray-200 hover:bg-gray-50 dark:border-white/5 dark:text-text-secondary dark:hover:border-white/10 dark:hover:bg-white/[0.03]',
                   )}
                 >
-                  <span className={cn(
-                    'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors',
-                    isSelected
-                      ? (quick?.badgeClassName ?? 'bg-brand-100 text-brand-600')
-                      : 'bg-gray-100 text-gray-500 dark:bg-white/[0.08] dark:text-text-secondary',
-                  )}>
+                  <span
+                    className={cn(
+                      'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors',
+                      !isSelected && 'bg-gray-100 text-gray-500 dark:bg-white/[0.08] dark:text-text-secondary',
+                    )}
+                    style={isSelected ? categoryBadgeStyle(c.color) : undefined}
+                  >
                     <Icon className="h-4 w-4" />
                   </span>
                   <span className="truncate">{c.name}</span>

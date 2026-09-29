@@ -11,7 +11,7 @@ const notificationSchema = new mongoose.Schema(
       // system: general platform message
       // announcement: copy of an admin announcement for this user
       // overspending / allowance-exceeded / goal-reached: monthly limit alerts
-      enum: ['budget-near', 'budget-warning', 'budget-exceeded', 'insight-ready', 'system', 'announcement', 'overspending', 'allowance-exceeded', 'goal-reached'],
+      enum: ['budget-near', 'budget-warning', 'budget-exceeded', 'insight-ready', 'system', 'announcement', 'overspending', 'allowance-exceeded', 'goal-reached', 'support-reply', 'backup'],
       required: true,
     },
     title: { type: String, required: true },

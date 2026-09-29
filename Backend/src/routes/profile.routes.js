@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const { serverError } = require('../utils/httpErrors');
 const User = require('../models/User');
 const Category = require('../models/Category');
 const Budget = require('../models/Budget');
@@ -12,33 +13,46 @@ const { toTitleCaseName } = require('../utils/formatName');
 // name against DEFAULT_CATEGORIES (auth.routes.js) where one already exists,
 // so this never creates a duplicate of a category every account is seeded
 // with at registration.
+// `aliases` are names an existing category may already have (the SRS
+// defaults first); the first alias is used when a new one has to be made.
 const SPENDING_CATEGORY_TO_CATEGORY = {
-  food: { name: 'Food & Drinks', icon: 'utensils', color: '#f97316' },
-  transportation: { name: 'Transport', icon: 'car', color: '#3b82f6' },
-  academics: { name: 'Education', icon: 'book', color: '#0ea5e9' },
-  'data-internet': { name: 'Data & Internet', icon: 'wifi', color: '#06b6d4' },
-  entertainment: { name: 'Entertainment', icon: 'music', color: '#d946ef' },
-  shopping: { name: 'Shopping', icon: 'shopping-bag', color: '#f43f5e' },
-  accommodation: { name: 'Housing', icon: 'home', color: '#6366f1' },
-  health: { name: 'Healthcare', icon: 'heart', color: '#ef4444' },
-  personal: { name: 'Personal', icon: 'user', color: '#a855f7' },
-  other: { name: 'Other', icon: 'more-horizontal', color: '#94a3b8' },
+  food: { name: 'Food', aliases: ['Food', 'Food & Drinks'], icon: 'utensils', color: '#ef4444' },
+  transportation: { name: 'Transport', aliases: ['Transport', 'Transportation'], icon: 'bus', color: '#3b82f6' },
+  academics: { name: 'Academics', aliases: ['Academics', 'Education'], icon: 'book-open', color: '#6366f1' },
+  'data-internet': { name: 'Data & Internet', aliases: ['Data & Internet', 'Data & Airtime', 'Subscriptions'], icon: 'wifi', color: '#06b6d4' },
+  entertainment: { name: 'Entertainment', aliases: ['Entertainment'], icon: 'party-popper', color: '#ec4899' },
+  shopping: { name: 'Shopping', aliases: ['Shopping'], icon: 'shopping-bag', color: '#f43f5e' },
+  accommodation: { name: 'Hostel/Rent', aliases: ['Hostel/Rent', 'Housing', 'Rent'], icon: 'home', color: '#8b5cf6' },
+  health: { name: 'Healthcare', aliases: ['Healthcare', 'Health'], icon: 'heart-pulse', color: '#ef4444' },
+  personal: { name: 'Personal care', aliases: ['Personal care', 'Personal'], icon: 'sparkles', color: '#a855f7' },
+  other: { name: 'Miscellaneous', aliases: ['Miscellaneous', 'Other'], icon: 'more-horizontal', color: '#94a3b8' },
 };
 
-async function ensureSpendingCategories(userId, spendingCategories, otherSpendingCategory) {
-  await Promise.all(
-    spendingCategories.map((value) => {
-      const mapped = value === 'other' && otherSpendingCategory
-        ? { ...SPENDING_CATEGORY_TO_CATEGORY.other, name: otherSpendingCategory }
-        : SPENDING_CATEGORY_TO_CATEGORY[value];
-      if (!mapped) return null;
-      return Category.findOneAndUpdate(
-        { userId, name: mapped.name, type: 'expense' },
-        { $setOnInsert: { userId, name: mapped.name, type: 'expense', icon: mapped.icon, color: mapped.color, isDefault: false } },
-        { upsert: true },
-      );
-    }),
+const escapeRe = (v) => v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/** The student's existing category for an onboarding choice, or a new one. */
+async function resolveSpendingCategory(userId, value, otherSpendingCategory) {
+  const mapped = value === 'other' && otherSpendingCategory
+    ? { name: otherSpendingCategory.trim().slice(0, 40), aliases: [otherSpendingCategory.trim().slice(0, 40)], icon: 'tag', color: '#94a3b8' }
+    : SPENDING_CATEGORY_TO_CATEGORY[value];
+  if (!mapped || !mapped.name) return null;
+  const existing = await Category.findOne({
+    userId,
+    type: 'expense',
+    name: { $in: mapped.aliases.map((n) => new RegExp(`^${escapeRe(n)}$`, 'i')) },
+  });
+  if (existing) return existing;
+  return Category.findOneAndUpdate(
+    { userId, name: mapped.name, type: 'expense' },
+    { $setOnInsert: { userId, name: mapped.name, type: 'expense', icon: mapped.icon, color: mapped.color, isDefault: false } },
+    { upsert: true, new: true },
   );
+}
+
+async function ensureSpendingCategories(userId, spendingCategories, otherSpendingCategory) {
+  for (const value of spendingCategories) {
+    await resolveSpendingCategory(userId, value, otherSpendingCategory);
+  }
 }
 
 // The "monthly spending budget" collected in onboarding used to be discarded
@@ -49,14 +63,12 @@ async function ensureSpendingCategories(userId, spendingCategories, otherSpendin
 // instead of showing "No budgets set" right after finishing setup.
 async function ensureMonthlyBudget(userId, monthlyBudget, spendingCategoryValues, otherSpendingCategory) {
   if (!monthlyBudget || monthlyBudget <= 0) return;
-  const names = (spendingCategoryValues || [])
-    .map((value) => value === 'other' && otherSpendingCategory
-      ? otherSpendingCategory
-      : SPENDING_CATEGORY_TO_CATEGORY[value]?.name)
-    .filter(Boolean);
-  if (names.length === 0) return;
-
-  const categories = await Category.find({ userId, type: 'expense', name: { $in: names } });
+  const resolved = [];
+  for (const value of spendingCategoryValues || []) {
+    const category = await resolveSpendingCategory(userId, value, otherSpendingCategory);
+    if (category && !resolved.some((c) => String(c._id) === String(category._id))) resolved.push(category);
+  }
+  const categories = resolved;
   if (categories.length === 0) return;
 
   const month = new Date().toISOString().slice(0, 7);
@@ -81,8 +93,7 @@ router.get('/', async (req, res) => {
   try {
     res.json({ data: req.user.toPublic() });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -95,12 +106,21 @@ router.patch('/', async (req, res) => {
       if (req.body[key] !== undefined) updates[key] = req.body[key];
     });
 
+    for (const key of ['fullName', 'school', 'academicYear', 'avatarUrl']) {
+      if (updates[key] === undefined || updates[key] === null) continue;
+      if (typeof updates[key] !== 'string' || updates[key].length > (key === 'avatarUrl' ? 500 : 100)) {
+        return res.status(400).json({ message: `${key} must be text under ${key === 'avatarUrl' ? 500 : 100} characters` });
+      }
+    }
+    if (updates.avatarUrl && !/^https:\/\//i.test(updates.avatarUrl)) {
+      return res.status(400).json({ message: 'avatarUrl must be an https:// link' });
+    }
     if (updates.fullName !== undefined) {
-      if (!updates.fullName?.trim()) return res.status(400).json({ message: 'Full name cannot be empty' });
+      if (typeof updates.fullName !== 'string' || !updates.fullName.trim()) return res.status(400).json({ message: 'Full name cannot be empty' });
       updates.fullName = toTitleCaseName(updates.fullName);
     }
     for (const key of ['monthlyAllowanceBaseline', 'savingsGoalAmount']) {
-      if (updates[key] !== undefined && updates[key] !== null && !(Number(updates[key]) >= 0)) {
+      if (updates[key] !== undefined && updates[key] !== null && !((typeof updates[key] === 'number' || (typeof updates[key] === 'string' && updates[key].trim() !== '')) && Number(updates[key]) >= 0 && Number(updates[key]) <= 1e12)) {
         return res.status(400).json({ message: `${key} must be a non-negative number` });
       }
     }
@@ -108,8 +128,7 @@ router.patch('/', async (req, res) => {
     const user = await User.findByIdAndUpdate(req.user._id, updates, { returnDocument: 'after', runValidators: true });
     res.json({ data: user.toPublic() });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -121,9 +140,26 @@ router.patch('/onboarding', async (req, res) => {
     const stepFields = ['currentStep', 'incomeSources', 'incomeFrequency', 'spendingCategories', 'goals'];
     const updates = {};
 
-    for (const key of ['incomeSources', 'spendingCategories']) {
-      if (req.body[key] !== undefined && !Array.isArray(req.body[key])) {
-        return res.status(400).json({ message: `${key} must be an array` });
+    for (const key of ['incomeSources', 'spendingCategories', 'goals']) {
+      const list = req.body[key];
+      if (list === undefined) continue;
+      if (!Array.isArray(list) || list.length > 30 || list.some((v) => typeof v !== 'string' || v.length > 60)) {
+        return res.status(400).json({ message: `${key} must be a list of short text values` });
+      }
+    }
+    if (req.body.currentStep !== undefined && !(Number.isInteger(req.body.currentStep) && req.body.currentStep >= 1 && req.body.currentStep <= 6)) {
+      return res.status(400).json({ message: 'currentStep must be a whole number from 1 to 6' });
+    }
+    if (req.body.incomeFrequency !== undefined && req.body.incomeFrequency !== null && req.body.incomeFrequency !== '' &&
+        !['weekly', 'monthly', 'occasionally'].includes(req.body.incomeFrequency)) {
+      return res.status(400).json({ message: "incomeFrequency must be 'weekly', 'monthly' or 'occasionally'" });
+    }
+    if (req.body.incomeFrequency === '' || req.body.incomeFrequency === null) delete req.body.incomeFrequency;
+    for (const key of ['monthlyAllowanceBaseline', 'savingsGoalAmount', 'monthlyBudget']) {
+      const v = req.body[key];
+      if (v === undefined || v === null) continue;
+      if (typeof v !== 'number' || !Number.isFinite(v) || v < 0 || v > 1e12) {
+        return res.status(400).json({ message: `${key} must be a number from 0 upwards` });
       }
     }
 
@@ -188,8 +224,7 @@ router.patch('/onboarding', async (req, res) => {
     const user = await User.findByIdAndUpdate(req.user._id, { $set: updates }, { returnDocument: 'after' });
     res.json({ data: user.toPublic() });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -199,8 +234,7 @@ router.get('/settings', async (req, res) => {
     const user = await User.findById(req.user._id);
     res.json({ data: user.settings });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -248,8 +282,7 @@ router.patch('/settings', async (req, res) => {
     const user = await User.findByIdAndUpdate(req.user._id, { $set: updates }, { returnDocument: 'after' });
     res.json({ data: user.settings });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 

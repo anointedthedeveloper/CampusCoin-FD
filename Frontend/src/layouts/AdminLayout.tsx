@@ -12,6 +12,7 @@ import {
   ShieldCheck,
   Users,
   Inbox,
+  Server,
   UserCircle,
   X,
 } from 'lucide-react';
@@ -26,8 +27,9 @@ const navItems = [
   { to: ADMIN_ROUTES.users,         label: 'Users',                icon: Users,           description: 'View, suspend, reset or delete accounts' },
   { to: ADMIN_ROUTES.categories,    label: 'Categories',           icon: ListTree,        description: 'Default income and expense categories' },
   { to: ADMIN_ROUTES.announcements, label: 'Announcements & Tips', icon: Megaphone,       description: 'Announcements and saving-tip templates' },
-  { to: ADMIN_ROUTES.support,       label: 'Support inbox',        icon: Inbox,           description: 'Messages from the Help page' },
+  { to: ADMIN_ROUTES.support,       label: 'Support inbox',        icon: Inbox,           description: 'Chat with students who asked for help' },
   { to: ADMIN_ROUTES.statistics,    label: 'Statistics',           icon: BarChart3,       description: 'Usage analytics' },
+  { to: ADMIN_ROUTES.system,        label: 'System',               icon: Server,          description: 'Email delivery and backups' },
 ];
 
 const profileSection = { to: ADMIN_ROUTES.profile, label: 'My Profile', icon: UserCircle, description: 'Your account and password' };
@@ -213,6 +215,9 @@ export function AdminLayout() {
         <main className="mx-auto w-full max-w-7xl flex-1 p-4 sm:p-6 lg:p-8">
           <Outlet />
         </main>
+        <footer className="px-4 pb-5 pt-2 text-center text-[11px] text-gray-400 dark:text-text-muted">
+          Campus Coin admin · Made by <span className="font-semibold text-brand-700 dark:text-primary-accent">Team Flandek</span>
+        </footer>
       </div>
     </div>
   );

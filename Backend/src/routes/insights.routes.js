@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const { serverError } = require('../utils/httpErrors');
 const Insight = require('../models/Insight');
 const SavingTip = require('../models/SavingTip');
 const MoneyMove = require('../models/MoneyMove');
@@ -58,8 +59,7 @@ router.get('/insights', protect, async (req, res) => {
     const insights = await Insight.find(filter).sort({ createdAt: -1 });
     res.json({ data: insights.map(formatInsight) });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -71,8 +71,7 @@ router.get('/saving-tips', protect, async (req, res) => {
     const pinnedOnly = req.query.pinned === '1' || req.query.pinned === 'true';
     res.json({ data: pinnedOnly ? tips.filter((t) => t.isPinned) : tips, meta: { dismissedCount } });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -87,8 +86,7 @@ router.post('/saving-tips/dismiss', protect, async (req, res) => {
     await setTipState(req.user, req.body.tipId, { dismissed: true, pinned: false });
     res.json({ data: null, message: 'Tip dismissed' });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -100,8 +98,7 @@ router.post('/saving-tips/pin', protect, async (req, res) => {
     await setTipState(req.user, req.body.tipId, { pinned, ...(pinned ? { dismissed: false } : {}) });
     res.json({ data: { tipId: req.body.tipId, pinned } });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -111,8 +108,7 @@ router.post('/saving-tips/restore', protect, async (req, res) => {
     await TipState.updateMany({ userId: req.user._id, dismissed: true }, { $set: { dismissed: false } });
     res.json({ data: null, message: 'Dismissed tips restored' });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -133,8 +129,7 @@ router.get('/money-moves', protect, async (req, res) => {
     const tips = await MoneyMove.find().sort({ createdAt: -1 });
     res.json({ data: tips.map(formatTip) });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -144,8 +139,7 @@ router.get('/bookmarks', protect, async (req, res) => {
     const bookmarks = await Bookmark.find({ userId: req.user._id }).sort({ createdAt: -1 });
     res.json({ data: bookmarks.map(formatBookmark) });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -163,8 +157,7 @@ router.post('/bookmarks', protect, async (req, res) => {
     res.status(201).json({ data: formatBookmark(bookmark) });
   } catch (err) {
     if (err.code === 11000) return res.status(409).json({ message: 'Already bookmarked' });
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 
@@ -176,8 +169,7 @@ router.delete('/bookmarks/:id', protect, async (req, res) => {
     await bookmark.deleteOne();
     res.json({ data: null, message: 'Bookmark removed' });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 

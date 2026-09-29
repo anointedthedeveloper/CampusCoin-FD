@@ -1,9 +1,21 @@
 const router = require('express').Router();
+const { serverError } = require('../utils/httpErrors');
 const Transaction = require('../models/Transaction');
 const Category = require('../models/Category');
 const { protect } = require('../middleware/auth');
 const { ensureRecurringProcessed } = require('./recurring.routes');
 const { isValidObjectId } = require('../utils/objectId');
+const rateLimit = require('express-rate-limit');
+const { isEmailConfigured, sendReportEmail } = require('../services/email.service');
+
+const emailReportLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: () => process.env.NODE_ENV === 'test',
+  message: { message: 'You have emailed a lot of reports — please try again in an hour.' },
+});
 
 router.use(protect);
 
@@ -147,127 +159,167 @@ router.get('/monthly', async (req, res) => {
       },
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
+
+/**
+ * Builds the monthly report PDF for `user` and resolves with its bytes.
+ * Shared by the download route and "email me this report".
+ */
+async function buildMonthlyPdf(user, month) {
+  const PDFDocument = require('pdfkit');
+  const { start, end } = getMonthRange(month);
+
+  const transactions = await Transaction.find({
+    userId: user._id,
+    occurredAt: { $gte: start, $lt: end },
+  }).sort({ occurredAt: 1 });
+
+  const totalIncome = transactions.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+  const totalExpense = transactions.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+  const expenseTxs = transactions.filter((t) => t.type === 'expense');
+
+  const incomeTxs = transactions.filter((t) => t.type === 'income');
+  const [categoryBreakdown, incomeBreakdown, categories] = await Promise.all([
+    buildCategoryBreakdown(expenseTxs, totalExpense),
+    buildCategoryBreakdown(incomeTxs, totalIncome),
+    Category.find({ _id: { $in: [...new Set(transactions.map((t) => t.categoryId.toString()))] } }),
+  ]);
+  const nameById = new Map(categories.map((c) => [c._id.toString(), c.name]));
+  const dailySpend = buildDailySpend(expenseTxs);
+  const weeklySpend = buildWeeklySpend(expenseTxs);
+  const currency = user.settings?.currency || 'NGN';
+  const money = (n) => `${currency} ${Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+  const doc = new PDFDocument({ margin: 50, size: 'A4' });
+  const chunks = [];
+  doc.on('data', (chunk) => chunks.push(chunk));
+  const done = new Promise((resolve, reject) => {
+    doc.on('end', () => resolve(Buffer.concat(chunks)));
+    doc.on('error', reject);
+  });
+
+  const brand = '#1c8f53';
+  const heading = (text) => {
+    doc.moveDown(0.8);
+    doc.fontSize(13).font('Helvetica-Bold').fillColor(brand).text(text);
+    doc.moveDown(0.3);
+    doc.fillColor('#111827');
+  };
+
+  // Header
+  doc.fontSize(22).font('Helvetica-Bold').fillColor(brand).text('Campus Coin');
+  doc.fontSize(15).fillColor('#111827').text('Monthly Financial Report');
+  doc.fontSize(10).font('Helvetica').fillColor('#4b5563')
+    .text(`Student: ${user.fullName}`)
+    .text(`Report month: ${month}`)
+    .text(`Generated: ${new Date().toISOString().slice(0, 10)}`);
+  doc.fillColor('#111827');
+
+  heading('Summary');
+  doc.fontSize(11).font('Helvetica')
+    .text(`Total income: ${money(totalIncome)}`)
+    .text(`Total expenses: ${money(totalExpense)}`)
+    .text(`Net savings: ${money(totalIncome - totalExpense)}`)
+    .text(`Transactions: ${transactions.length}`);
+
+  heading('Income by source');
+  if (incomeBreakdown.length === 0) doc.fontSize(11).font('Helvetica').text('No income recorded this month.');
+  else incomeBreakdown.forEach((c) => doc.fontSize(11).font('Helvetica').text(`${c.categoryName}: ${money(c.amount)} (${c.percentage}%)`));
+
+  heading('Spending by category');
+  if (categoryBreakdown.length === 0) doc.fontSize(11).font('Helvetica').text('No expenses recorded this month.');
+  else categoryBreakdown.forEach((c) => doc.fontSize(11).font('Helvetica').text(`${c.categoryName}: ${money(c.amount)} (${c.percentage}%)`));
+
+  heading('Weekly spending');
+  if (weeklySpend.length === 0) doc.fontSize(11).font('Helvetica').text('No expenses recorded this month.');
+  else weeklySpend.forEach((w) => doc.fontSize(10).font('Helvetica').text(`${w.weekStart} to ${w.weekEnd}: ${money(w.amount)}`));
+
+  heading('Daily spending');
+  if (dailySpend.length === 0) doc.fontSize(11).font('Helvetica').text('No expenses recorded this month.');
+  else dailySpend.forEach((d) => doc.fontSize(10).font('Helvetica').text(`${d.date}: ${money(d.amount)}`));
+
+  heading('Transactions');
+  if (transactions.length === 0) {
+    doc.fontSize(11).font('Helvetica').text('No transactions this month.');
+  } else {
+    const cols = [50, 125, 300, 420];
+    const row = (values, bold) => {
+      if (doc.y > 760) doc.addPage();
+      const y = doc.y;
+      doc.fontSize(9).font(bold ? 'Helvetica-Bold' : 'Helvetica');
+      doc.text(values[0], cols[0], y, { width: 70 });
+      doc.text(values[1], cols[1], y, { width: 170, ellipsis: true, height: 12 });
+      doc.text(values[2], cols[2], y, { width: 115, ellipsis: true, height: 12 });
+      doc.text(values[3], cols[3], y, { width: 125, align: 'right' });
+      doc.x = 50;
+      doc.y = y + 14;
+    };
+    row(['Date', 'Description', 'Category', 'Amount'], true);
+    transactions.slice(0, 300).forEach((t) => {
+      row([
+        t.occurredAt.toISOString().slice(0, 10),
+        t.description || (t.type === 'income' ? 'Income' : 'Expense'),
+        nameById.get(t.categoryId.toString()) ?? 'Uncategorized',
+        `${t.type === 'income' ? '+' : '-'}${money(t.amount)}`,
+      ]);
+    });
+    if (transactions.length > 300) doc.fontSize(9).text(`…and ${transactions.length - 300} more.`);
+  }
+
+  doc.moveDown(2);
+  doc.fontSize(8).font('Helvetica').fillColor('#6b7280')
+    .text('Generated by Campus Coin. Figures are based on entries you recorded; this is not financial advice.', 50, doc.y, { align: 'center', width: 495 });
+  doc.end();
+  return done;
+}
+
+const MONTH_RE = /^\d{4}-\d{2}$/;
 
 // ── GET /api/v1/reports/monthly/pdf?month=YYYY-MM ─────────────────────
 router.get('/monthly/pdf', async (req, res) => {
   try {
-    const PDFDocument = require('pdfkit');
-
     const month = req.query.month || new Date().toISOString().slice(0, 7);
-    if (!/^\d{4}-\d{2}$/.test(month)) {
+    if (typeof month !== 'string' || !MONTH_RE.test(month)) {
       return res.status(400).json({ message: 'month must be in YYYY-MM format' });
     }
-
-    const { start, end } = getMonthRange(month);
-
-    const transactions = await Transaction.find({
-      userId: req.user._id,
-      occurredAt: { $gte: start, $lt: end },
-    }).sort({ occurredAt: 1 });
-
-    const totalIncome = transactions.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0);
-    const totalExpense = transactions.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
-    const expenseTxs = transactions.filter((t) => t.type === 'expense');
-
-    const incomeTxs = transactions.filter((t) => t.type === 'income');
-    const [categoryBreakdown, incomeBreakdown, categories] = await Promise.all([
-      buildCategoryBreakdown(expenseTxs, totalExpense),
-      buildCategoryBreakdown(incomeTxs, totalIncome),
-      Category.find({ _id: { $in: [...new Set(transactions.map((t) => t.categoryId.toString()))] } }),
-    ]);
-    const nameById = new Map(categories.map((c) => [c._id.toString(), c.name]));
-    const dailySpend = buildDailySpend(expenseTxs);
-    const weeklySpend = buildWeeklySpend(expenseTxs);
-    const currency = req.user.settings?.currency || 'NGN';
-    const money = (n) => `${currency} ${Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-
-    const doc = new PDFDocument({ margin: 50, size: 'A4' });
-    const filename = `CampusCoin-Monthly-Report-${month}.pdf`;
-
+    const pdf = await buildMonthlyPdf(req.user, month);
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    doc.pipe(res);
-
-    const brand = '#1c8f53';
-    const heading = (text) => {
-      doc.moveDown(0.8);
-      doc.fontSize(13).font('Helvetica-Bold').fillColor(brand).text(text);
-      doc.moveDown(0.3);
-      doc.fillColor('#111827');
-    };
-
-    // Header
-    doc.fontSize(22).font('Helvetica-Bold').fillColor(brand).text('Campus Coin');
-    doc.fontSize(15).fillColor('#111827').text('Monthly Financial Report');
-    doc.fontSize(10).font('Helvetica').fillColor('#4b5563')
-      .text(`Student: ${req.user.fullName}`)
-      .text(`Report month: ${month}`)
-      .text(`Generated: ${new Date().toISOString().slice(0, 10)}`);
-    doc.fillColor('#111827');
-
-    heading('Summary');
-    doc.fontSize(11).font('Helvetica')
-      .text(`Total income: ${money(totalIncome)}`)
-      .text(`Total expenses: ${money(totalExpense)}`)
-      .text(`Net savings: ${money(totalIncome - totalExpense)}`)
-      .text(`Transactions: ${transactions.length}`);
-
-    heading('Income by source');
-    if (incomeBreakdown.length === 0) doc.fontSize(11).font('Helvetica').text('No income recorded this month.');
-    else incomeBreakdown.forEach((c) => doc.fontSize(11).font('Helvetica').text(`${c.categoryName}: ${money(c.amount)} (${c.percentage}%)`));
-
-    heading('Spending by category');
-    if (categoryBreakdown.length === 0) doc.fontSize(11).font('Helvetica').text('No expenses recorded this month.');
-    else categoryBreakdown.forEach((c) => doc.fontSize(11).font('Helvetica').text(`${c.categoryName}: ${money(c.amount)} (${c.percentage}%)`));
-
-    heading('Weekly spending');
-    if (weeklySpend.length === 0) doc.fontSize(11).font('Helvetica').text('No expenses recorded this month.');
-    else weeklySpend.forEach((w) => doc.fontSize(10).font('Helvetica').text(`${w.weekStart} to ${w.weekEnd}: ${money(w.amount)}`));
-
-    heading('Daily spending');
-    if (dailySpend.length === 0) doc.fontSize(11).font('Helvetica').text('No expenses recorded this month.');
-    else dailySpend.forEach((d) => doc.fontSize(10).font('Helvetica').text(`${d.date}: ${money(d.amount)}`));
-
-    heading('Transactions');
-    if (transactions.length === 0) {
-      doc.fontSize(11).font('Helvetica').text('No transactions this month.');
-    } else {
-      const cols = [50, 125, 300, 420];
-      const row = (values, bold) => {
-        if (doc.y > 760) doc.addPage();
-        const y = doc.y;
-        doc.fontSize(9).font(bold ? 'Helvetica-Bold' : 'Helvetica');
-        doc.text(values[0], cols[0], y, { width: 70 });
-        doc.text(values[1], cols[1], y, { width: 170, ellipsis: true, height: 12 });
-        doc.text(values[2], cols[2], y, { width: 115, ellipsis: true, height: 12 });
-        doc.text(values[3], cols[3], y, { width: 125, align: 'right' });
-        doc.x = 50;
-        doc.y = y + 14;
-      };
-      row(['Date', 'Description', 'Category', 'Amount'], true);
-      transactions.slice(0, 300).forEach((t) => {
-        row([
-          t.occurredAt.toISOString().slice(0, 10),
-          t.description || (t.type === 'income' ? 'Income' : 'Expense'),
-          nameById.get(t.categoryId.toString()) ?? 'Uncategorized',
-          `${t.type === 'income' ? '+' : '-'}${money(t.amount)}`,
-        ]);
-      });
-      if (transactions.length > 300) doc.fontSize(9).text(`…and ${transactions.length - 300} more.`);
-    }
-
-    doc.moveDown(2);
-    doc.fontSize(8).font('Helvetica').fillColor('#6b7280')
-      .text('Generated by Campus Coin. Figures are based on entries you recorded; this is not financial advice.', 50, doc.y, { align: 'center', width: 495 });
-    doc.end();
+    res.setHeader('Content-Disposition', `attachment; filename="CampusCoin-Monthly-Report-${month}.pdf"`);
+    res.send(pdf);
   } catch (err) {
     console.error(err);
     if (!res.headersSent) return res.status(500).json({ message: 'Unable to generate report' });
     res.end();
+  }
+});
+
+// ── POST /api/v1/reports/monthly/email  { month, to? } ────────────────
+// Emails the monthly PDF to the student (or to an address they choose,
+// e.g. a parent or sponsor).
+router.post('/monthly/email', emailReportLimiter, async (req, res) => {
+  try {
+    const month = typeof req.body?.month === 'string' ? req.body.month : new Date().toISOString().slice(0, 7);
+    if (!MONTH_RE.test(month)) return res.status(400).json({ message: 'month must be in YYYY-MM format' });
+    const to = typeof req.body?.to === 'string' && req.body.to.trim() ? req.body.to.trim().toLowerCase() : req.user.email;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to) || to.length > 200) {
+      return res.status(400).json({ message: 'Enter a valid email address', fieldErrors: { to: 'Invalid email' } });
+    }
+    if (!isEmailConfigured()) {
+      return res.status(503).json({ message: 'Email is not set up on the server yet, so the report cannot be sent. Download the PDF instead.', code: 'EMAIL_NOT_CONFIGURED' });
+    }
+    const pdf = await buildMonthlyPdf(req.user, month);
+    try {
+      await sendReportEmail({ to, fromName: req.user.fullName, month, pdf, toSelf: to === req.user.email });
+    } catch (err) {
+      console.error('Report email failed:', err.message);
+      return res.status(502).json({ message: 'The email could not be sent right now. Please try again later.', code: 'EMAIL_SEND_FAILED' });
+    }
+    res.json({ data: { to }, message: `Report for ${month} sent to ${to}.` });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Unable to send report' });
   }
 });
 
@@ -306,8 +358,7 @@ router.get('/six-months', async (req, res) => {
 
     res.json({ data });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return serverError(res, err);
   }
 });
 

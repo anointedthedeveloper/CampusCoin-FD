@@ -20,6 +20,9 @@ const myMoneyRoutes = require('./src/routes/my-money.routes');
 const recurringRoutes = require('./src/routes/recurring.routes');
 const aiRoutes = require('./src/routes/ai.routes');
 const supportRoutes = require('./src/routes/support.routes');
+const savingsGoalsRoutes = require('./src/routes/savingsGoals.routes');
+const backupsRoutes = require('./src/routes/backups.routes');
+const { runDailyBackups } = require('./src/services/backup.service');
 
 if (!process.env.JWT_SECRET) {
   const message = 'JWT_SECRET is not set. Set it in the environment before starting the server.';
@@ -94,7 +97,9 @@ app.use(cors({
   },
   credentials: true,
 }));
-app.use(express.json());
+// Restoring a backup file needs a bigger body; that route parses its own.
+const jsonParser = express.json({ limit: '1mb' });
+app.use((req, res, next) => (req.path.endsWith('/backups/restore-file') ? next() : jsonParser(req, res, next)));
 
 // ── Health check ──────────────────────────────────────────────────────
 app.get('/', (_req, res) => res.json({ message: 'CampusCoin API is running' }));
@@ -102,7 +107,7 @@ app.get('/', (_req, res) => res.json({ message: 'CampusCoin API is running' }));
 // Configuration check — reports which integrations are set up (booleans
 // only, never the values) so a deployment can be verified at a glance.
 async function healthHandler(_req, res) {
-  const { isEmailConfigured } = require('./src/services/email.service');
+  const { isEmailConfigured, emailStatus } = require('./src/services/email.service');
   const { hasAiProvider, getConfiguredProvider, getKeyCounts } = require('./src/services/ai.service');
   const database = await connectDB();
   res.status(database ? 200 : 503).json({
@@ -110,7 +115,8 @@ async function healthHandler(_req, res) {
       database,
       jwtSecret: Boolean(process.env.JWT_SECRET),
       email: isEmailConfigured(),
-      emailProvider: process.env.RESEND_API_KEY ? 'resend' : isEmailConfigured() ? 'smtp' : null,
+      emailProvider: emailStatus().providers[0] || null,
+      emailProviders: emailStatus().providers,
       ai: hasAiProvider(),
       aiProvider: hasAiProvider() ? getConfiguredProvider().provider : null,
       aiKeys: getKeyCounts(),
@@ -121,6 +127,25 @@ async function healthHandler(_req, res) {
 }
 app.get('/api/v1/health', healthHandler);
 app.get('/api/ccoin/health', healthHandler);
+
+// Daily backups for everyone. Vercel Cron calls this once a day (see
+// vercel.json) with "Authorization: Bearer $CRON_SECRET"; a long-running
+// server also runs it hourly below. Students are additionally backed up
+// when they open the app, so nobody is missed if the cron doesn't run.
+async function cronDailyBackups(req, res) {
+  const secret = process.env.CRON_SECRET;
+  if (!secret || req.headers.authorization !== `Bearer ${secret}`) {
+    return res.status(401).json({ message: 'Not authorised' });
+  }
+  if (!(await connectDB())) return res.status(503).json({ message: 'Database is unavailable' });
+  try {
+    res.json({ data: await runDailyBackups({ budgetMs: 45_000 }) });
+  } catch (err) {
+    console.error('Cron backups failed:', err);
+    res.status(500).json({ message: 'Backup run failed' });
+  }
+}
+app.get('/api/v1/cron/daily-backups', cronDailyBackups);
 
 const databaseIndependentRoutes = new Set([
   '/api/v1/auth/google/config',
@@ -144,6 +169,8 @@ function registerRoutes(prefix) {
   app.use(`${prefix}/reports`, reportsRoutes);
   app.use(`${prefix}/ai`, aiRoutes);
   app.use(`${prefix}/support`, supportRoutes);
+  app.use(`${prefix}/savings-goals`, savingsGoalsRoutes);
+  app.use(`${prefix}/backups`, backupsRoutes);
   // insights.routes handles /insights, /saving-tips, /money-moves, /bookmarks
   app.use(`${prefix}`, insightsRoutes);
   app.use(`${prefix}/notifications`, notificationsRoutes);
@@ -174,6 +201,9 @@ app.use((_req, res) => res.status(404).json({ message: 'Route not found' }));
 // eslint-disable-next-line no-unused-vars
 app.use((err, _req, res, _next) => {
   console.error('Unhandled error:', err);
+  if (err.type === 'entity.too.large') {
+    return res.status(413).json({ message: 'That upload is too large.' });
+  }
   if (err.type === 'entity.parse.failed' || err instanceof SyntaxError) {
     return res.status(400).json({ message: 'Malformed request body' });
   }
@@ -201,6 +231,13 @@ if (require.main === module) {
       process.exit(0);
     });
   };
+
+  // Hourly check; each student gets at most one automatic backup a day.
+  if (isConnected && process.env.NODE_ENV !== 'test' && process.env.DISABLE_BACKUP_SCHEDULER !== 'true') {
+    const tick = () => runDailyBackups().catch((err) => console.error('Scheduled backups failed:', err.message));
+    setTimeout(tick, 60_000).unref();
+    setInterval(tick, 60 * 60 * 1000).unref();
+  }
 
   process.once('SIGINT', shutdown);
   process.once('SIGTERM', shutdown);

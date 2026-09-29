@@ -1,5 +1,5 @@
-import { useState, type FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useEffect, useState, type FormEvent } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   BarChart3,
   Bot,
@@ -8,6 +8,7 @@ import {
   LifeBuoy,
   Mail,
   MessageCircle,
+  MessagesSquare,
   PlayCircle,
   Plus,
   Repeat,
@@ -16,6 +17,7 @@ import {
 } from 'lucide-react';
 import { Card, QuickGuideVideo, openQuickGuide } from '@/components/common';
 import { SupportForm } from '@/components/help/SupportForm';
+import { MyConversations } from '@/components/help/MyConversations';
 import { PUBLIC_ROUTES, STUDENT_ROUTES } from '@/constants/routes';
 import { cn } from '@/utils/cn';
 
@@ -43,6 +45,17 @@ function openLiveChat() {
 export function HelpPage({ inApp = false }: { inApp?: boolean }) {
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
+  const [searchParams] = useSearchParams();
+  const focusThread = searchParams.get('thread');
+  const [threadsKey, setThreadsKey] = useState(0);
+  const [newThreadId, setNewThreadId] = useState<string | null>(null);
+
+  // Arriving from a "Support replied" notification: jump to the chat.
+  useEffect(() => {
+    if (!inApp || !(focusThread || window.location.hash === '#my-messages')) return undefined;
+    const timer = window.setTimeout(() => document.getElementById('my-messages')?.scrollIntoView({ behavior: 'smooth' }), 150);
+    return () => window.clearTimeout(timer);
+  }, [inApp, focusThread]);
 
   function search(event?: FormEvent, text = query) {
     event?.preventDefault();
@@ -51,10 +64,12 @@ export function HelpPage({ inApp = false }: { inApp?: boolean }) {
   }
 
   const ways = [
-    { icon: MessageCircle, title: 'Live chat', text: 'Chat with the Campus Coin team from the bubble in the corner.', action: 'Start a chat', onClick: openLiveChat },
+    inApp
+      ? { icon: MessagesSquare, title: 'Chat with support', text: 'Message the team and see their replies right here in the app.', action: 'Open my conversations', onClick: () => document.getElementById('my-messages')?.scrollIntoView({ behavior: 'smooth' }) }
+      : { icon: MessageCircle, title: 'Live chat', text: 'Chat with the Campus Coin team from the bubble in the corner.', action: 'Start a chat', onClick: openLiveChat },
     { icon: PlayCircle, title: 'Watch the quick guide', text: 'A short video walkthrough of the whole app.', action: 'Play video', onClick: openQuickGuide },
     { icon: BookOpen, title: 'Browse the FAQ', text: 'Answers to the most common questions.', action: 'Open FAQ', onClick: () => navigate(PUBLIC_ROUTES.faq) },
-    { icon: Mail, title: 'Send us a message', text: 'We reply by email, usually within a day.', action: 'Write to us', onClick: () => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' }) },
+    { icon: Mail, title: 'Send us a message', text: inApp ? 'Replies appear in the app and in your email, usually within a day.' : 'We reply by email, usually within a day.', action: 'Write to us', onClick: () => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' }) },
   ];
 
   return (
@@ -123,14 +138,37 @@ export function HelpPage({ inApp = false }: { inApp?: boolean }) {
         </div>
       </section>
 
+      {inApp && (
+        <section id="my-messages" className="mt-10 scroll-mt-24">
+          <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
+            <div>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-text-primary">My conversations</h2>
+              <p className="text-sm text-gray-600 dark:text-text-secondary">Your messages to the Campus Coin team and their replies.</p>
+            </div>
+          </div>
+          <MyConversations refreshKey={threadsKey} focusId={newThreadId ?? focusThread} />
+        </section>
+      )}
+
       {/* Contact */}
       <section id="contact" className="mt-10 scroll-mt-24">
         <Card className="p-6 sm:p-8">
           <div className="mb-6">
             <h2 className="text-lg font-bold text-gray-900 dark:text-text-primary">Send us a message</h2>
-            <p className="mt-1 text-sm text-gray-600 dark:text-text-secondary">Questions, problems, or a request to delete your account — we&apos;ll reply by email.</p>
+            <p className="mt-1 text-sm text-gray-600 dark:text-text-secondary">
+              {inApp
+                ? 'Questions, problems, or a request to delete your account — replies show up in “My conversations” above.'
+                : <>Questions, problems, or a request to delete your account — we&apos;ll reply by email. <Link to={PUBLIC_ROUTES.login} className="font-semibold text-brand-700 hover:underline dark:text-primary-accent">Sign in</Link> to chat with the team in the app.</>}
+            </p>
           </div>
-          <SupportForm />
+          <SupportForm
+            onSent={(id) => {
+              if (!inApp) return;
+              setThreadsKey((k) => k + 1);
+              setNewThreadId(id);
+              window.setTimeout(() => document.getElementById('my-messages')?.scrollIntoView({ behavior: 'smooth' }), 300);
+            }}
+          />
         </Card>
       </section>
     </div>

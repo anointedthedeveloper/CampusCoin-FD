@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Calendar, Pencil, Receipt, Store, Tag, Trash2 } from 'lucide-react';
-import { Button, Card, EmptyState, PageSpinner } from '@/components/common';
+import { Button, Card, ConfirmDialog, EmptyState, PageSpinner } from '@/components/common';
 import { STUDENT_ROUTES, buildPath } from '@/constants/routes';
 import { categoryService, transactionService } from '@/services';
 import { useAuth } from '@/hooks/useAuth';
@@ -11,6 +11,7 @@ import { formatCurrency, formatDate } from '@/utils/format';
 import { cn } from '@/utils/cn';
 import type { Transaction } from '@/types/transaction';
 import { forgetRecentTransaction, recordRecentTransaction } from '@/utils/recentTransactions';
+import { TransactionHistory } from '@/components/transactions/TransactionHistory';
 
 export function TransactionDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -20,6 +21,7 @@ export function TransactionDetailPage() {
 
   const [transaction, setTransaction] = useState<Transaction | undefined>(undefined);
   const [categoryName, setCategoryName] = useState('Other');
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -58,7 +60,6 @@ export function TransactionDetailPage() {
 
   async function handleDelete() {
     if (!user || !transaction) return;
-    if (!window.confirm('Delete this transaction? This cannot be undone.')) return;
     await transactionService.remove(user.id, transaction.id);
     forgetRecentTransaction(user.id, transaction.id);
     navigate(STUDENT_ROUTES.transactions);
@@ -66,6 +67,16 @@ export function TransactionDetailPage() {
 
   return (
     <div className="mx-auto max-w-xl">
+      {confirmDelete && (
+        <ConfirmDialog
+          open
+          title="Delete this transaction?"
+          description="It will be removed from your history, budgets and reports. This cannot be undone."
+          confirmLabel="Delete"
+          onConfirm={handleDelete}
+          onClose={() => setConfirmDelete(false)}
+        />
+      )}
       <button onClick={() => navigate(-1)} className="mb-4 flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-text-secondary dark:hover:text-text-primary">
         <ArrowLeft className="h-4 w-4" />Back
       </button>
@@ -99,11 +110,12 @@ export function TransactionDetailPage() {
           <Link to={buildPath(STUDENT_ROUTES.editTransaction, { id: transaction.id })} className="flex-1">
             <Button variant="outline" className="w-full"><Pencil className="h-4 w-4" />Edit</Button>
           </Link>
-          <Button variant="danger" className="flex-1" onClick={() => void handleDelete()}>
+          <Button variant="danger" className="flex-1" onClick={() => setConfirmDelete(true)}>
             <Trash2 className="h-4 w-4" />Delete
           </Button>
         </div>
       </Card>
+      <TransactionHistory transactionId={transaction.id} currency={currency} />
     </div>
   );
 }

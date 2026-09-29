@@ -13,7 +13,7 @@ const SRS_DEFAULT_CATEGORIES = [
   { name: 'Food', type: 'expense', icon: 'utensils', color: '#ef4444' },
   { name: 'Transport', type: 'expense', icon: 'bus', color: '#3b82f6' },
   { name: 'Hostel/Rent', type: 'expense', icon: 'home', color: '#8b5cf6' },
-  { name: 'Academics', type: 'expense', icon: 'book', color: '#6366f1' },
+  { name: 'Academics', type: 'expense', icon: 'book-open', color: '#6366f1' },
   { name: 'Subscriptions', type: 'expense', icon: 'repeat', color: '#14b8a6' },
   { name: 'Entertainment', type: 'expense', icon: 'film', color: '#ec4899' },
   { name: 'Miscellaneous', type: 'expense', icon: 'more-horizontal', color: '#94a3b8' },

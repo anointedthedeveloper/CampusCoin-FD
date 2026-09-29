@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Pencil, PiggyBank, Plus, Trash2, X } from 'lucide-react';
-import { Button, Card, EmptyState, PageSpinner } from '@/components/common';
+import { Button, Card, ConfirmDialog, EmptyState, PageSpinner } from '@/components/common';
 import { BudgetProgressRow } from '@/components/budgets/BudgetProgressRow';
 import { budgetService, categoryService } from '@/services';
 import { useAuth } from '@/hooks/useAuth';
@@ -33,6 +34,7 @@ export function BudgetsPage() {
   const [notice, setNotice]             = useState<string | null>(null);
   const [refreshToken, setRefreshToken] = useState(0);
   const [expenseCategories, setExpenseCategories] = useState<Category[]>([]);
+  const [pendingDelete, setPendingDelete] = useState<Budget | null>(null);
   const [budgets, setBudgets]           = useState<Budget[]>([]);
   const [isLoading, setIsLoading]       = useState(true);
 
@@ -76,6 +78,15 @@ export function BudgetsPage() {
     setIsFormOpen(true);
   }
 
+  // "Set a budget" from the quick-add menu opens the form straight away.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const wantsNew = searchParams.get('new') === '1';
+  useEffect(() => {
+    if (!wantsNew || isLoading) return;
+    openNewForm();
+    setSearchParams({}, { replace: true });
+  }, [wantsNew, isLoading]); // eslint-disable-line react-hooks/exhaustive-deps
+
   function openEditForm(budget: Budget) {
     setEditingBudget(budget);
     setCategoryId(budget.categoryId);
@@ -92,7 +103,6 @@ export function BudgetsPage() {
 
   async function handleDelete(budget: Budget) {
     if (!user) return;
-    if (!window.confirm(`Remove the ${categoryNameFor(budget.categoryId)} budget for ${displayMonth}?`)) return;
     await budgetService.remove(user.id, budget.id);
     setNotice(`Removed the ${categoryNameFor(budget.categoryId)} budget.`);
     setRefreshToken((t) => t + 1);
@@ -129,6 +139,16 @@ export function BudgetsPage() {
 
   return (
     <div className="space-y-5">
+      {pendingDelete && (
+        <ConfirmDialog
+          open
+          title={`Remove the ${categoryNameFor(pendingDelete.categoryId)} budget?`}
+          description={`The ${displayMonth} limit is removed. Your transactions are not affected.`}
+          confirmLabel="Remove budget"
+          onConfirm={() => handleDelete(pendingDelete)}
+          onClose={() => setPendingDelete(null)}
+        />
+      )}
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
@@ -278,7 +298,7 @@ export function BudgetsPage() {
           <div className="divide-y divide-gray-50 dark:divide-white/[0.04]">
             {budgets.map((budget) => (
               <div key={budget.id} className="group relative px-5">
-                <BudgetProgressRow budget={budget} categoryName={categoryNameFor(budget.categoryId)} />
+                <BudgetProgressRow budget={budget} categoryName={categoryNameFor(budget.categoryId)} category={expenseCategories.find((c) => c.id === budget.categoryId)} />
 
                 {/* Action buttons fade in on hover */}
                 <div className="absolute right-5 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
@@ -292,7 +312,7 @@ export function BudgetsPage() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => void handleDelete(budget)}
+                    onClick={() => setPendingDelete(budget)}
                     className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600 transition-colors dark:hover:bg-red-500/10 dark:hover:text-red-400"
                     aria-label={`Delete ${categoryNameFor(budget.categoryId)} budget`}
                   >

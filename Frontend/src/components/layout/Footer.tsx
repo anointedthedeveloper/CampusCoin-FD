@@ -85,6 +85,7 @@ export function Footer() {
 
         <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-white/10 pt-6 text-xs text-white/40 sm:flex-row">
           <p>&copy; {new Date().getFullYear()} Campus Coin. All rights reserved.</p>
+          <p className="font-semibold text-white/70">Made by <span className="text-[#6ee7a8]">Team Flandek</span> 💚</p>
           <p>NextGen BudgetBee &middot; Built for students, by understanding student life.</p>
         </div>
       </div>

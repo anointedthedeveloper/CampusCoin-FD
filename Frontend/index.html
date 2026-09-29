@@ -13,6 +13,7 @@
       content="Campus Coin - NextGen BudgetBee. A student-first budgeting and expense-tracking platform."
     />
     <title>Campus Coin | NextGen BudgetBee</title>
+    <link rel="preload" href="/fonts/naira-800.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -20,13 +21,12 @@
       rel="stylesheet"
     />
     <script>
-      // Apply the saved (or system) theme before first paint, so the boot
+      // Apply the saved theme (light unless the visitor chose dark) before first paint, so the boot
       // loader and first frame never flash the wrong mode. Keep the storage
       // key in sync with THEME_STORAGE_KEY in src/contexts/ThemeContext.tsx.
       (function () {
         try {
-          var stored = localStorage.getItem('campus-coin.theme');
-          var isDark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var isDark = localStorage.getItem('campus-coin.theme-choice') === 'dark';
           document.documentElement.classList.toggle('dark', isDark);
         } catch (_) {
           // ignore storage access failures (e.g. private browsing)
@@ -34,6 +34,15 @@
       })();
     </script>
     <style>
+      /* The Naira sign (₦) in Plus Jakarta Sans has a single bar; this face
+         supplies a proper double-barred ₦ (from Inter) for that one
+         character only — unicode-range keeps every other glyph unchanged. */
+      @font-face { font-family: 'Naira'; src: url('/fonts/naira-400.woff2') format('woff2'); font-weight: 100 450; font-style: normal; font-display: swap; unicode-range: U+20A6; }
+      @font-face { font-family: 'Naira'; src: url('/fonts/naira-500.woff2') format('woff2'); font-weight: 451 550; font-style: normal; font-display: swap; unicode-range: U+20A6; }
+      @font-face { font-family: 'Naira'; src: url('/fonts/naira-600.woff2') format('woff2'); font-weight: 551 650; font-style: normal; font-display: swap; unicode-range: U+20A6; }
+      @font-face { font-family: 'Naira'; src: url('/fonts/naira-700.woff2') format('woff2'); font-weight: 651 750; font-style: normal; font-display: swap; unicode-range: U+20A6; }
+      @font-face { font-family: 'Naira'; src: url('/fonts/naira-800.woff2') format('woff2'); font-weight: 751 900; font-style: normal; font-display: swap; unicode-range: U+20A6; }
+
       #initial-page-loader {
         position: fixed;
         inset: 0;
@@ -70,6 +79,7 @@
         border-radius: 50%;
         background: linear-gradient(135deg, #6ee7a8 0%, #16a34a 55%, #0f5c30 100%);
         color: #fff;
+        font-family: 'Naira', 'Plus Jakarta Sans', system-ui, sans-serif;
         font-size: 26px;
         font-weight: 800;
         box-shadow:

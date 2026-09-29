@@ -142,13 +142,13 @@ export function FeaturesPage() {
   return (
     <div className="overflow-hidden">
       {/* ── Hero ── */}
-      <section className="mx-auto grid max-w-[1280px] items-center gap-10 px-4 pb-14 pt-12 sm:px-6 sm:pb-20 lg:grid-cols-[0.95fr_1.05fr] lg:gap-16 lg:pt-16">
+      <section className="mx-auto grid max-w-[1280px] items-center gap-8 px-4 pb-14 pt-10 sm:px-6 sm:pb-20 lg:grid-cols-[0.82fr_1.18fr] lg:gap-10 lg:pt-12">
         <div>
           <p className="flex items-center gap-3 text-xs font-bold uppercase tracking-[0.2em] text-gray-400 dark:text-text-muted">
             Features
             <span className="h-px w-8 bg-gray-300 dark:bg-white/15" />
           </p>
-          <h1 className="mt-5 max-w-xl text-4xl font-bold leading-[1.08] text-[#1d3d2d] dark:text-text-primary sm:text-5xl lg:text-[3.4rem]">
+          <h1 className="mt-5 max-w-xl text-4xl font-bold leading-[1.08] text-[#1d3d2d] dark:text-text-primary sm:text-5xl lg:text-[2.9rem] xl:text-[3.1rem]">
             Everything you need to manage student money, nothing you don&apos;t.
           </h1>
           <p className="mt-5 max-w-lg text-base leading-7 text-gray-600 dark:text-text-secondary">
@@ -178,17 +178,17 @@ export function FeaturesPage() {
             ))}
           </div>
         </div>
-        <figure className="overflow-hidden rounded-[28px] shadow-card dark:shadow-dark-card">
+        <figure className="relative min-h-[320px] overflow-hidden rounded-[28px] shadow-card dark:shadow-dark-card sm:min-h-[440px] lg:min-h-[520px]">
           <img
             src={assets.featuresDesk}
             alt="Laptop and phone showing the Campus Coin dashboard on a desk"
-            className="block w-full object-cover dark:hidden"
+            className="absolute inset-0 block h-full w-full object-cover object-[65%_center] dark:hidden"
             loading="eager"
           />
           <img
             src={assets.featuresDeskDark}
             alt="Laptop and phone showing the Campus Coin dashboard on a desk"
-            className="hidden w-full object-cover dark:block"
+            className="absolute inset-0 hidden h-full w-full object-cover object-[65%_center] dark:block"
             loading="eager"
           />
         </figure>

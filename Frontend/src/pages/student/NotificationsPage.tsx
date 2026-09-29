@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
-import { AlertTriangle, Bell, BellOff, Info, Megaphone, PartyPopper, Sparkles, Trash2, TrendingDown, Wallet } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { AlertTriangle, ArrowRight, Bell, BellOff, DatabaseBackup, Info, Megaphone, MessagesSquare, PartyPopper, Sparkles, Trash2, TrendingDown, Wallet } from 'lucide-react';
+import { STUDENT_ROUTES } from '@/constants/routes';
 import { Card, ConfirmDialog, EmptyState, PageSpinner } from '@/components/common';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useMinLoadTime } from '@/hooks/useMinLoadTime';
 import { formatDate } from '@/utils/format';
 import { cn } from '@/utils/cn';
-import type { NotificationType } from '@/types/notification';
+import type { AppNotification, NotificationType } from '@/types/notification';
 
 const typeConfig: Record<NotificationType, { icon: typeof Bell; iconCls: string; label?: string }> = {
   'budget-warning':     { icon: AlertTriangle, iconCls: 'bg-amber-100 text-amber-600 dark:bg-amber-400/15 dark:text-amber-400', label: 'Budget' },
@@ -16,8 +18,35 @@ const typeConfig: Record<NotificationType, { icon: typeof Bell; iconCls: string;
   'goal-reached':       { icon: PartyPopper,   iconCls: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-400/15 dark:text-emerald-400', label: 'Goal' },
   'insight-ready':      { icon: Sparkles,      iconCls: 'bg-purple-100 text-purple-600 dark:bg-purple-400/15 dark:text-purple-400' },
   announcement:         { icon: Megaphone,     iconCls: 'bg-brand-100 text-brand-600 dark:bg-primary/15 dark:text-primary-accent', label: 'Announcement' },
+  'support-reply':      { icon: MessagesSquare, iconCls: 'bg-brand-100 text-brand-600 dark:bg-primary/15 dark:text-primary-accent', label: 'Support' },
+  backup:               { icon: DatabaseBackup, iconCls: 'bg-blue-100 text-blue-600 dark:bg-blue-400/15 dark:text-blue-400', label: 'Backup' },
   system:               { icon: Info,          iconCls: 'bg-blue-100 text-blue-600 dark:bg-blue-400/15 dark:text-blue-400' },
 };
+
+/** Where "View" takes the student for each kind of notification. */
+function actionFor(n: AppNotification): { to: string; label: string } | null {
+  switch (n.type) {
+    case 'budget-warning':
+    case 'budget-near':
+    case 'budget-exceeded':
+      return { to: STUDENT_ROUTES.budgets, label: 'View budgets' };
+    case 'overspending':
+    case 'allowance-exceeded':
+      return { to: STUDENT_ROUTES.transactions, label: 'Review spending' };
+    case 'goal-reached':
+      return { to: STUDENT_ROUTES.savingsGoals, label: 'View goals' };
+    case 'insight-ready':
+      return { to: STUDENT_ROUTES.insights, label: 'Open assistant' };
+    case 'support-reply': {
+      const id = typeof n.meta?.supportMessageId === 'string' ? n.meta.supportMessageId : '';
+      return { to: `${STUDENT_ROUTES.help}${id ? `?thread=${id}` : ''}#my-messages`, label: 'Open conversation' };
+    }
+    case 'backup':
+      return { to: STUDENT_ROUTES.settings, label: 'Manage backups' };
+    default:
+      return null;
+  }
+}
 
 export function NotificationsPage() {
   const { notifications, unreadCount, isLoading, fetchNotifications, markAllAsRead, clearAll } = useNotifications();
@@ -97,7 +126,17 @@ export function NotificationsPage() {
                       {isNew && <span className="rounded-full bg-brand-600 px-2 py-0.5 text-[10px] font-bold uppercase text-white dark:bg-primary">New</span>}
                     </div>
                     <p className="mt-0.5 whitespace-pre-line text-sm text-gray-600 dark:text-text-secondary">{notif.message}</p>
-                    <p className="mt-1.5 text-xs text-gray-400 dark:text-text-muted">{formatDate(notif.createdAt)}</p>
+                    <div className="mt-1.5 flex flex-wrap items-center gap-3">
+                      <p className="text-xs text-gray-400 dark:text-text-muted">{formatDate(notif.createdAt)}</p>
+                      {(() => {
+                        const action = actionFor(notif);
+                        return action ? (
+                          <Link to={action.to} className="inline-flex items-center gap-1 text-xs font-semibold text-brand-700 hover:underline dark:text-primary-accent">
+                            {action.label} <ArrowRight className="h-3 w-3" />
+                          </Link>
+                        ) : null;
+                      })()}
+                    </div>
                   </div>
                 </div>
               );

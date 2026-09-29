@@ -3,6 +3,7 @@ const Transaction = require('../models/Transaction');
 const Notification = require('../models/Notification');
 const Category = require('../models/Category');
 const User = require('../models/User');
+const { createNotification } = require('./notify.service');
 const mongoose = require('mongoose');
 
 const toObjectId = (id) => (id instanceof mongoose.Types.ObjectId ? id : new mongoose.Types.ObjectId(String(id)));
@@ -68,7 +69,7 @@ async function checkBudgetAfterTransaction(userIdInput, categoryIdInput, occurre
         ? `You have exceeded your ${categoryName} budget for ${month} (${roundedPct}% used).`
         : `You have used ${roundedPct}% of your ${categoryName} budget for ${month}.`;
 
-    return Notification.create({
+    return createNotification({
       userId,
       type,
       title,
@@ -116,7 +117,8 @@ async function checkMonthlyLimits(userIdInput, occurredAt) {
     const income = totals.find((t) => t._id === 'income')?.total ?? 0;
     const expenses = totals.find((t) => t._id === 'expense')?.total ?? 0;
     const currency = user.settings?.currency || 'NGN';
-    const money = (n) => `${currency} ${Math.round(n).toLocaleString('en-US')}`;
+    const symbol = { NGN: '₦', USD: '$', GBP: '£', EUR: '€', GHS: 'GH₵', KES: 'KSh ' }[currency] ?? `${currency} `;
+    const money = (n) => `${symbol}${Math.round(n).toLocaleString('en-US')}`;
 
     const alerts = [];
     if (income > 0 && expenses > income) {
@@ -131,7 +133,7 @@ async function checkMonthlyLimits(userIdInput, occurredAt) {
 
     for (const alert of alerts) {
       const exists = await Notification.exists({ userId, type: alert.type, 'meta.month': month });
-      if (!exists) await Notification.create({ userId, ...alert, meta: { month, income, expenses } });
+      if (!exists) await createNotification({ userId, ...alert, meta: { month, income, expenses } });
     }
   } catch (err) {
     console.error('Monthly limit alert error:', err);
