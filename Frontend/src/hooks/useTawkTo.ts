@@ -142,7 +142,9 @@ export function useTawkToClickOutside() {
         // onChatMinimized back in response — don't assume it round-trips
         // an event for a state change we ourselves triggered.
         isOpen = false;
-        window.Tawk_API?.minimize?.();
+        window.setTimeout(() => {
+          if (!isOpen) window.Tawk_API?.minimize?.();
+        }, 0);
       }
     }
 
