@@ -69,6 +69,13 @@
   ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.22); }
   :root.dark ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.10); }
   :root.dark ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); }
+
+  .student-sidebar-nav { scrollbar-color: transparent transparent; }
+  .student-sidebar-nav:hover,
+  .student-sidebar-nav:focus-within { scrollbar-color: rgba(255,255,255,0.32) transparent; }
+  .student-sidebar-nav::-webkit-scrollbar-thumb { background: transparent; }
+  .student-sidebar-nav:hover::-webkit-scrollbar-thumb,
+  .student-sidebar-nav:focus-within::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.32); }
 }
 
 /* ── Auth glow border ─────────────────────────────────────────────── */

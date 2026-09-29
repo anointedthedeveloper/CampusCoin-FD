@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { PlayCircle, X } from 'lucide-react';
-import { QUICK_GUIDE_VIDEO_URL } from '@/constants/config';
+import quickGuideVideo from '@/assets/videos/ccvid.mp4';
 import { cn } from '@/utils/cn';
 
 const OPEN_EVENT = 'campus-coin:open-quick-guide';
@@ -35,7 +35,7 @@ export function WatchGuideButton({ className, label = 'Watch the quick guide' }:
 /**
  * A floating "Watch quick guide" pill that slides in once the visitor has
  * scrolled a little, plus the video modal it (and WatchGuideButton) opens.
- * The iframe is only mounted while the modal is open, so the video never
+ * The video is only mounted while the modal is open, so it never
  * loads — or keeps playing — in the background.
  */
 export function QuickGuideVideo({ scrollThreshold = 320 }: { scrollThreshold?: number }) {
@@ -150,13 +150,15 @@ export function QuickGuideVideo({ scrollThreshold = 320 }: { scrollThreshold?: n
                   <X className="h-5 w-5" />
                 </button>
               </div>
-              <div className="relative aspect-video w-full bg-black">
-                <iframe
-                  src={QUICK_GUIDE_VIDEO_URL}
+              <div className="flex w-full items-center justify-center overflow-hidden bg-black">
+                <video
+                  src={quickGuideVideo}
                   title="Campus Coin quick guide"
-                  className="absolute inset-0 h-full w-full"
-                  allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
-                  allowFullScreen
+                  aria-label="Campus Coin quick guide"
+                  controls
+                  playsInline
+                  preload="metadata"
+                  className="block max-h-[calc(100dvh-9rem)] w-full object-contain"
                 />
               </div>
             </div>
