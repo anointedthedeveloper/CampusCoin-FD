@@ -182,31 +182,35 @@ export function AppRoutes() {
           </Route>
         </Route>
 
-        {/* Student application (requires authentication) */}
+        {/* Student application (requires authentication + student role) */}
         <Route element={<ProtectedRoute />}>
           {/* Standalone, one-time setup flow — deliberately outside StudentLayout (no sidebar) */}
-          <Route path={STUDENT_ROUTES.onboarding} element={<OnboardingPage />} />
+          <Route element={<RoleRoute allow={['student']} />}>
+            <Route path={STUDENT_ROUTES.onboarding} element={<OnboardingPage />} />
+          </Route>
 
-          <Route element={<StudentLayout />}>
-            <Route path={STUDENT_ROUTES.dashboard} element={<DashboardPage />} />
-            <Route path={STUDENT_ROUTES.transactions} element={<TransactionsListPage />} />
-            <Route path={STUDENT_ROUTES.newTransaction} element={<TransactionNewPage />} />
-            <Route path={STUDENT_ROUTES.transactionDetail} element={<TransactionDetailPage />} />
-            <Route path={STUDENT_ROUTES.editTransaction} element={<TransactionEditPage />} />
-            <Route path={STUDENT_ROUTES.categories} element={<CategoriesPage />} />
-            <Route path={STUDENT_ROUTES.budgets} element={<BudgetsPage />} />
-            <Route path={STUDENT_ROUTES.reports} element={<ReportsPage />} />
-            <Route path={STUDENT_ROUTES.monthlyReport} element={<MonthlyReportPage />} />
-            <Route path={STUDENT_ROUTES.insights} element={<InsightsPage />} />
-            <Route path={STUDENT_ROUTES.savingTips} element={<SavingTipsPage />} />
-            <Route path={STUDENT_ROUTES.savingsGoals} element={<SavingsGoalsPage />} />
-            <Route path={STUDENT_ROUTES.bookmarks} element={<BookmarksPage />} />
-            <Route path={STUDENT_ROUTES.import} element={<ImportPage />} />
-            <Route path={STUDENT_ROUTES.profile} element={<ProfilePage />} />
-            <Route path={STUDENT_ROUTES.settings} element={<SettingsPage />} />
-            <Route path={STUDENT_ROUTES.notifications} element={<NotificationsPage />} />
-            <Route path={STUDENT_ROUTES.recurring} element={<RecurringPage />} />
-            <Route path={STUDENT_ROUTES.help} element={<HelpPage inApp />} />
+          <Route element={<RoleRoute allow={['student']} />}>
+            <Route element={<StudentLayout />}>
+              <Route path={STUDENT_ROUTES.dashboard} element={<DashboardPage />} />
+              <Route path={STUDENT_ROUTES.transactions} element={<TransactionsListPage />} />
+              <Route path={STUDENT_ROUTES.newTransaction} element={<TransactionNewPage />} />
+              <Route path={STUDENT_ROUTES.transactionDetail} element={<TransactionDetailPage />} />
+              <Route path={STUDENT_ROUTES.editTransaction} element={<TransactionEditPage />} />
+              <Route path={STUDENT_ROUTES.categories} element={<CategoriesPage />} />
+              <Route path={STUDENT_ROUTES.budgets} element={<BudgetsPage />} />
+              <Route path={STUDENT_ROUTES.reports} element={<ReportsPage />} />
+              <Route path={STUDENT_ROUTES.monthlyReport} element={<MonthlyReportPage />} />
+              <Route path={STUDENT_ROUTES.insights} element={<InsightsPage />} />
+              <Route path={STUDENT_ROUTES.savingTips} element={<SavingTipsPage />} />
+              <Route path={STUDENT_ROUTES.savingsGoals} element={<SavingsGoalsPage />} />
+              <Route path={STUDENT_ROUTES.bookmarks} element={<BookmarksPage />} />
+              <Route path={STUDENT_ROUTES.import} element={<ImportPage />} />
+              <Route path={STUDENT_ROUTES.profile} element={<ProfilePage />} />
+              <Route path={STUDENT_ROUTES.settings} element={<SettingsPage />} />
+              <Route path={STUDENT_ROUTES.notifications} element={<NotificationsPage />} />
+              <Route path={STUDENT_ROUTES.recurring} element={<RecurringPage />} />
+              <Route path={STUDENT_ROUTES.help} element={<HelpPage inApp />} />
+            </Route>
           </Route>
 
           {/* Admin console (requires authentication + admin role) */}
