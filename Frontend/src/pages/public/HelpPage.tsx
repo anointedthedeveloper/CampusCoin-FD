@@ -70,7 +70,7 @@ export function HelpPage({ inApp = false }: { inApp?: boolean }) {
     inApp
       ? { icon: MessagesSquare, title: 'Chat with support', text: 'Message the team and see their replies right here in the app.', action: 'Open my conversations', onClick: () => document.getElementById('my-messages')?.scrollIntoView({ behavior: 'smooth' }) }
       : { icon: MessageCircle, title: 'Live chat', text: 'Chat with the Campus Coin team from the bubble in the corner.', action: 'Start a chat', onClick: openLiveChat },
-    { icon: PlayCircle, title: 'Watch the quick guide', text: 'A short video walkthrough of the whole app.', action: 'Play video', onClick: openQuickGuide },
+    { icon: PlayCircle, title: 'Watch the app overview', text: 'A short video walkthrough of the whole app.', action: 'Play video', onClick: openQuickGuide },
     { icon: BookOpen, title: 'Browse the FAQ', text: 'Answers to the most common questions.', action: 'Open FAQ', onClick: () => navigate(PUBLIC_ROUTES.faq) },
     { icon: Mail, title: 'Send us a message', text: inApp ? 'Replies appear in the app and in your email, usually within a day.' : 'We reply by email, usually within a day.', action: 'Write to us', onClick: () => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' }) },
   ];

@@ -15,8 +15,8 @@ export function openQuickGuide() {
   window.dispatchEvent(new Event(OPEN_EVENT));
 }
 
-/** Inline "Watch the quick guide" button for hero sections. */
-export function WatchGuideButton({ className, label = 'Watch the quick guide' }: { className?: string; label?: string }) {
+/** Inline "Watch the app overview" button for hero sections. */
+export function WatchGuideButton({ className, label = 'Watch the app overview' }: { className?: string; label?: string }) {
   return (
     <button
       type="button"
@@ -112,7 +112,7 @@ export function QuickGuideVideo({ scrollThreshold = 320 }: { scrollThreshold?: n
             <span className="absolute inset-0 animate-ping rounded-full bg-[#1c8f53]/40 dark:bg-primary/40" aria-hidden="true" />
             <PlayCircle className="relative h-5 w-5" />
           </span>
-          Watch quick guide
+          Watch app overview
         </button>
         <button
           type="button"

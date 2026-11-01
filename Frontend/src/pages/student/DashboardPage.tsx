@@ -464,7 +464,7 @@ export function DashboardPage() {
             {categoryBreakdown.length === 0 ? (
               <EmptyState compact icon={Receipt} title="No expenses yet" description="Log an expense and this chart fills in automatically." />
             ) : (
-              <CategoryDonutChart data={categoryBreakdown} total={totalExpenseThisMonth} totalLabel="Total Expenses" />
+              <CategoryDonutChart data={categoryBreakdown} total={totalExpenseThisMonth} totalLabel="Total Expenses" currency={currency} />
             )}
           </div>
         </Card>

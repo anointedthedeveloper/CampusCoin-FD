@@ -379,7 +379,7 @@ export function ReportsPage() {
         <Card>
           <h2 className="font-semibold text-gray-900 dark:text-text-primary">Income vs Expenses (6 months)</h2>
           <div className="mt-4">
-            <IncomeExpenseTrendChart data={trend} />
+            <IncomeExpenseTrendChart data={trend} currency={currency} />
           </div>
         </Card>
         <Card>
@@ -388,7 +388,7 @@ export function ReportsPage() {
             {report.categoryBreakdown.length === 0 ? (
               <EmptyState compact icon={PieChart} title="No expenses this month" description="Log expenses to see the breakdown." />
             ) : (
-              <CategoryDonutChart data={report.categoryBreakdown} total={report.totalExpense} totalLabel="Total Expenses" />
+              <CategoryDonutChart data={report.categoryBreakdown} total={report.totalExpense} totalLabel="Total Expenses" currency={currency} />
             )}
           </div>
         </Card>

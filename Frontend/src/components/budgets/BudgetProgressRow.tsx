@@ -22,10 +22,11 @@ interface BudgetProgressRowProps {
   categoryName: string;
   budget: Budget;
   category?: { name: string; icon?: string; color?: string };
+  currency?: string;
 }
 
 /** One budget as a row: category, amount spent vs. limit, a progress bar and its status. */
-export function BudgetProgressRow({ categoryName, budget, category }: BudgetProgressRowProps) {
+export function BudgetProgressRow({ categoryName, budget, category, currency = DEFAULT_CURRENCY }: BudgetProgressRowProps) {
   const utilization = getBudgetUtilization(budget);
   const status      = getBudgetStatus(budget);
   const Icon = resolveCategoryIcon({ name: categoryName, icon: category?.icon, type: 'expense' });
@@ -49,8 +50,8 @@ export function BudgetProgressRow({ categoryName, budget, category }: BudgetProg
             </p>
             <div className="flex shrink-0 items-center gap-2">
               <span className="hidden text-xs text-gray-500 dark:text-text-secondary sm:block tabular-nums">
-                {formatCurrency(budget.spentAmount, DEFAULT_CURRENCY)}
-                <span className="text-gray-300 dark:text-text-muted"> / {formatCurrency(budget.limitAmount, DEFAULT_CURRENCY)}</span>
+                {formatCurrency(budget.spentAmount, currency)}
+                <span className="text-gray-300 dark:text-text-muted"> / {formatCurrency(budget.limitAmount, currency)}</span>
               </span>
               <span className={cn('text-xs font-bold tabular-nums', statusLabel[status])}>
                 {utilization}%
@@ -69,15 +70,15 @@ export function BudgetProgressRow({ categoryName, budget, category }: BudgetProg
           {/* Spent / remaining — mobile */}
           <div className="mt-1 flex items-center justify-between sm:hidden">
             <p className="text-xs text-gray-500 dark:text-text-secondary tabular-nums">
-              {formatCurrency(budget.spentAmount, DEFAULT_CURRENCY)} of {formatCurrency(budget.limitAmount, DEFAULT_CURRENCY)}
+              {formatCurrency(budget.spentAmount, currency)} of {formatCurrency(budget.limitAmount, currency)}
             </p>
             <p className={cn(
               'text-xs font-medium tabular-nums',
               isOver ? 'text-red-600 dark:text-red-400' : 'text-gray-400 dark:text-text-muted',
             )}>
               {isOver
-                ? `${formatCurrency(Math.abs(remaining), DEFAULT_CURRENCY)} over`
-                : `${formatCurrency(remaining, DEFAULT_CURRENCY)} left`}
+                ? `${formatCurrency(Math.abs(remaining), currency)} over`
+                : `${formatCurrency(remaining, currency)} left`}
             </p>
           </div>
 
@@ -88,8 +89,8 @@ export function BudgetProgressRow({ categoryName, budget, category }: BudgetProg
               isOver ? 'text-red-600 dark:text-red-400' : 'text-gray-400 dark:text-text-muted',
             )}>
               {isOver
-                ? `${formatCurrency(Math.abs(remaining), DEFAULT_CURRENCY)} over budget`
-                : `${formatCurrency(remaining, DEFAULT_CURRENCY)} remaining`}
+                ? `${formatCurrency(Math.abs(remaining), currency)} over budget`
+                : `${formatCurrency(remaining, currency)} remaining`}
             </p>
           </div>
         </div>

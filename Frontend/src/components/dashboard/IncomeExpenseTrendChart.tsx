@@ -19,7 +19,7 @@ export interface TrendPoint {
 }
 
 /** Line chart of income vs. expenses per month. */
-export function IncomeExpenseTrendChart({ data }: { data: TrendPoint[] }) {
+export function IncomeExpenseTrendChart({ data, currency = DEFAULT_CURRENCY }: { data: TrendPoint[]; currency?: string }) {
   return (
     <div className="h-64 w-full">
       <ResponsiveContainer width="100%" height="100%">
@@ -34,7 +34,7 @@ export function IncomeExpenseTrendChart({ data }: { data: TrendPoint[] }) {
             tickFormatter={(value: number) => `${Math.round(value / 1000)}k`}
           />
           <Tooltip
-            formatter={(value: number) => formatCurrency(value, DEFAULT_CURRENCY)}
+            formatter={(value: number) => formatCurrency(value, currency)}
             contentStyle={{ borderRadius: 8, borderColor: '#e5e7eb', fontSize: 12 }}
           />
           <Legend wrapperStyle={{ fontSize: 12 }} />

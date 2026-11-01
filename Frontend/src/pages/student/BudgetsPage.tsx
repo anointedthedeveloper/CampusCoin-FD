@@ -7,7 +7,7 @@ import { budgetService, categoryService } from '@/services';
 import { useAuth } from '@/hooks/useAuth';
 import { useMinLoadTime } from '@/hooks/useMinLoadTime';
 import { DEFAULT_CURRENCY } from '@/constants/config';
-import { formatCurrency, formatMonthLabel } from '@/utils/format';
+import { formatCurrency, formatMonthLabel, getCurrencySymbol } from '@/utils/format';
 import { ApiError } from '@/types/api';
 import { cn } from '@/utils/cn';
 import { formatNumericInput, normalizeNumericInput } from '@/utils/number';
@@ -256,7 +256,7 @@ export function BudgetsPage() {
               </label>
               <div className="relative">
                 <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-sm font-medium text-gray-400 dark:text-text-muted">
-                  {user?.settings?.currency ?? DEFAULT_CURRENCY}
+                  {getCurrencySymbol(currency)}
                 </span>
                 <input
                   id="budget-limit"
@@ -305,7 +305,7 @@ export function BudgetsPage() {
           <div className="divide-y divide-gray-50 dark:divide-white/[0.04]">
             {budgets.map((budget) => (
               <div key={budget.id} className="group relative px-5">
-                <BudgetProgressRow budget={budget} categoryName={categoryNameFor(budget.categoryId)} category={expenseCategories.find((c) => c.id === budget.categoryId)} />
+                <BudgetProgressRow budget={budget} categoryName={categoryNameFor(budget.categoryId)} category={expenseCategories.find((c) => c.id === budget.categoryId)} currency={currency} />
 
                 {/* Action buttons fade in on hover */}
                 <div className="absolute right-5 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">

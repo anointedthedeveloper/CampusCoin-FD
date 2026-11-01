@@ -9,10 +9,11 @@ interface CategoryDonutChartProps {
   data: CategoryBreakdownItem[];
   total: number;
   totalLabel?: string;
+  currency?: string;
 }
 
 /** Donut chart of spending by category, with the total in the middle. */
-export function CategoryDonutChart({ data, total, totalLabel = 'Total' }: CategoryDonutChartProps) {
+export function CategoryDonutChart({ data, total, totalLabel = 'Total', currency = DEFAULT_CURRENCY }: CategoryDonutChartProps) {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
@@ -36,7 +37,7 @@ export function CategoryDonutChart({ data, total, totalLabel = 'Total' }: Catego
             </Pie>
             <Tooltip
               formatter={(value: number, _name, item) => [
-                formatCurrency(value, DEFAULT_CURRENCY),
+                formatCurrency(value, currency),
                 item.payload.categoryName,
               ]}
               contentStyle={{
@@ -51,7 +52,7 @@ export function CategoryDonutChart({ data, total, totalLabel = 'Total' }: Catego
         </ResponsiveContainer>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
           <span className="text-xs text-gray-500 dark:text-text-muted">{totalLabel}</span>
-          <span className="text-sm font-bold text-gray-900 dark:text-text-primary">{formatCurrency(total, DEFAULT_CURRENCY)}</span>
+          <span className="text-sm font-bold text-gray-900 dark:text-text-primary">{formatCurrency(total, currency)}</span>
         </div>
       </div>
 

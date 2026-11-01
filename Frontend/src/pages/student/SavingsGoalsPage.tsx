@@ -29,6 +29,8 @@ import { useMinLoadTime } from '@/hooks/useMinLoadTime';
 import { ApiError } from '@/types/api';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/utils/cn';
+import { DEFAULT_CURRENCY } from '@/constants/config';
+import { formatCurrency, getCurrencySymbol } from '@/utils/format';
 import {
   computeProjection,
   getNewMilestone,
@@ -80,13 +82,13 @@ const MILESTONE_BADGES: Record<number, string> = {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-// Note: both formatters always use US dollars, not the student's currency setting.
-function fmt(n: number) {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
+// Note: currency is threaded from the page's useAuth() user into each component.
+function fmt(n: number, currency: string) {
+  return formatCurrency(n, currency);
 }
 
-function fmtDecimal(n: number) {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+function fmtDecimal(n: number, currency: string) {
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency, minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
 }
 
 /** Style config for a goal colour (falls back to the first one). */
@@ -195,6 +197,7 @@ interface GoalFormProps {
   initial?: SavingsGoal;
   onSubmit: (data: Omit<SavingsGoal, 'id' | 'createdAt' | 'celebratedMilestones'>) => void;
   onClose: () => void;
+  currency: string;
 }
 
 const EMPTY_FORM = {
@@ -208,7 +211,7 @@ const EMPTY_FORM = {
 };
 
 /** Create/edit form for a goal: name, target, date, colour and icon. */
-function GoalFormModal({ mode, initial, onSubmit, onClose }: GoalFormProps) {
+function GoalFormModal({ mode, initial, onSubmit, onClose, currency }: GoalFormProps) {
   const [form, setForm] = useState(() =>
     initial
       ? {
@@ -330,7 +333,7 @@ function GoalFormModal({ mode, initial, onSubmit, onClose }: GoalFormProps) {
                 Target amount <span className="text-red-500">*</span>
               </label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">$</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">{getCurrencySymbol(currency)}</span>
                 <input
                   type="number"
                   min="1"
@@ -352,7 +355,7 @@ function GoalFormModal({ mode, initial, onSubmit, onClose }: GoalFormProps) {
                 Already saved
               </label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">$</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">{getCurrencySymbol(currency)}</span>
                 <input
                   type="number"
                   min="0"
@@ -462,10 +465,12 @@ function AdjustModal({
   goal,
   onConfirm,
   onClose,
+  currency,
 }: {
   goal: SavingsGoal;
   onConfirm: (delta: number) => void;
   onClose: () => void;
+  currency: string;
 }) {
   const [mode, setMode] = useState<'deposit' | 'withdraw'>('deposit');
   const [amount, setAmount] = useState('');
@@ -502,7 +507,7 @@ function AdjustModal({
         </button>
         <h2 className="text-base font-bold text-gray-900 dark:text-text-primary mb-1">{goal.name}</h2>
         <p className="text-xs text-gray-500 dark:text-text-secondary mb-4">
-          {fmt(goal.savedAmount)} saved · {fmt(remaining)} remaining
+          {fmt(goal.savedAmount, currency)} saved · {fmt(remaining, currency)} remaining
         </p>
 
         {/* Toggle */}
@@ -527,7 +532,7 @@ function AdjustModal({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">$</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">{getCurrencySymbol(currency)}</span>
               <input
                 type="number"
                 min="0.01"
@@ -550,7 +555,7 @@ function AdjustModal({
                 onClick={() => setAmount(String(remaining))}
                 className="mt-1.5 text-xs font-semibold text-brand-600 dark:text-primary-accent hover:underline"
               >
-                Fill to goal ({fmt(remaining)})
+                Fill to goal ({fmt(remaining, currency)})
               </button>
             )}
           </div>
@@ -574,11 +579,13 @@ function GoalCard({
   onEdit,
   onDelete,
   onAdjust,
+  currency,
 }: {
   goal: SavingsGoal;
   onEdit: (g: SavingsGoal) => void;
   onDelete: (id: string) => void;
   onAdjust: (g: SavingsGoal) => void;
+  currency: string;
 }) {
   const [expanded, setExpanded] = useState(false);
   const proj = computeProjection(goal);
@@ -628,8 +635,8 @@ function GoalCard({
         <div>
           <div className="flex items-baseline justify-between mb-1.5 gap-2">
             <span className="text-lg font-bold text-gray-900 dark:text-text-primary">
-              {fmt(goal.savedAmount)}
-              <span className="ml-1 text-xs font-normal text-gray-400 dark:text-text-muted">/ {fmt(goal.targetAmount)}</span>
+              {fmt(goal.savedAmount, currency)}
+              <span className="ml-1 text-xs font-normal text-gray-400 dark:text-text-muted">/ {fmt(goal.targetAmount, currency)}</span>
             </span>
             <span className={cn(
               'text-sm font-bold tabular-nums',
@@ -755,13 +762,13 @@ function GoalCard({
                       >
                         <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">{label}</span>
                         <span className="text-sm font-bold text-gray-900 dark:text-text-primary">
-                          {fmtDecimal(value ?? 0)}
+                          {fmtDecimal(value ?? 0, currency)}
                         </span>
                       </div>
                     ))}
                   </div>
                   <p className="mt-2 text-[11px] text-gray-400 dark:text-text-muted leading-relaxed">
-                    Save <strong className="text-gray-600 dark:text-text-secondary">{fmtDecimal(proj.dailyRequired ?? 0)}</strong> every day to reach your goal on time.
+                    Save <strong className="text-gray-600 dark:text-text-secondary">{fmtDecimal(proj.dailyRequired ?? 0, currency)}</strong> every day to reach your goal on time.
                   </p>
                 </motion.div>
               )}
@@ -808,6 +815,7 @@ function OverviewStat({
 /** Savings goals: create goals, track progress, add or withdraw money, and celebrate milestones. */
 export function SavingsGoalsPage() {
   const { user } = useAuth();
+  const currency = user?.settings?.currency ?? DEFAULT_CURRENCY;
   const [goals, setGoals] = useState<SavingsGoal[]>([]);
   const [modalMode, setModalMode] = useState<FormMode | null>(null);
   const [editingGoal, setEditingGoal] = useState<SavingsGoal | undefined>();
@@ -937,13 +945,13 @@ export function SavingsGoalsPage() {
       {/* Modals */}
       <AnimatePresence>
         {modalMode === 'create' && (
-          <GoalFormModal mode="create" onSubmit={handleCreate} onClose={() => setModalMode(null)} />
+          <GoalFormModal mode="create" onSubmit={handleCreate} onClose={() => setModalMode(null)} currency={currency} />
         )}
         {modalMode === 'edit' && editingGoal && (
-          <GoalFormModal mode="edit" initial={editingGoal} onSubmit={handleEdit} onClose={() => { setModalMode(null); setEditingGoal(undefined); }} />
+          <GoalFormModal mode="edit" initial={editingGoal} onSubmit={handleEdit} onClose={() => { setModalMode(null); setEditingGoal(undefined); }} currency={currency} />
         )}
         {adjustGoal && (
-          <AdjustModal goal={adjustGoal} onConfirm={handleAdjust} onClose={() => setAdjustGoal(undefined)} />
+          <AdjustModal goal={adjustGoal} onConfirm={handleAdjust} onClose={() => setAdjustGoal(undefined)} currency={currency} />
         )}
         {deleteConfirm && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
@@ -1009,8 +1017,8 @@ export function SavingsGoalsPage() {
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <OverviewStat
             label="Total Saved"
-            value={fmt(totalSaved)}
-            sub={`of ${fmt(totalTarget)} target`}
+            value={fmt(totalSaved, currency)}
+            sub={`of ${fmt(totalTarget, currency)} target`}
             icon={PiggyBank}
             iconCls="bg-teal-100 text-teal-600 dark:bg-teal-400/15 dark:text-teal-400"
           />
@@ -1029,7 +1037,7 @@ export function SavingsGoalsPage() {
           />
           <OverviewStat
             label="Remaining to Save"
-            value={fmt(Math.max(0, totalTarget - totalSaved))}
+            value={fmt(Math.max(0, totalTarget - totalSaved), currency)}
             icon={Target}
             iconCls="bg-purple-100 text-purple-600 dark:bg-purple-400/15 dark:text-purple-400"
           />
@@ -1073,6 +1081,7 @@ export function SavingsGoalsPage() {
                   onEdit={(g) => { setEditingGoal(g); setModalMode('edit'); }}
                   onDelete={(id) => setDeleteConfirm(id)}
                   onAdjust={(g) => setAdjustGoal(g)}
+                  currency={currency}
                 />
               </motion.div>
             ))}

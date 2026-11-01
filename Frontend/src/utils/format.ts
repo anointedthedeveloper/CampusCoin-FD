@@ -9,6 +9,20 @@ export function formatCurrency(amount: number, currency = 'USD'): string {
   }).format(amount);
 }
 
+/**
+ * Returns just the narrow symbol for a currency code, e.g. 'NGN' → '₦', 'USD' → '$'.
+ * Used for input adornments where the full formatted number isn't needed.
+ */
+export function getCurrencySymbol(currency = 'USD'): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency,
+    currencyDisplay: 'narrowSymbol',
+  })
+    .formatToParts(0)
+    .find((p) => p.type === 'currency')?.value ?? currency;
+}
+
 /** e.g. "Sep 12, 2026". */
 export function formatDate(isoDate: string): string {
   return new Intl.DateTimeFormat('en-US', { dateStyle: 'medium' }).format(new Date(isoDate));

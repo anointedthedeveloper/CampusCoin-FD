@@ -329,7 +329,7 @@ export function HomePage() {
       <section className="mx-auto mt-12 max-w-[1280px] px-4 sm:px-6">
         <div className="grid gap-3 sm:grid-cols-3">
           {[
-            { icon: PlayCircle, title: 'Watch the 2-minute guide', text: 'See the whole app before you sign up.', onClick: openQuickGuide },
+            { icon: PlayCircle, title: 'Watch the app overview', text: 'See the whole app before you sign up.', onClick: openQuickGuide },
             { icon: HelpCircle, title: 'Read the FAQ', text: 'Quick answers to common questions.', to: PUBLIC_ROUTES.faq },
             { icon: LifeBuoy, title: 'Get help', text: 'Guides, live chat and a contact form.', to: PUBLIC_ROUTES.help },
           ].map(({ icon: Icon, title, text, to, onClick }) => {
