@@ -361,19 +361,6 @@ export function StudentLayout() {
           })}
         </nav>
 
-        {/* Collapse toggle (desktop) */}
-        <div className="hidden border-t border-white/5 px-2 py-2 lg:block">
-          <button
-            type="button"
-            onClick={() => { setCollapsed((c) => !c); setTooltip(null); }}
-            className={cn('flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-medium text-gray-400 transition-colors hover:bg-white/[0.06] hover:text-gray-100', rail && 'justify-center px-0')}
-            aria-label={rail ? 'Expand sidebar' : 'Collapse sidebar'}
-            title={rail ? 'Expand sidebar' : 'Collapse sidebar'}
-          >
-            {rail ? <PanelLeftOpen className="h-4 w-4" /> : <><PanelLeftClose className="h-4 w-4" /> Collapse sidebar</>}
-          </button>
-        </div>
-
         {/* User footer */}
         <div className={cn('border-t border-white/5 py-3', rail ? 'px-2' : 'px-3')}>
           <div className={cn('flex items-center gap-2.5 rounded-lg py-2', rail ? 'flex-col px-0' : 'px-2')}>
