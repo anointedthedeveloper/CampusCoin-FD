@@ -20,6 +20,8 @@ export const CURRENCY_OPTIONS = [
   { value: 'EUR', label: '€ — Euro' },
   { value: 'CAD', label: 'CA$ — Canadian Dollar' },
   { value: 'GHS', label: 'GH₵ — Ghanaian Cedi' },
+  { value: 'INR', label: '₹ — Indian Rupee' },
+  { value: 'PKR', label: '₨ — Pakistani Rupee' },
 ] as const;
 export const DEFAULT_BUDGET_ALERT_THRESHOLD = 80;
 
