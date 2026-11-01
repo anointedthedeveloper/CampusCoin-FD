@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react';
+﻿import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   BarChart3,
@@ -76,7 +76,7 @@ export function HelpPage({ inApp = false }: { inApp?: boolean }) {
   ];
 
   return (
-    <div className={cn(!inApp && 'mx-auto max-w-[1280px] px-4 pb-16 pt-10 sm:px-6 lg:pt-14', inApp && 'space-y-2')}>
+    <div className={cn(!inApp && 'mx-auto max-w-[1280px] px-3 pb-16 pt-10 sm:px-4 lg:pt-14', inApp && 'space-y-2')}>
       <QuickGuideVideo scrollThreshold={Number.POSITIVE_INFINITY} />
 
       {/* Hero */}

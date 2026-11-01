@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+﻿import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
   BookOpen,
@@ -298,10 +298,10 @@ export function FaqPage() {
   return (
     <div className="overflow-hidden">
       {/* ── Hero ── */}
-      <section className="mx-auto max-w-[1280px] px-4 pb-10 pt-12 sm:px-6 sm:pb-14 lg:pt-16">
+      <section className="mx-auto max-w-[1280px] px-3 pb-10 pt-12 sm:px-4 sm:pb-14 lg:pt-16">
         <div className="grid gap-10 md:grid-cols-2 md:items-center md:gap-12">
           <div className="max-w-xl">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/80 px-4 py-1.5 text-xs font-semibold text-[#1c8f53] shadow-sm dark:bg-white/10 dark:text-primary-accent">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/80 px-3 py-1.5 text-xs font-semibold text-[#1c8f53] shadow-sm dark:bg-white/10 dark:text-primary-accent">
               <HelpCircle className="h-3.5 w-3.5" />
               Help &amp; FAQ
             </span>
@@ -358,7 +358,7 @@ export function FaqPage() {
       </section>
 
       {/* ── Topics + accordion ── */}
-      <section id="faq-results" className="scroll-mt-24 mx-auto max-w-[1280px] px-4 py-10 sm:px-6 sm:py-14">
+      <section id="faq-results" className="scroll-mt-24 mx-auto max-w-[1280px] px-3 py-10 sm:px-4 sm:py-14">
         <div className="grid gap-8 lg:grid-cols-[210px_1fr] lg:gap-16">
           <nav aria-label="FAQ topics" className="lg:block">
             <p className="mb-3 text-xs font-bold uppercase tracking-[0.14em] text-gray-500 dark:text-text-muted">Browse by topic</p>
@@ -432,7 +432,7 @@ export function FaqPage() {
       </section>
 
       {/* ── CTA ── */}
-      <section className="mx-auto max-w-[1280px] px-4 py-14 sm:px-6 sm:py-20">
+      <section className="mx-auto max-w-[1280px] px-3 py-14 sm:px-4 sm:py-20">
         <div className="flex flex-col gap-6 rounded-[28px] bg-[#122a1f] px-6 py-10 text-white dark:bg-surface-elevated dark:shadow-lg dark:shadow-black/20 sm:flex-row sm:items-center sm:justify-between sm:px-10 sm:py-12">
           <div className="flex items-start gap-4">
             <Lock className="mt-1 h-5 w-5 shrink-0 text-[#78d99a] dark:text-primary-accent" />

@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+﻿import { Link } from 'react-router-dom';
 import { BellRing, FileSpreadsheet, Filter, Gauge, LineChart, ListPlus, PieChart, Repeat, Sparkles, Tags, Target, TrendingDown, Bot, FileDown, Upload, Lightbulb, SunMoon } from 'lucide-react';
 import { PUBLIC_ROUTES } from '@/constants/routes';
 import { assets } from '@/assets';
@@ -144,7 +144,7 @@ export function FeaturesPage() {
   return (
     <div className="overflow-hidden">
       {/* ── Hero ── */}
-      <section className="mx-auto grid max-w-[1280px] items-center gap-8 px-4 pb-14 pt-10 sm:px-6 sm:pb-20 lg:grid-cols-[0.82fr_1.18fr] lg:gap-10 lg:pt-12">
+      <section className="mx-auto grid max-w-[1280px] items-center gap-8 px-3 pb-14 pt-10 sm:px-4 sm:pb-20 lg:grid-cols-[0.82fr_1.18fr] lg:gap-10 lg:pt-12">
         <div>
           <p className="flex items-center gap-3 text-xs font-bold uppercase tracking-[0.2em] text-gray-400 dark:text-text-muted">
             Features
@@ -172,7 +172,7 @@ export function FeaturesPage() {
               <a
                 key={key}
                 href={`#${key}`}
-                className="flex items-center gap-1.5 rounded-full bg-[#f6f4ee] px-4 py-2 text-xs font-semibold text-gray-600 transition-colors hover:bg-[#e5f1e5] hover:text-[#1c8f53] dark:bg-white/5 dark:text-text-secondary dark:hover:bg-white/10 dark:hover:text-primary-accent"
+                className="flex items-center gap-1.5 rounded-full bg-[#f6f4ee] px-3 py-2 text-xs font-semibold text-gray-600 transition-colors hover:bg-[#e5f1e5] hover:text-[#1c8f53] dark:bg-white/5 dark:text-text-secondary dark:hover:bg-white/10 dark:hover:text-primary-accent"
               >
                 <span className="text-[10px] font-bold text-[#1c8f53]/70 dark:text-primary-accent/70">0{index + 1}</span>
                 {eyebrow}
@@ -202,7 +202,7 @@ export function FeaturesPage() {
           id={key}
           className={`scroll-mt-24 ${index % 2 === 1 ? 'bg-[#f6f4ee]/60 dark:bg-white/[0.015]' : ''}`}
         >
-          <div className={`mx-auto grid max-w-[1280px] items-center gap-9 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-2 lg:gap-16 ${reverse ? 'lg:[&>*:first-child]:order-2' : ''}`}>
+          <div className={`mx-auto grid max-w-[1280px] items-center gap-9 px-3 py-12 sm:px-4 sm:py-16 lg:grid-cols-2 lg:gap-16 ${reverse ? 'lg:[&>*:first-child]:order-2' : ''}`}>
             <div className="py-2">
               <p className={`text-xs font-bold uppercase tracking-[0.14em] ${accent}`}>{eyebrow}</p>
               <h2 className="mt-3 max-w-xl text-3xl font-bold leading-tight text-[#1d3d2d] dark:text-text-primary sm:text-4xl">{title}</h2>
@@ -229,7 +229,7 @@ export function FeaturesPage() {
       ))}
 
       {/* ── Also included ── */}
-      <section className="mx-auto max-w-[1280px] px-4 pt-6 sm:px-6">
+      <section className="mx-auto max-w-[1280px] px-3 pt-6 sm:px-4">
         <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#1a8f57] dark:text-primary-accent">Also included</p>
         <h2 className="mt-2 text-2xl font-bold text-[#1d3d2d] dark:text-text-primary sm:text-3xl">The small things that make it stick.</h2>
         <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -244,7 +244,7 @@ export function FeaturesPage() {
       </section>
 
       {/* ── CTA ── */}
-      <section className="mx-auto max-w-[1280px] px-4 py-14 sm:px-6 sm:py-20">
+      <section className="mx-auto max-w-[1280px] px-3 py-14 sm:px-4 sm:py-20">
         <div className="flex flex-col gap-6 rounded-[28px] bg-[#d7f0d1] px-6 py-10 dark:bg-surface-elevated dark:shadow-lg dark:shadow-black/20 sm:flex-row sm:items-center sm:justify-between sm:px-10 sm:py-12">
           <div>
             <h2 className="text-2xl font-bold text-[#1d3d2d] dark:text-text-primary">Put your money in view.</h2>

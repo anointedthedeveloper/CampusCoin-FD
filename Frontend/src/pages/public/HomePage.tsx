@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, BarChart3, Bell, Bot, FileSpreadsheet, LayoutDashboard, Lightbulb, PiggyBank, Receipt, Sparkles, Tags, Users, Wallet, PlayCircle, HelpCircle, LifeBuoy } from 'lucide-react';
 import { PUBLIC_ROUTES, STUDENT_ROUTES } from '@/constants/routes';
@@ -175,10 +175,10 @@ export function HomePage() {
       <section className="relative isolate -mt-24 min-h-svh overflow-hidden bg-[#f6fbf7] pt-24 dark:bg-background">
         <HeroBackground />
         {/* The card sits at the far left so the photo keeps the rest of the screen. */}
-        <div className="relative z-20 flex min-h-[calc(100svh-6rem)] w-full items-center px-4 py-6 sm:px-6 md:py-8 lg:pl-[3vw] lg:pr-0 2xl:pl-[5vw]">
+        <div className="relative z-20 flex min-h-[calc(100svh-6rem)] w-full items-center px-3 py-6 sm:px-4 md:py-8 lg:pl-[3vw] lg:pr-0 2xl:pl-[5vw]">
           <div className="w-full">
             <div className="glass-panel max-w-[520px] rounded-[28px] p-6 sm:p-8 lg:max-w-[540px] [@media(max-height:720px)]:p-6">
-              <span className="inline-flex animate-fade-in-up items-center gap-1.5 rounded-full bg-white/80 px-4 py-1.5 text-xs font-semibold text-[#1d3d2d] shadow-sm transition-transform duration-200 hover:scale-105 dark:bg-white/10 dark:text-text-primary dark:shadow-black/20">
+              <span className="inline-flex animate-fade-in-up items-center gap-1.5 rounded-full bg-white/80 px-3 py-1.5 text-xs font-semibold text-[#1d3d2d] shadow-sm transition-transform duration-200 hover:scale-105 dark:bg-white/10 dark:text-text-primary dark:shadow-black/20">
                 <span className="text-[#1f7a43] dark:text-primary-accent">Smart money,</span>
                 <span className="text-[#1d3d2d] dark:text-text-primary">Brighter Future</span>
               </span>
@@ -231,12 +231,12 @@ export function HomePage() {
       </section>
 
       {/* ── Feature cards ── */}
-      <section className="mx-auto mt-6 max-w-[1280px] px-4 sm:px-6">
+      <section className="mx-auto mt-6 max-w-[1280px] px-3 sm:px-4">
         <FeatureGrid />
       </section>
 
       {/* ── Stats strip ── */}
-      <section className="mx-auto mt-14 max-w-[1280px] px-4 sm:px-6">
+      <section className="mx-auto mt-14 max-w-[1280px] px-3 sm:px-4">
         <div className="grid grid-cols-2 gap-4 rounded-[28px] bg-[#122a1f] px-6 py-8 dark:bg-surface-elevated dark:shadow-lg dark:shadow-black/20 sm:grid-cols-4">
           {stats.map(({ value, label }) => (
             <div key={label} className="text-center">
@@ -248,7 +248,7 @@ export function HomePage() {
       </section>
 
       {/* ── How it works ── */}
-      <section className="mx-auto mt-12 max-w-[1280px] px-4 sm:px-6">
+      <section className="mx-auto mt-12 max-w-[1280px] px-3 sm:px-4">
         <div className="text-center">
           <p className="text-sm font-semibold uppercase tracking-wide text-[#1a8f57] dark:text-primary-accent">How it works</p>
           <h2 className="mt-2 text-2xl font-bold text-[#1d3d2d] dark:text-text-primary sm:text-3xl">
@@ -286,7 +286,7 @@ export function HomePage() {
       </section>
 
       {/* ── App feature highlights ── */}
-      <section className="mx-auto mt-12 max-w-[1280px] px-4 sm:px-6">
+      <section className="mx-auto mt-12 max-w-[1280px] px-3 sm:px-4">
         <div className="text-center">
           <p className="text-sm font-semibold uppercase tracking-wide text-[#1a8f57] dark:text-primary-accent">Everything included</p>
           <h2 className="mt-2 text-2xl font-bold text-[#1d3d2d] dark:text-text-primary sm:text-3xl">
@@ -310,7 +310,7 @@ export function HomePage() {
       </section>
 
       {/* ── CTA ── */}
-      <section className="mx-auto mt-12 max-w-[1280px] px-4 sm:px-6">
+      <section className="mx-auto mt-12 max-w-[1280px] px-3 sm:px-4">
         <div className="flex flex-col items-center gap-4 rounded-[28px] bg-[#d7f0d1] px-6 py-10 text-center dark:bg-surface-elevated dark:shadow-lg dark:shadow-black/20 sm:py-12">
           <h2 className="text-2xl font-bold text-[#1d3d2d] dark:text-text-primary sm:text-3xl">Ready to see where your money goes?</h2>
           <p className="max-w-md text-sm text-[#1d3d2d]/70 dark:text-text-secondary">
@@ -326,7 +326,7 @@ export function HomePage() {
       </section>
 
       {/* ── Help band ── */}
-      <section className="mx-auto mt-12 max-w-[1280px] px-4 sm:px-6">
+      <section className="mx-auto mt-12 max-w-[1280px] px-3 sm:px-4">
         <div className="grid gap-3 sm:grid-cols-3">
           {[
             { icon: PlayCircle, title: 'Watch the app overview', text: 'See the whole app before you sign up.', onClick: openQuickGuide },
@@ -349,7 +349,7 @@ export function HomePage() {
       </section>
 
       {/* ── Sitemap (required by SRS) ── */}
-      <section className="mx-auto mt-12 max-w-[1280px] px-4 pb-16 sm:px-6" aria-label="Site map">
+      <section className="mx-auto mt-12 max-w-[1280px] px-3 pb-16 sm:px-4" aria-label="Site map">
         <div className="rounded-[28px] border border-gray-200 bg-white p-6 dark:border-border dark:bg-surface-elevated sm:p-8">
           <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-text-muted">Site Map</p>
           <h2 className="mt-1 text-lg font-bold text-[#1d3d2d] dark:text-text-primary">Everything in Campus Coin</h2>
