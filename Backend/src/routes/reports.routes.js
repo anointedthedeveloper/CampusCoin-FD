@@ -290,12 +290,19 @@ router.get('/monthly/pdf', async (req, res) => {
     if (typeof month !== 'string' || !MONTH_RE.test(month)) {
       return res.status(400).json({ message: 'month must be in YYYY-MM format' });
     }
-    const pdf = await buildMonthlyPdf(req.user, month);
+    let pdf;
+    try {
+      pdf = await buildMonthlyPdf(req.user, month);
+    } catch (pdfErr) {
+      console.error('[PDF] buildMonthlyPdf failed:', pdfErr?.message ?? pdfErr);
+      if (!res.headersSent) return res.status(500).json({ message: 'Unable to generate report. PDF generation failed on the server.' });
+      return res.end();
+    }
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="CampusCoin-Monthly-Report-${month}.pdf"`);
     res.send(pdf);
   } catch (err) {
-    console.error(err);
+    console.error('[PDF] Unexpected error in /monthly/pdf:', err?.message ?? err);
     if (!res.headersSent) return res.status(500).json({ message: 'Unable to generate report' });
     res.end();
   }

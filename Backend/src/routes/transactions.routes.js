@@ -129,7 +129,13 @@ router.get('/export', async (req, res) => {
 
     if (req.query.format !== 'pdf') return res.json({ data: rows, meta: { truncated: items.length === EXPORT_LIMIT } });
 
-    const PDFDocument = require('pdfkit');
+    let PDFDocument;
+    try {
+      PDFDocument = require('pdfkit');
+    } catch (e) {
+      console.error('[PDF] Failed to require pdfkit:', e?.message);
+      return res.status(500).json({ message: 'PDF library unavailable on the server.' });
+    }
     const currency = req.user.settings?.currency || 'NGN';
     const money = (n) => `${currency} ${Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     const doc = new PDFDocument({ margin: 40, size: 'A4' });
