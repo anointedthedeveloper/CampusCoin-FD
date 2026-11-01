@@ -9,6 +9,7 @@ const categorySchema = new mongoose.Schema(
     type: { type: String, enum: ['income', 'expense'], required: true },
     icon: { type: String },
     color: { type: String },
+    description: { type: String, trim: true, maxlength: 200, default: null },
     // null = system/admin default visible to all users
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     isDefault: { type: Boolean, default: false },

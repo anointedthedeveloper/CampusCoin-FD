@@ -21,7 +21,7 @@ const statusLabel: Record<string, string> = {
 interface BudgetProgressRowProps {
   categoryName: string;
   budget: Budget;
-  category?: { name: string; icon?: string; color?: string };
+  category?: { name: string; icon?: string; color?: string; description?: string | null };
   currency?: string;
 }
 
@@ -45,9 +45,14 @@ export function BudgetProgressRow({ categoryName, budget, category, currency = D
         {/* Name + meta */}
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2 mb-1.5">
-            <p className="truncate text-sm font-semibold text-gray-900 dark:text-text-primary">
-              {categoryName}
-            </p>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-gray-900 dark:text-text-primary">
+                {categoryName}
+              </p>
+              {category?.description && (
+                <p className="truncate text-xs text-gray-400 dark:text-text-muted">{category.description}</p>
+              )}
+            </div>
             <div className="flex shrink-0 items-center gap-2">
               <span className="hidden text-xs text-gray-500 dark:text-text-secondary sm:block tabular-nums">
                 {formatCurrency(budget.spentAmount, currency)}

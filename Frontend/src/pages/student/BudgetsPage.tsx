@@ -247,6 +247,13 @@ export function BudgetsPage() {
                   <option key={cat.id} value={cat.id}>{cat.name}</option>
                 ))}
               </select>
+              {/* Show the selected category's description if it has one */}
+              {(() => {
+                const selected = expenseCategories.find((c) => c.id === categoryId);
+                return selected?.description ? (
+                  <p className="mt-1 text-xs text-gray-400 dark:text-text-muted">{selected.description}</p>
+                ) : null;
+              })()}
             </div>
 
             {/* Limit */}

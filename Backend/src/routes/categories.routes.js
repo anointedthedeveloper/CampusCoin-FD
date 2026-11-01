@@ -39,6 +39,7 @@ function formatCategory(c) {
     type: c.type,
     icon: c.icon,
     color: c.color,
+    description: c.description ?? null,
     isDefault: c.isDefault,
     userId: c.userId?.toString() ?? null,
     createdAt: c.createdAt,
@@ -86,14 +87,19 @@ function parseLook(body) {
 // POST /api/v1/categories
 router.post('/', async (req, res) => {
   try {
-    const { name, type } = req.body;
+    const { name, type, description } = req.body;
     if (typeof name !== 'string' || !name.trim() || !type) return res.status(400).json({ message: 'Name and type are required' });
     if (!CATEGORY_TYPES.includes(type)) return res.status(400).json({ message: "type must be 'income' or 'expense'" });
     if (name.trim().length > 40) return res.status(400).json({ message: 'Category names can be up to 40 characters' });
+    if (description !== undefined && description !== null && description !== '') {
+      if (typeof description !== 'string') return res.status(400).json({ message: 'Description must be a string' });
+      if (description.trim().length > 200) return res.status(400).json({ message: 'Description can be up to 200 characters' });
+    }
     const look = parseLook(req.body);
     if (look.error) return res.status(400).json({ message: look.error });
 
-    const category = await Category.create({ name: name.trim(), type, ...look.value, userId: req.user._id, isDefault: false });
+    const descValue = description && typeof description === 'string' && description.trim() ? description.trim() : null;
+    const category = await Category.create({ name: name.trim(), type, ...look.value, description: descValue, userId: req.user._id, isDefault: false });
     res.status(201).json({ data: formatCategory(category) });
   } catch (err) {
     if (err.code === 11000) return res.status(409).json({ message: 'A category with this name and type already exists' });
@@ -111,6 +117,16 @@ router.patch('/:id', async (req, res) => {
       if (typeof req.body.name !== 'string' || !req.body.name.trim()) return res.status(400).json({ message: 'Name cannot be empty' });
       if (req.body.name.trim().length > 40) return res.status(400).json({ message: 'Category names can be up to 40 characters' });
       category.name = req.body.name.trim();
+    }
+    if (req.body.description !== undefined) {
+      const desc = req.body.description;
+      if (desc === null || desc === '') {
+        category.description = null;
+      } else {
+        if (typeof desc !== 'string') return res.status(400).json({ message: 'Description must be a string' });
+        if (desc.trim().length > 200) return res.status(400).json({ message: 'Description can be up to 200 characters' });
+        category.description = desc.trim();
+      }
     }
     const look = parseLook(req.body);
     if (look.error) return res.status(400).json({ message: look.error });

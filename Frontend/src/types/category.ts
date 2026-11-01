@@ -8,6 +8,7 @@ export interface Category {
   type: CategoryType;
   icon?: string;
   color?: string;
+  description?: string | null;
   isDefault: boolean; // system-provided category vs. user-created
   userId?: string; // absent for default/global categories
   createdAt: string;
@@ -19,4 +20,5 @@ export interface CategoryPayload {
   type: CategoryType;
   icon?: string;
   color?: string;
+  description?: string | null;
 }

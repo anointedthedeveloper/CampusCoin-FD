@@ -14,12 +14,12 @@ export const FEATURE_FLAGS = {
 
 export const DEFAULT_CURRENCY = 'NGN';
 export const CURRENCY_OPTIONS = [
-  { value: 'NGN', label: 'Nigerian Naira (₦)' },
-  { value: 'USD', label: 'US Dollar ($)' },
-  { value: 'GBP', label: 'British Pound (£)' },
-  { value: 'EUR', label: 'Euro (€)' },
-  { value: 'CAD', label: 'Canadian Dollar (CA$)' },
-  { value: 'GHS', label: 'Ghanaian Cedi (GH₵)' },
+  { value: 'NGN', label: '₦ — Nigerian Naira' },
+  { value: 'USD', label: '$ — US Dollar' },
+  { value: 'GBP', label: '£ — British Pound' },
+  { value: 'EUR', label: '€ — Euro' },
+  { value: 'CAD', label: 'CA$ — Canadian Dollar' },
+  { value: 'GHS', label: 'GH₵ — Ghanaian Cedi' },
 ] as const;
 export const DEFAULT_BUDGET_ALERT_THRESHOLD = 80;
 

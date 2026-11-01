@@ -25,6 +25,7 @@ interface EditorState {
   color: string;
   icon: string;
   iconTouched: boolean;
+  description: string;
 }
 
 /** Create/edit dialog for a category: name, type, colour and icon. */
@@ -53,12 +54,13 @@ function CategoryEditor({ state, onChange, onClose, onSaved }: {
     if (!name) { setError('Give the category a name.'); return; }
     setSaving(true);
     setError(null);
+    const description = state.description.trim() || null;
     try {
       if (state.mode === 'create') {
-        await categoryService.create(user.id, { name, type: state.type, color: state.color, icon: state.icon });
+        await categoryService.create(user.id, { name, type: state.type, color: state.color, icon: state.icon, description });
         onSaved(`Added "${name}".`);
       } else if (state.category) {
-        await categoryService.update(user.id, state.category.id, { ...(lockedName ? {} : { name }), color: state.color, icon: state.icon });
+        await categoryService.update(user.id, state.category.id, { ...(lockedName ? {} : { name }), color: state.color, icon: state.icon, description });
         onSaved(`Saved "${name}".`);
       }
     } catch (err) {
@@ -95,6 +97,19 @@ function CategoryEditor({ state, onChange, onClose, onSaved }: {
               className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/20 disabled:opacity-60 dark:border-white/[0.08] dark:bg-surface dark:text-text-primary"
             />
             {lockedName && <span className="mt-1 block text-xs text-gray-500 dark:text-text-muted">This is your fallback category, so its name stays the same.</span>}
+          </label>
+
+          <label className="block text-sm font-medium text-gray-700 dark:text-text-secondary">
+            Description <span className="font-normal text-gray-400 dark:text-text-muted">(optional)</span>
+            <textarea
+              maxLength={200}
+              value={state.description}
+              onChange={(e) => onChange({ description: e.target.value })}
+              placeholder="e.g. Anything that doesn't fit another category"
+              rows={2}
+              className="mt-1 w-full resize-none rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/20 dark:border-white/[0.08] dark:bg-surface dark:text-text-primary"
+            />
+            <span className="mt-0.5 block text-right text-xs text-gray-400 dark:text-text-muted">{state.description.length}/200</span>
           </label>
 
           {state.mode === 'create' && (
@@ -159,7 +174,9 @@ function CategoryGrid({ categories, ownerId, onEdit, onDelete }: { categories: C
                   {cat.name}
                   {isFallback(cat) && <Lock className="h-3 w-3 shrink-0 text-gray-400" aria-label="Fallback category" />}
                 </p>
-                <p className="text-2xs font-medium text-gray-400 dark:text-text-muted">{cat.isDefault ? 'Starter category' : 'Created by you'}</p>
+                <p className="text-2xs font-medium text-gray-400 dark:text-text-muted">
+                  {cat.description ? cat.description : cat.isDefault ? 'Starter category' : 'Created by you'}
+                </p>
               </div>
             </div>
             {own && cat.userId && (
@@ -203,7 +220,7 @@ export function CategoriesPage() {
   const incomeCategories = categories.filter((c) => c.type === 'income');
 
   function openCreate(type: CategoryType = 'expense') {
-    setEditor({ mode: 'create', name: '', type, color: PALETTE[5], icon: type === 'income' ? 'wallet' : 'utensils', iconTouched: false });
+    setEditor({ mode: 'create', name: '', type, color: PALETTE[5], icon: type === 'income' ? 'wallet' : 'utensils', iconTouched: false, description: '' });
   }
 
   function openEdit(category: Category) {
@@ -215,6 +232,7 @@ export function CategoriesPage() {
       color: category.color && /^#[0-9a-f]{6}$/i.test(category.color) ? category.color : PALETTE[9],
       icon: category.icon || suggestIcons(category.name, category.type, 1)[0] || 'tag',
       iconTouched: true,
+      description: category.description ?? '',
     });
   }
 
