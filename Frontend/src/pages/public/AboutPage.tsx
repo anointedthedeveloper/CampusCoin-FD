@@ -65,7 +65,7 @@ export function AboutPage() {
     <div className="overflow-hidden">
       <QuickGuideVideo />
       {/* ── Hero ── */}
-      <section className="mx-auto grid max-w-[1280px] items-center gap-8 px-3 pb-14 pt-10 sm:px-4 sm:pb-20 lg:grid-cols-[0.82fr_1.18fr] lg:gap-10 lg:pt-12">
+      <section className="mx-auto grid max-w-[1440px] items-center gap-8 px-3 pb-14 pt-10 sm:px-4 sm:pb-20 lg:grid-cols-[0.82fr_1.18fr] lg:gap-10 lg:pt-12">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#1a8f57] dark:text-primary-accent">The thinking behind Campus Coin</p>
           <h1 className="mt-5 max-w-2xl text-4xl font-bold leading-[1.08] text-[#1d3d2d] dark:text-text-primary sm:text-5xl lg:text-[2.9rem] xl:text-[3.1rem]">
@@ -100,7 +100,7 @@ export function AboutPage() {
       </section>
 
       {/* ── Why it exists ── */}
-      <section className="mx-auto max-w-[1280px] px-3 sm:px-4">
+      <section className="mx-auto max-w-[1440px] px-3 sm:px-4">
         <div className="grid gap-8 rounded-[28px] bg-white/70 p-6 shadow-card dark:bg-surface-elevated dark:shadow-dark-card sm:p-10 lg:grid-cols-[0.7fr_1fr_1fr] lg:gap-12">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#1c8f53] dark:text-primary-accent">Why it exists</p>
@@ -122,7 +122,7 @@ export function AboutPage() {
       </section>
 
       {/* ── Values ── */}
-      <section className="mx-auto max-w-[1280px] px-3 py-14 sm:px-4 sm:py-20">
+      <section className="mx-auto max-w-[1440px] px-3 py-14 sm:px-4 sm:py-20">
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#1c8f53] dark:text-primary-accent">What guides the product</p>
@@ -149,7 +149,7 @@ export function AboutPage() {
       </section>
 
       {/* ── How it works ── */}
-      <section className="mx-auto max-w-[1280px] px-3 sm:px-4">
+      <section className="mx-auto max-w-[1440px] px-3 sm:px-4">
         <div className="rounded-[28px] bg-[#122a1f] px-6 py-10 text-white dark:bg-surface-elevated dark:shadow-lg dark:shadow-black/20 sm:px-10 sm:py-12">
           <div className="flex items-center gap-3 text-[#78d99a] dark:text-primary-accent">
             <ListChecks className="h-5 w-5" />
@@ -168,7 +168,7 @@ export function AboutPage() {
       </section>
 
       {/* ── Boundaries ── */}
-      <section className="mx-auto max-w-[1280px] px-3 pt-14 sm:px-4 sm:pt-20">
+      <section className="mx-auto max-w-[1440px] px-3 pt-14 sm:px-4 sm:pt-20">
         <div className="grid gap-8 rounded-[28px] border border-[#1d3d2d]/10 bg-white/70 p-6 dark:border-white/10 dark:bg-surface-elevated sm:p-10 lg:grid-cols-[0.8fr_1.2fr]">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#1a8f57] dark:text-primary-accent">Clear boundaries</p>
@@ -194,7 +194,7 @@ export function AboutPage() {
       </section>
 
       {/* ── CTA ── */}
-      <section className="mx-auto max-w-[1280px] px-3 py-14 sm:px-4 sm:py-20">
+      <section className="mx-auto max-w-[1440px] px-3 py-14 sm:px-4 sm:py-20">
         <div className="flex flex-col gap-6 rounded-[28px] bg-[#d7f0d1] px-6 py-10 dark:bg-surface-elevated dark:shadow-lg dark:shadow-black/20 sm:flex-row sm:items-center sm:justify-between sm:px-10 sm:py-12">
           <div>
             <h2 className="text-2xl font-bold text-[#1d3d2d] dark:text-text-primary">Ready to see where your money goes?</h2>

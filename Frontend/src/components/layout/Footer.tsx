@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+﻿import { Link } from 'react-router-dom';
 import { Logo } from '@/components/common';
 import { PUBLIC_ROUTES, STUDENT_ROUTES } from '@/constants/routes';
 
@@ -62,7 +62,7 @@ function FooterLink({ to, label }: { to: string; label: string }) {
 export function Footer() {
   return (
     <footer className="bg-[#122a1f] text-white dark:border-t dark:border-white/[0.06] dark:bg-surface" aria-label="Site map">
-      <div className="mx-auto max-w-[1280px] px-4 py-14 sm:px-6">
+      <div className="mx-auto max-w-[1440px] px-3 py-14 sm:px-4">
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-[1.1fr_1fr_1fr_1fr_1fr]">
           <div>
             <Link to={PUBLIC_ROUTES.home} className="inline-block">

@@ -1,4 +1,4 @@
-// Layout for the public marketing pages: header with navigation (and a link
+﻿// Layout for the public marketing pages: header with navigation (and a link
 // into the app when signed in), the page content and the footer.
 
 import { useEffect, useState } from 'react';
@@ -181,7 +181,7 @@ export function PublicLayout() {
 
       <main className="flex-1">
         {currentLink && (
-          <nav aria-label="Breadcrumb" className="mx-auto max-w-[1280px] px-4 pt-6 sm:px-6">
+          <nav aria-label="Breadcrumb" className="mx-auto max-w-[1440px] px-3 pt-6 sm:px-4">
             <ol className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-text-muted">
               <li><Link to={PUBLIC_ROUTES.home} className="hover:text-[#1c8f53] dark:hover:text-primary-accent">Home</Link></li>
               <li aria-hidden="true"><ChevronRight className="h-3 w-3" /></li>

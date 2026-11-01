@@ -231,12 +231,12 @@ export function HomePage() {
       </section>
 
       {/* ── Feature cards ── */}
-      <section className="mx-auto mt-6 max-w-[1280px] px-3 sm:px-4">
+      <section className="mx-auto mt-6 max-w-[1440px] px-3 sm:px-4">
         <FeatureGrid />
       </section>
 
       {/* ── Stats strip ── */}
-      <section className="mx-auto mt-14 max-w-[1280px] px-3 sm:px-4">
+      <section className="mx-auto mt-14 max-w-[1440px] px-3 sm:px-4">
         <div className="grid grid-cols-2 gap-4 rounded-[28px] bg-[#122a1f] px-6 py-8 dark:bg-surface-elevated dark:shadow-lg dark:shadow-black/20 sm:grid-cols-4">
           {stats.map(({ value, label }) => (
             <div key={label} className="text-center">
@@ -248,7 +248,7 @@ export function HomePage() {
       </section>
 
       {/* ── How it works ── */}
-      <section className="mx-auto mt-12 max-w-[1280px] px-3 sm:px-4">
+      <section className="mx-auto mt-12 max-w-[1440px] px-3 sm:px-4">
         <div className="text-center">
           <p className="text-sm font-semibold uppercase tracking-wide text-[#1a8f57] dark:text-primary-accent">How it works</p>
           <h2 className="mt-2 text-2xl font-bold text-[#1d3d2d] dark:text-text-primary sm:text-3xl">
@@ -270,7 +270,7 @@ export function HomePage() {
       </section>
 
       {/* ── Screenshot slideshow ── */}
-      <section className="mx-auto mt-12 max-w-[1280px]">
+      <section className="mx-auto mt-12 max-w-[1440px]">
         <div className="text-center">
           <p className="flex items-center justify-center gap-1.5 text-sm font-semibold uppercase tracking-wide text-[#1a8f57] dark:text-primary-accent">
             <Sparkles className="h-3.5 w-3.5" />
@@ -286,7 +286,7 @@ export function HomePage() {
       </section>
 
       {/* ── App feature highlights ── */}
-      <section className="mx-auto mt-12 max-w-[1280px] px-3 sm:px-4">
+      <section className="mx-auto mt-12 max-w-[1440px] px-3 sm:px-4">
         <div className="text-center">
           <p className="text-sm font-semibold uppercase tracking-wide text-[#1a8f57] dark:text-primary-accent">Everything included</p>
           <h2 className="mt-2 text-2xl font-bold text-[#1d3d2d] dark:text-text-primary sm:text-3xl">
@@ -310,7 +310,7 @@ export function HomePage() {
       </section>
 
       {/* ── CTA ── */}
-      <section className="mx-auto mt-12 max-w-[1280px] px-3 sm:px-4">
+      <section className="mx-auto mt-12 max-w-[1440px] px-3 sm:px-4">
         <div className="flex flex-col items-center gap-4 rounded-[28px] bg-[#d7f0d1] px-6 py-10 text-center dark:bg-surface-elevated dark:shadow-lg dark:shadow-black/20 sm:py-12">
           <h2 className="text-2xl font-bold text-[#1d3d2d] dark:text-text-primary sm:text-3xl">Ready to see where your money goes?</h2>
           <p className="max-w-md text-sm text-[#1d3d2d]/70 dark:text-text-secondary">
@@ -326,7 +326,7 @@ export function HomePage() {
       </section>
 
       {/* ── Help band ── */}
-      <section className="mx-auto mt-12 max-w-[1280px] px-3 sm:px-4">
+      <section className="mx-auto mt-12 max-w-[1440px] px-3 sm:px-4">
         <div className="grid gap-3 sm:grid-cols-3">
           {[
             { icon: PlayCircle, title: 'Watch the app overview', text: 'See the whole app before you sign up.', onClick: openQuickGuide },
@@ -349,7 +349,7 @@ export function HomePage() {
       </section>
 
       {/* ── Sitemap (required by SRS) ── */}
-      <section className="mx-auto mt-12 max-w-[1280px] px-3 pb-16 sm:px-4" aria-label="Site map">
+      <section className="mx-auto mt-12 max-w-[1440px] px-3 pb-16 sm:px-4" aria-label="Site map">
         <div className="rounded-[28px] border border-gray-200 bg-white p-6 dark:border-border dark:bg-surface-elevated sm:p-8">
           <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-text-muted">Site Map</p>
           <h2 className="mt-1 text-lg font-bold text-[#1d3d2d] dark:text-text-primary">Everything in Campus Coin</h2>
