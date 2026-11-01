@@ -416,7 +416,7 @@ export function StudentLayout() {
             <button type="button" onClick={() => setIsSidebarOpen(true)} className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-text-secondary dark:hover:bg-white/[0.08] lg:hidden" aria-label="Open menu">
               <Menu className="h-5 w-5" />
             </button>
-            <Link to={STUDENT_ROUTES.dashboard} className="lg:hidden" aria-label="Dashboard"><Logo showWordmark={false} iconClassName="h-7 w-7" /></Link>
+            <Link to={STUDENT_ROUTES.dashboard} className="lg:hidden" aria-label="Dashboard"><Logo showWordmark iconClassName="h-7 w-7" wordmarkClassName="text-sm font-bold tracking-tight text-gray-900 dark:text-text-primary" /></Link>
             {/* Desktop: sidebar toggle + breadcrumbs */}
             <button
               type="button"
