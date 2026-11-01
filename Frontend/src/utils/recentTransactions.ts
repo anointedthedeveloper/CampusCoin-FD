@@ -1,3 +1,5 @@
+// "Recently viewed / edited" transactions list, stored per student in localStorage.
+
 import type { Transaction } from '@/types/transaction';
 
 export type RecentKind = 'viewed' | 'edited';
@@ -26,6 +28,7 @@ export function getRecentTransactions(userId: string): RecentTransactionEntry[] 
   }
 }
 
+/** Moves (or adds) a transaction to the top of the recent list, keeping at most MAX_ENTRIES. */
 export function recordRecentTransaction(userId: string, tx: Transaction, kind: RecentKind): void {
   if (!tx?.id) return;
   const entry: RecentTransactionEntry = {
@@ -45,6 +48,7 @@ export function recordRecentTransaction(userId: string, tx: Transaction, kind: R
   }
 }
 
+/** Removes a transaction from the recent list (e.g. after it is deleted). */
 export function forgetRecentTransaction(userId: string, id: string): void {
   try {
     localStorage.setItem(storageKey(userId), JSON.stringify(getRecentTransactions(userId).filter((e) => e.id !== id)));

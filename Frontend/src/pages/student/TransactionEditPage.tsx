@@ -13,6 +13,7 @@ import type { Transaction } from '@/types/transaction';
 import { formatNumericInput, normalizeNumericInput } from '@/utils/number';
 import { recordRecentTransaction } from '@/utils/recentTransactions';
 
+/** Edit an existing transaction. */
 export function TransactionEditPage() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();

@@ -1,3 +1,6 @@
+// Category suggestions for transactions based on their description: the
+// student's own past choices win, then an optional AI pass, then keyword rules.
+
 const Category = require('../models/Category');
 const Transaction = require('../models/Transaction');
 const { callAI, hasAiProvider } = require('./ai.service');
@@ -20,8 +23,10 @@ const RULES = [
   { type: 'income', keywords: ['gift', 'present', 'birthday money', 'donation'], aliases: ['gift'] },
 ];
 
+// Category names to fall back on when no keyword rule matches.
 const FALLBACK = { expense: ['miscellaneous', 'other', 'misc'], income: ['other income', 'other'] };
 
+/** First category whose name contains any of the aliases. */
 function findByAlias(categories, aliases) {
   return categories.find((c) => aliases.some((a) => c.name.toLowerCase().includes(a))) || null;
 }
@@ -46,6 +51,7 @@ function userCategories(userId, type) {
   return Category.find({ userId, ...(type ? { type } : {}) }).sort({ name: 1 }).limit(200).lean();
 }
 
+// Lower-cased, trimmed, single-spaced form used to compare descriptions.
 const normalise = (s) => String(s || '').trim().toLowerCase().replace(/\s+/g, ' ');
 
 /**

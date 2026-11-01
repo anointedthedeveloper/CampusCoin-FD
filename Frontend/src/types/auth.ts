@@ -1,3 +1,5 @@
+// Request/response types for sign-in, sign-up and password reset.
+
 import type { User } from './user';
 
 export interface LoginCredentials {

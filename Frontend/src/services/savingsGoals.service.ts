@@ -1,3 +1,6 @@
+// Savings goals API calls, plus the progress/projection maths the Savings
+// Goals page uses.
+
 import { httpClient } from '@/api/httpClient';
 import type { ApiSuccess } from '@/types/api';
 import type { SavingsGoal } from '@/types/savingsGoal';
@@ -10,6 +13,7 @@ const legacyKey = (userId: string) => `${LEGACY_STORAGE_KEY}.${userId}`;
 
 type GoalInput = Omit<SavingsGoal, 'id' | 'createdAt' | 'celebratedMilestones'>;
 
+/** Goals saved in this browser by older versions of the app (if any). */
 function readLegacy(userId: string): SavingsGoal[] {
   try {
     const raw = localStorage.getItem(legacyKey(userId)) ?? localStorage.getItem(LEGACY_STORAGE_KEY);
@@ -20,6 +24,7 @@ function readLegacy(userId: string): SavingsGoal[] {
   }
 }
 
+/** Removes the old browser-only copy once it has been uploaded. */
 function clearLegacy(userId: string) {
   try {
     localStorage.removeItem(legacyKey(userId));
@@ -29,6 +34,7 @@ function clearLegacy(userId: string) {
   }
 }
 
+/** Uploads any old browser-only goals to the server, once. Resolves null when there were none. */
 async function migrateLocalGoals(userId: string): Promise<SavingsGoal[] | null> {
   const local = readLegacy(userId);
   if (!local.length) return null;
@@ -87,6 +93,7 @@ export interface GoalProjection {
   isComplete: boolean;
 }
 
+/** Progress % and, when there is a target date, how much to save per day/week/month to reach it. */
 export function computeProjection(goal: SavingsGoal): GoalProjection {
   const remaining = Math.max(0, goal.targetAmount - goal.savedAmount);
   const pct = goal.targetAmount > 0

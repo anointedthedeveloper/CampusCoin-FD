@@ -4,6 +4,7 @@ import { PUBLIC_ROUTES } from '@/constants/routes';
 import { assets } from '@/assets';
 import { QuickGuideVideo, WatchGuideButton } from '@/components/common';
 
+// Content for the value cards and the numbered steps further down the page.
 const values = [
   {
     icon: Wallet,
@@ -58,6 +59,7 @@ const steps = [
   },
 ];
 
+/** Public "About" page. */
 export function AboutPage() {
   return (
     <div className="overflow-hidden">

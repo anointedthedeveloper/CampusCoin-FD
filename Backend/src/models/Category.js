@@ -1,3 +1,6 @@
+// Mongoose model for income/expense categories. System defaults (userId null)
+// are visible to everyone; students can also create their own.
+
 const mongoose = require('mongoose');
 
 const categorySchema = new mongoose.Schema(

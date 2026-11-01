@@ -18,6 +18,7 @@ export interface TrendPoint {
   expenses: number;
 }
 
+/** Line chart of income vs. expenses per month. */
 export function IncomeExpenseTrendChart({ data }: { data: TrendPoint[] }) {
   return (
     <div className="h-64 w-full">

@@ -1,3 +1,5 @@
+// In-app notification endpoints.
+
 import { httpClient } from './httpClient';
 import type { ApiSuccess } from '@/types/api';
 import type { Announcement } from '@/types/admin';

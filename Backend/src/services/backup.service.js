@@ -1,3 +1,7 @@
+// Per-student data backups: building a JSON snapshot of everything a student
+// owns, storing it gzip-compressed, keeping only the most recent few of each
+// kind, and restoring from a stored backup or an uploaded backup file.
+
 const zlib = require('zlib');
 const mongoose = require('mongoose');
 const Backup = require('../models/Backup');
@@ -12,6 +16,7 @@ const TipState = require('../models/TipState');
 
 const FORMAT = 'campus-coin-backup';
 const VERSION = 1;
+// How many backups of each kind are kept; older ones are pruned.
 const KEEP = { daily: 7, manual: 10, 'pre-restore': 3 };
 const DAILY_INTERVAL_MS = 20 * 60 * 60 * 1000; // "daily", with slack for clock drift
 
@@ -50,10 +55,12 @@ async function buildSnapshot(userId) {
   };
 }
 
+/** Number of records per collection in a snapshot, e.g. { transactions: 42, … }. */
 function countsOf(snapshot) {
   return Object.fromEntries(Object.entries(snapshot.collections).map(([k, v]) => [k, v.length]));
 }
 
+/** Deletes the student's oldest backups of `kind` beyond the KEEP limit. */
 async function pruneBackups(userId, kind) {
   const keep = KEEP[kind] ?? 5;
   const extra = await Backup.find({ userId, kind }).sort({ createdAt: -1 }).skip(keep).select('_id').lean();
@@ -69,6 +76,7 @@ async function createBackup(userId, kind = 'manual') {
   return backup;
 }
 
+// userId → the daily backup currently being made for them.
 const inFlight = new Map();
 
 /**
@@ -91,10 +99,12 @@ async function ensureDailyBackup(userId) {
   return run;
 }
 
+/** Decompresses a stored backup back into its snapshot object. */
 function readBackup(backup) {
   return JSON.parse(zlib.gunzipSync(backup.data).toString('utf8'));
 }
 
+/** API shape for a backup (metadata only — never the data itself). */
 function formatBackup(b) {
   return { id: String(b._id), kind: b.kind, sizeBytes: b.sizeBytes, counts: b.counts || {}, createdAt: b.createdAt };
 }

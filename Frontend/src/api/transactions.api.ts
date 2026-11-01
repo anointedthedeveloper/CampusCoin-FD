@@ -1,3 +1,5 @@
+// Transaction endpoints: CRUD, change history and restore, file import and export.
+
 import { httpClient } from './httpClient';
 import type { ApiSuccess, PaginatedResult } from '@/types/api';
 import type { CsvImportPreview, Transaction, TransactionFilters, TransactionPayload } from '@/types/transaction';
@@ -29,6 +31,11 @@ export const transactionsApi = {
     await httpClient.delete(`/transactions/${id}`);
   },
 
+  /**
+   * Older server-side CSV import (upload → preview → confirm). Only reachable
+   * through csvImportService, which no page uses — the Import page parses files
+   * in the browser and calls importRows() instead.
+   */
   async previewCsvImport(file: File): Promise<CsvImportPreview> {
     const formData = new FormData();
     formData.append('file', file);
@@ -69,6 +76,7 @@ export const transactionsApi = {
     return data.data;
   },
 
+  /** Saves rows parsed and categorised on the Import page; resolves the import summary. */
   async importRows(rows: ImportRowPayload[], opts: { skipDuplicates: boolean; fileName?: string }): Promise<ImportResult> {
     const { data } = await httpClient.post<ApiSuccess<Transaction[]> & { meta: ImportResult }>(
       '/transactions/import/confirm',
@@ -83,6 +91,7 @@ export const transactionsApi = {
     return { rows: data.data ?? [], truncated: Boolean(data.meta?.truncated) };
   },
 
+  /** The same export as a server-rendered PDF. */
   async exportPdf(filters: ExportFilters = {}): Promise<Blob> {
     const { data } = await httpClient.get<Blob>('/transactions/export', { params: { ...filters, format: 'pdf' }, responseType: 'blob' });
     return data;
@@ -140,6 +149,7 @@ export interface TransactionSnapshot {
   source?: string;
 }
 
+/** One entry in a transaction's change history. */
 export interface TransactionRevision {
   id: string;
   transactionId: string;

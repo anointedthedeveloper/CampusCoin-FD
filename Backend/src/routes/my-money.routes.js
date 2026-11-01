@@ -1,3 +1,6 @@
+// "My Money" API (mounted at /my-money): the student's overview for the
+// current month (income, expenses and that month's transactions).
+
 const router = require('express').Router();
 
 const Transaction = require('../models/Transaction');

@@ -1,0 +1,181 @@
+@@ Backend/src/services/ai.service.js
+^^
+Provider-agnostic AI client used by the assistant, insights and the
+categoriser. Every call goes through callAI()/callAIWithInfo(), which try
+each configured provider and key in turn (Groq first, then Gemini) and fail
+over automatically when one errors.
+>> function parseKeys(listVar, singleVar) {
+/** Reads a comma-separated key list plus the single-key variable, de-duplicated. */
+>> function providers() {
+/** Providers that have at least one key configured, in the order they are tried. */
+>> function hasAiProvider() {
+/** True when at least one AI provider has a key configured. */
+>> function getConfiguredProvider() {
+/** The provider/model that will be tried first (reported by the health check). */
+>> function keyId(provider, key) {
+// Cool-down map key: provider name + the key's last characters (never the whole key).
+>> async function callAIWithInfo(contents, systemInstruction, generationConfig = {}) {
+/**
+ * Sends a prompt (Gemini-style `contents`) to the first provider/key that
+ * answers and resolves { text, provider, model }. If every key fails, the
+ * last error is thrown.
+ */
+>> async function callAI(contents, systemInstruction, generationConfig = {}) {
+/** Same as callAIWithInfo() but resolves only the reply text. */
+
+@@ Backend/src/services/groq.service.js
+^^
+Groq chat-completions client. It accepts the same Gemini-style `contents`
+format as gemini.service.js so ai.service.js can switch between providers.
+>> function toGroqMessages(contents, systemInstruction) {
+/** Converts Gemini-style contents ({ role: 'user' | 'model', parts }) into chat messages. */
+>> async function callGroq(contents, systemInstruction, generationConfig = {}, apiKey = process.env.GROQ_API_KEY) {
+/** Sends one chat request to Groq and returns the reply text (throws if it comes back empty). */
+
+@@ Backend/src/services/notify.service.js
+^^
+The single place notifications are created, so in-app and email delivery
+always stay in step.
+
+@@ Backend/src/services/passwordReset.service.js
+^^
+Reset-code generation for the forgot-password flow.
+>> const RESET_CODE_TTL_MS = 15 * 60 * 1000;
+// Reset codes are valid for 15 minutes.
+>> function hashToken(rawToken) {
+/** SHA-256 hex digest — reset codes are only ever stored hashed. */
+
+@@ Backend/src/services/revision.service.js
+^^
+Writes the transaction history (audit trail) kept in TransactionRevision.
+>> const FIELDS = ['type', 'amount', 'categoryId', 'description', 'merchant', 'occurredAt', 'source'];
+// Transaction fields captured in each history snapshot.
+
+@@ Backend/src/services/session.service.js
+^^
+Sign-in sessions and their JWTs. Each sign-in stores a Session document; the
+short-lived access token (15 min) and the 7-day refresh token both carry its
+id ("sid"), so a session can be revoked server-side at any time.
+>> function clientInfo(req) {
+/** Device details (user agent and IP) recorded on a session. */
+>> function signPair(userId, sessionId) {
+/** Signs a fresh access + refresh token pair for the session. */
+>> async function revokeSession(userId, sessionId) {
+/** Signs out one session. Resolves true if it was still active. */
+
+@@ Backend/src/services/defaultCategories.service.js
+^^
+Default income/expense categories: the admin-managed system templates and
+the personal copies every new student account starts with.
+>> async function getSystemTemplates() {
+/** The current system template categories (created on first use). */
+
+@@ Backend/src/services/categorizer.service.js
+^^
+Category suggestions for transactions based on their description: the
+student's own past choices win, then an optional AI pass, then keyword rules.
+>> const FALLBACK = { expense: ['miscellaneous', 'other', 'misc'], income: ['other income', 'other'] };
+// Category names to fall back on when no keyword rule matches.
+>> function findByAlias(categories, aliases) {
+/** First category whose name contains any of the aliases. */
+>> const normalise = (s) => String(s || '').trim().toLowerCase().replace(/\s+/g, ' ');
+// Lower-cased, trimmed, single-spaced form used to compare descriptions.
+
+@@ Backend/src/services/budgetAlert.service.js
+^^
+Budget and monthly-limit notifications, checked after a transaction is
+saved. Each alert is sent at most once per budget/month, so students aren't
+notified again on every later transaction.
+>> const toObjectId = (id) => (id instanceof mongoose.Types.ObjectId ? id : new mongoose.Types.ObjectId(String(id)));
+// Accepts an ObjectId or its string form.
+>> async function checkBudgetAfterTransaction(userIdInput, categoryIdInput, occurredAt) {
+/**
+ * Compares the month's spending in the transaction's category with its
+ * budget and sends "budget-near" (at the student's alert threshold) or
+ * "budget-exceeded" (100%+) the first time either is crossed. Never throws.
+ */
+
+@@ Backend/src/services/backup.service.js
+^^
+Per-student data backups: building a JSON snapshot of everything a student
+owns, storing it gzip-compressed, keeping only the most recent few of each
+kind, and restoring from a stored backup or an uploaded backup file.
+>> const KEEP = { daily: 7, manual: 10, 'pre-restore': 3 };
+// How many backups of each kind are kept; older ones are pruned.
+>> function countsOf(snapshot) {
+/** Number of records per collection in a snapshot, e.g. { transactions: 42, … }. */
+>> async function pruneBackups(userId, kind) {
+/** Deletes the student's oldest backups of `kind` beyond the KEEP limit. */
+>> const inFlight = new Map();
+// userId → the daily backup currently being made for them.
+>> function readBackup(backup) {
+/** Decompresses a stored backup back into its snapshot object. */
+>> function formatBackup(b) {
+/** API shape for a backup (metadata only — never the data itself). */
+
+@@ Backend/src/services/savingTips.service.js
+^^
+Saving tips for the Saving Tips page: personalised tips worked out from
+each student's own spending, plus the general tip templates admins manage,
+with per-student pinned/dismissed state.
+>> const DEFAULT_TEMPLATES = [
+// Starter general tips, inserted the first time no templates exist.
+>> async function ensureTemplates() {
+/** Seeds DEFAULT_TEMPLATES when the tip collection is empty. */
+>> function monthKey(date) {
+/** "YYYY-MM" for a date (UTC). */
+>> function monthStart(offset, now = new Date()) {
+/** First day (UTC) of the month `offset` months from now (0 = this month). */
+>> async function setTipState(user, tipKey, patch) {
+/**
+ * Saves a student's pinned/dismissed state for one tip, with a snapshot of
+ * its text so a pinned tip can still be shown after it stops being generated.
+ */
+
+@@ Backend/src/services/email.service.js
+^^
+Outgoing email: provider selection with automatic failover, a shared
+branded HTML layout, and one function per kind of message the app sends
+(password reset, welcome, notifications, announcements, support, reports).
+>> function isEmailConfigured() {
+/** True when at least one email provider is configured. */
+>> function getTransporter() {
+/** Lazily creates (and reuses) the nodemailer SMTP transport. */
+>> function fromAddress() {
+/** The "From" address for outgoing mail. */
+>> const asList = (value) => (Array.isArray(value) ? value : value ? [value] : []);
+// Normalises a single address, a list, or nothing into an array.
+>> async function sendWithBrevo({ to, bcc, subject, text, html, replyTo, attachments }) {
+/** Sends through the Brevo transactional email API. */
+>> async function sendWithResend({ to, bcc, subject, text, html, replyTo, attachments }) {
+/** Sends through the Resend API. */
+>> async function sendWithSmtp({ to, bcc, subject, text, html, replyTo, attachments }) {
+/** Sends through the configured SMTP server. */
+>> function emailStatus() {
+/** Email setup summary for the health check and admin panel (no secrets). */
+>> function escapeHtml(value) {
+/** Escapes user-supplied text before it is placed in an email's HTML. */
+>> async function sendWelcomeEmail(user) {
+/** Sends the welcome email after sign-up. */
+>> async function sendTestEmail(toEmail) {
+/** Sends a test message so an admin can confirm email delivery works. */
+
+@@ Backend/src/services/aiActions.service.js
+>> function isoDay(d) {
+/** Date → "YYYY-MM-DD" (UTC). */
+>> const clean = (s) => String(s || '').replace(/\s+/g, ' ').trim();
+// Collapses whitespace and trims.
+>> function money(n, currency) {
+/** Formats an amount with the student's currency symbol for proposal summaries. */
+>> function validAmount(v) {
+/** Positive amount up to MAX_AMOUNT, rounded to 2 decimals — or null. */
+>> function validDay(v) {
+/** "YYYY-MM-DD" → Date (noon UTC), rejecting impossible or far-future dates — or null. */
+>> function findCategory(categories, name, type) {
+/** Finds a category by exact name first, then by partial match. */
+>> async function loadContext(user) {
+/** The student's categories, savings goals and latest 25 transactions, used to resolve actions. */
+>> const fail = (message) => Object.assign(new Error(message), { status: 400 });
+// Builds a 400 error with a message the student can read.
+>> async function applyAction(user, action) {
+/** Performs one approved action. Throws a 400 error if it is no longer valid. */

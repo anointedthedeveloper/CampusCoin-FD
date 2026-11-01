@@ -1,5 +1,6 @@
 import { cn } from '@/utils/cn';
 
+/** Up to two initials: first + last word ("Ada Obi" → "AO"), or the first two letters of a single word. */
 function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/);
   const initials =
@@ -33,6 +34,7 @@ const sizeStyles = {
   xl: 'h-16 w-16 text-xl',
 };
 
+/** User avatar: the photo when there is one, otherwise initials on a colour derived from the name. */
 export function Avatar({ name, src, size = 'md', className }: AvatarProps) {
   if (src) {
     return (

@@ -1,3 +1,7 @@
+// Outgoing email: provider selection with automatic failover, a shared
+// branded HTML layout, and one function per kind of message the app sends
+// (password reset, welcome, notifications, announcements, support, reports).
+
 const nodemailer = require('nodemailer');
 
 let transporter;
@@ -22,10 +26,12 @@ function configuredProviders() {
   return list;
 }
 
+/** True when at least one email provider is configured. */
 function isEmailConfigured() {
   return configuredProviders().length > 0;
 }
 
+/** Lazily creates (and reuses) the nodemailer SMTP transport. */
 function getTransporter() {
   if (transporter) return transporter;
   const port = Number(process.env.EMAIL_PORT) || 587;
@@ -43,6 +49,7 @@ function getTransporter() {
   return transporter;
 }
 
+/** The "From" address for outgoing mail. */
 function fromAddress() {
   return process.env.EMAIL_FROM || process.env.EMAIL_USER || 'Campus Coin <onboarding@resend.dev>';
 }
@@ -56,8 +63,10 @@ function parseAddress(value) {
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// Normalises a single address, a list, or nothing into an array.
 const asList = (value) => (Array.isArray(value) ? value : value ? [value] : []);
 
+/** Sends through the Brevo transactional email API. */
 async function sendWithBrevo({ to, bcc, subject, text, html, replyTo, attachments }) {
   const sender = parseAddress(process.env.BREVO_SENDER || fromAddress());
   const toList = asList(to);
@@ -86,6 +95,7 @@ async function sendWithBrevo({ to, bcc, subject, text, html, replyTo, attachment
   }
 }
 
+/** Sends through the Resend API. */
 async function sendWithResend({ to, bcc, subject, text, html, replyTo, attachments }) {
   const from = fromAddress();
   const toList = asList(to);
@@ -105,6 +115,7 @@ async function sendWithResend({ to, bcc, subject, text, html, replyTo, attachmen
   }
 }
 
+/** Sends through the configured SMTP server. */
 async function sendWithSmtp({ to, bcc, subject, text, html, replyTo, attachments }) {
   const from = fromAddress();
   const toList = asList(to);
@@ -147,6 +158,7 @@ async function sendMail(message) {
   throw lastError;
 }
 
+/** Email setup summary for the health check and admin panel (no secrets). */
 function emailStatus() {
   return {
     configured: isEmailConfigured(),
@@ -163,6 +175,7 @@ function primaryClientUrl() {
   return (first || 'https://campuscointw7.vercel.app').replace(/\/+$/, '');
 }
 
+/** Escapes user-supplied text before it is placed in an email's HTML. */
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 }
@@ -218,6 +231,7 @@ async function sendPasswordResetCode(toEmail, code) {
   });
 }
 
+/** Sends the welcome email after sign-up. */
 async function sendWelcomeEmail(user) {
   if (!isEmailConfigured() || !user?.email) return { sent: false };
   const firstName = String(user.fullName || '').split(' ')[0] || 'there';
@@ -369,6 +383,7 @@ async function sendReportEmail({ to, fromName, month, pdf, toSelf }) {
   });
 }
 
+/** Sends a test message so an admin can confirm email delivery works. */
 async function sendTestEmail(toEmail) {
   return sendMail({
     to: toEmail,

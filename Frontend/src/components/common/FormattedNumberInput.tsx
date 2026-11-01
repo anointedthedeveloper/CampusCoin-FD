@@ -7,6 +7,11 @@ export interface FormattedNumberInputProps extends Omit<InputProps, 'type' | 'va
   onChange: (value: string) => void;
 }
 
+/**
+ * Amount input that shows thousands separators while typing. `value` and
+ * onChange() use the plain numeric string (e.g. "1500.5"), not the
+ * formatted text.
+ */
 export const FormattedNumberInput = forwardRef<HTMLInputElement, FormattedNumberInputProps>(
   ({ value, onChange, ...props }, ref) => {
     function handleChange(event: ChangeEvent<HTMLInputElement>) {

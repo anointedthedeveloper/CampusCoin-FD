@@ -13,6 +13,7 @@ import { ApiError } from '@/types/api';
 import type { Category, CategoryType } from '@/types/category';
 
 const PALETTE = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#14b8a6', '#3b82f6', '#6366f1', '#8b5cf6', '#ec4899', '#94a3b8'];
+// Catch-all categories can't be deleted — the backend moves transactions into them.
 const FALLBACK_NAMES = ['miscellaneous', 'other', 'other income'];
 const isFallback = (c: Category) => FALLBACK_NAMES.includes(c.name.trim().toLowerCase());
 
@@ -26,6 +27,7 @@ interface EditorState {
   iconTouched: boolean;
 }
 
+/** Create/edit dialog for a category: name, type, colour and icon. */
 function CategoryEditor({ state, onChange, onClose, onSaved }: {
   state: EditorState;
   onChange: (patch: Partial<EditorState>) => void;
@@ -136,6 +138,7 @@ function CategoryEditor({ state, onChange, onClose, onSaved }: {
   );
 }
 
+/** Grid of category cards with edit/delete buttons. */
 function CategoryGrid({ categories, ownerId, onEdit, onDelete }: { categories: Category[]; ownerId?: string; onEdit: (c: Category) => void; onDelete: (c: Category) => void }) {
   if (categories.length === 0) {
     return <EmptyState compact icon={Tags} title="No categories yet" description="Add one with the button above." />;
@@ -178,6 +181,7 @@ function CategoryGrid({ categories, ownerId, onEdit, onDelete }: { categories: C
   );
 }
 
+/** The student's income and expense categories. */
 export function CategoriesPage() {
   const { user } = useAuth();
   const [editor, setEditor] = useState<EditorState | null>(null);

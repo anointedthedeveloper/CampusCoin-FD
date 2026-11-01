@@ -1,6 +1,9 @@
+// Service layer for the admin-managed system category templates.
+
 import { adminCategoriesApi, type AdminCategoryTemplate, type AdminCategoryUpdate } from '@/api/admin/categories.api';
 import type { CategoryType } from '@/types/category';
 
+// Names of the catch-all "other" categories (not referenced elsewhere in the frontend yet).
 export const FALLBACK_CATEGORY_NAMES = ['Other', 'Miscellaneous', 'Other Income'];
 
 export type DefaultCategoryTemplate = AdminCategoryTemplate;

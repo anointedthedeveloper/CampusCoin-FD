@@ -1,3 +1,7 @@
+// Shared axios instance for every backend call. It attaches the access token,
+// refreshes it transparently when it expires, signs the user out when the
+// session is truly over, and turns error responses into ApiError.
+
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios';
 import { API_BASE_URL, AUTH_TOKEN_STORAGE_KEY, REFRESH_TOKEN_STORAGE_KEY } from '@/constants/config';
 import { ApiError, type ApiErrorBody } from '@/types/api';
@@ -26,6 +30,7 @@ let refreshPromise: Promise<string> | null = null;
 
 export const LOGOUT_REASON_STORAGE_KEY = 'campus-coin.logoutReason';
 
+/** Forgets the stored tokens (optionally remembering why) and tells AuthContext the session ended. */
 function clearSessionAndNotify(reason?: string): void {
   localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
   localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
@@ -41,6 +46,7 @@ function clearSessionAndNotify(reason?: string): void {
   window.dispatchEvent(new Event('auth:session-expired'));
 }
 
+/** Exchanges the stored refresh token for a new token pair and saves it. */
 async function refreshAccessToken(): Promise<string> {
   const refreshToken = localStorage.getItem(REFRESH_TOKEN_STORAGE_KEY);
   if (!refreshToken) throw new Error('No refresh token available');
@@ -95,6 +101,7 @@ httpClient.interceptors.request.use(async (config: InternalAxiosRequestConfig) =
   return config;
 });
 
+// On a 401, refresh once and retry the request; any other error becomes an ApiError.
 httpClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError<ApiErrorBody>) => {

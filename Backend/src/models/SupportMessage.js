@@ -1,3 +1,5 @@
+// Mongoose model for Help-page support conversations.
+
 const mongoose = require('mongoose');
 
 // One reply in a support conversation, from the student or an admin.

@@ -1,3 +1,5 @@
+// Route guard that limits a section to certain roles (e.g. the admin console).
+
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { PUBLIC_ROUTES, STUDENT_ROUTES } from '@/constants/routes';

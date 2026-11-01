@@ -9,6 +9,7 @@ import { formatDate } from '@/utils/format';
 import { cn } from '@/utils/cn';
 import type { AppNotification, NotificationType } from '@/types/notification';
 
+// Icon and label per notification type.
 const typeConfig: Record<NotificationType, { icon: typeof Bell; iconCls: string; label?: string }> = {
   'budget-warning':     { icon: AlertTriangle, iconCls: 'bg-amber-100 text-amber-600 dark:bg-amber-400/15 dark:text-amber-400', label: 'Budget' },
   'budget-near':        { icon: AlertTriangle, iconCls: 'bg-amber-100 text-amber-600 dark:bg-amber-400/15 dark:text-amber-400', label: 'Budget' },
@@ -48,6 +49,7 @@ function actionFor(n: AppNotification): { to: string; label: string } | null {
   }
 }
 
+/** All of the student's notifications. Opening the page marks unread ones as read. */
 export function NotificationsPage() {
   const { notifications, unreadCount, isLoading, fetchNotifications, markAllAsRead, clearAll } = useNotifications();
   const showLoader = useMinLoadTime(isLoading);
@@ -62,6 +64,7 @@ export function NotificationsPage() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    // Mark everything read once on open, but keep highlighting what was new during this visit.
     if (isLoading || markedOnOpen.current) return;
     const unread = notifications.filter((n) => !n.isRead);
     if (!unread.length) return;

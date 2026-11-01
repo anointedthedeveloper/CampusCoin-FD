@@ -1,3 +1,5 @@
+// Mongoose model for per-student saving-tip state.
+
 const mongoose = require('mongoose');
 
 // Per-student state for a saving tip: dismissed and/or pinned (bookmarked).

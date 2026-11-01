@@ -9,6 +9,7 @@ import { STUDENT_ROUTES } from '@/constants/routes';
 import { cn } from '@/utils/cn';
 import type { SavingTip } from '@/types/insight';
 
+// Icon and badge colour per tip category.
 const categoryStyle: Record<string, { icon: LucideIcon; badgeClassName: string }> = {
   Food: { icon: Utensils, badgeClassName: 'bg-red-100 text-red-600' },
   Transport: { icon: Sparkles, badgeClassName: 'bg-blue-100 text-blue-600' },
@@ -18,6 +19,7 @@ const categoryStyle: Record<string, { icon: LucideIcon; badgeClassName: string }
 
 const fallbackStyle = { icon: Lightbulb, badgeClassName: 'bg-gray-100 text-gray-600' };
 
+/** Saving tips the student has bookmarked (pinned). */
 export function BookmarksPage() {
   const { user } = useAuth();
   const [bookmarkedTips, setBookmarkedTips] = useState<SavingTip[]>([]);
@@ -34,6 +36,7 @@ export function BookmarksPage() {
     return () => { cancelled = true; };
   }, [user, refreshToken]);
 
+  // Un-pinning a tip removes it from this list.
   async function handleRemove(ruleId: string) {
     if (!user) return;
     await tipsService.toggleBookmark(user.id, ruleId, true);

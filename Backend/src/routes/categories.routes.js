@@ -1,3 +1,6 @@
+// Categories API (mounted at /categories): the student's own income and
+// expense categories.
+
 const router = require('express').Router();
 const { serverError } = require('../utils/httpErrors');
 const Category = require('../models/Category');
@@ -28,6 +31,7 @@ async function getOrCreateFallbackCategory(userId, type) {
 router.use(protect);
 router.param('id', validateIdParam);
 
+/** API shape for a category. */
 function formatCategory(c) {
   return {
     id: c._id.toString(),

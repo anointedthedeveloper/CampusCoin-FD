@@ -1,3 +1,7 @@
+// Mongoose model for AI Assistant chat history. Each conversation belongs to
+// one student and stores its messages, including any changes the assistant
+// proposed in a reply and whether the student approved them.
+
 const mongoose = require('mongoose');
 
 // A change the assistant proposed ("add ₦1,500 lunch expense"). Nothing is
@@ -19,6 +23,8 @@ const actionSchema = new mongoose.Schema(
   { _id: true },
 );
 
+// One chat message, from the student or the assistant. Assistant messages
+// also record which AI provider/model answered and any proposed actions.
 const messageSchema = new mongoose.Schema(
   {
     role: { type: String, enum: ['user', 'assistant'], required: true },

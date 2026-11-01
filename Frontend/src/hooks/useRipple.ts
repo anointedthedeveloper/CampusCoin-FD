@@ -1,3 +1,5 @@
+// Click ripple effect state for buttons (rendered by <Ripple />).
+
 import { useCallback, useState, type PointerEvent } from 'react';
 
 interface RippleItem {

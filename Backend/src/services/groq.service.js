@@ -1,3 +1,6 @@
+// Groq chat-completions client. It accepts the same Gemini-style `contents`
+// format as gemini.service.js so ai.service.js can switch between providers.
+
 const Groq = require('groq-sdk');
 
 const GROQ_TIMEOUT_MS = Number(process.env.GROQ_TIMEOUT_MS) || 30_000;
@@ -9,6 +12,7 @@ const DEFAULT_GROQ_MODEL = process.env.GROQ_MODEL || 'openai/gpt-oss-20b';
 const IS_REASONING_MODEL = /gpt-oss|qwen3|deepseek-r1|reasoning/i.test(DEFAULT_GROQ_MODEL);
 const REASONING_MIN_TOKENS = 2048;
 
+/** Converts Gemini-style contents ({ role: 'user' | 'model', parts }) into chat messages. */
 function toGroqMessages(contents, systemInstruction) {
   const messages = [];
   if (systemInstruction) messages.push({ role: 'system', content: systemInstruction });
@@ -24,6 +28,7 @@ function toGroqMessages(contents, systemInstruction) {
   return messages;
 }
 
+/** Sends one chat request to Groq and returns the reply text (throws if it comes back empty). */
 async function callGroq(contents, systemInstruction, generationConfig = {}, apiKey = process.env.GROQ_API_KEY) {
   if (!apiKey) throw new Error('GROQ_NOT_CONFIGURED');
 

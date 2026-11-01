@@ -1,3 +1,5 @@
+// Savings goal types.
+
 export type GoalColor =
   | 'teal'
   | 'brand'

@@ -1,3 +1,5 @@
+// Admin user-management endpoints, plus the saving-tip template endpoints.
+
 import { httpClient } from '../httpClient';
 import type { ApiSuccess, PaginatedResult } from '@/types/api';
 import type { AdminUserDetail, AdminUserSummary, SavingTipTemplate } from '@/types/admin';
@@ -33,11 +35,13 @@ export const adminUsersApi = {
     return data.message ?? 'Password reset email sent.';
   },
 
+  /** Wipes the student's financial data and restarts onboarding; their login is kept. */
   async resetAccount(id: string): Promise<AdminUserSummary> {
     const { data } = await httpClient.post<ApiSuccess<AdminUserSummary>>(`/admin/users/${id}/reset`);
     return data.data;
   },
 
+  /** Suspends (false) or reactivates (true) an account. */
   async setActive(id: string, isActive: boolean): Promise<AdminUserSummary> {
     const { data } = await httpClient.patch<ApiSuccess<AdminUserSummary>>(`/admin/users/${id}`, {
       isActive,

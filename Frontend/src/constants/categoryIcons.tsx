@@ -1,3 +1,6 @@
+// Icon library for categories: the icons students can pick from, and logic to
+// choose a sensible icon for a category from its name when none is set.
+
 import {
   Apple,
   Award,
@@ -174,6 +177,7 @@ export function suggestIcons(name: string, type?: 'income' | 'expense', limit = 
 /** The icon for a category: its chosen icon, else the best guess from its name. */
 const ICON_ALIASES: Record<string, string> = { book: 'book-open', 'gamepad': 'gamepad-2', train: 'train-front', building: 'building-2' };
 
+/** The icon to show for a category: its chosen icon, else one guessed from its name. */
 export function resolveCategoryIcon(category: { name: string; icon?: string | null; type?: 'income' | 'expense' }): LucideIcon {
   const slug = category.icon ? ICON_ALIASES[category.icon] ?? category.icon : null;
   if (slug && CATEGORY_ICON_SET[slug]) return CATEGORY_ICON_SET[slug].icon;

@@ -1,3 +1,5 @@
+// Service layer for admin platform statistics.
+
 import { adminStatisticsApi } from '@/api/admin/statistics.api';
 import type { SystemStatistics } from '@/types/admin';
 

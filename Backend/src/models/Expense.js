@@ -1,3 +1,7 @@
+// Legacy model from an earlier schema where expenses had their own collection.
+// Not imported anywhere in the current code — expenses now live in
+// Transaction.js with type 'expense'.
+
 const mongoose = require('mongoose');
 
 const expenseSchema = new mongoose.Schema(

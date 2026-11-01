@@ -14,6 +14,7 @@ import { formatNumericInput, normalizeNumericInput } from '@/utils/number';
 import type { Budget } from '@/types/budget';
 import type { Category } from '@/types/category';
 
+/** "YYYY-MM" for the month `offset` months from now (0 = this month). */
 function monthForOffset(offset: number): string {
   const date = new Date();
   date.setDate(1);
@@ -21,6 +22,10 @@ function monthForOffset(offset: number): string {
   return date.toISOString().slice(0, 7);
 }
 
+/**
+ * Monthly budgets: pick a month, see spending against each category's limit,
+ * and add, edit or delete budgets.
+ */
 export function BudgetsPage() {
   const { user } = useAuth();
   const currency = user?.settings?.currency ?? DEFAULT_CURRENCY;
@@ -82,6 +87,7 @@ export function BudgetsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const wantsNew = searchParams.get('new') === '1';
   useEffect(() => {
+    // ?new=1 (from the header's quick-add menu) opens the form straight away.
     if (!wantsNew || isLoading) return;
     openNewForm();
     setSearchParams({}, { replace: true });
@@ -108,6 +114,7 @@ export function BudgetsPage() {
     setRefreshToken((t) => t + 1);
   }
 
+  // Create a new budget, or save the new limit of the one being edited.
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     if (!user) return;

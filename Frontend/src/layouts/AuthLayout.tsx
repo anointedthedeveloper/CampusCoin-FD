@@ -1,3 +1,7 @@
+// Layout for the sign-in, sign-up and password pages: a hero image beside a
+// card holding the form. Passes a `compact` flag to the pages via outlet
+// context when there isn't room for the full design.
+
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { PUBLIC_ROUTES } from '@/constants/routes';

@@ -9,6 +9,7 @@ import { STUDENT_ROUTES } from '@/constants/routes';
 import { cn } from '@/utils/cn';
 import type { SavingTip } from '@/types/insight';
 
+// Icon and colour per tip category.
 const categoryStyle: Record<string, { icon: LucideIcon; cls: string }> = {
   'Food & Drinks': { icon: Utensils,  cls: 'bg-orange-100 text-orange-600 dark:bg-orange-400/15 dark:text-orange-400' },
   Food:            { icon: Utensils,  cls: 'bg-orange-100 text-orange-600 dark:bg-orange-400/15 dark:text-orange-400' },
@@ -20,6 +21,7 @@ const categoryStyle: Record<string, { icon: LucideIcon; cls: string }> = {
 
 const fallback = { icon: Lightbulb, cls: 'bg-gray-100 text-gray-500 dark:bg-white/[0.08] dark:text-text-secondary' };
 
+/** Saving tips: personalised tips ranked by how much they could save, then general tips. */
 export function SavingTipsPage() {
   const { user }                     = useAuth();
   const [tips, setTips]              = useState<SavingTip[]>([]);
@@ -49,6 +51,7 @@ export function SavingTipsPage() {
     return () => { cancelled = true; };
   }, [user, refreshToken]);
 
+  // Hide the tip immediately, then tell the server (it stays hidden until restored).
   async function handleDismiss(id: string) {
     if (!user) return;
     setTips((prev) => prev.filter((t) => t.id !== id));
@@ -57,6 +60,7 @@ export function SavingTipsPage() {
     setRefreshToken((t) => t + 1);
   }
 
+  // Optimistically flip the bookmark; reload from the server if saving fails.
   async function handleToggleBookmark(id: string) {
     if (!user) return;
     const wasPinned = bookmarkedIds.has(id);
@@ -68,6 +72,7 @@ export function SavingTipsPage() {
     await tipsService.toggleBookmark(user.id, id, wasPinned).catch(() => setRefreshToken((t) => t + 1));
   }
 
+  // Bring back every dismissed tip.
   async function handleRestore() {
     await tipsService.restoreDismissed().catch(() => undefined);
     setRefreshToken((t) => t + 1);

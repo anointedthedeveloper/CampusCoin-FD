@@ -1,3 +1,6 @@
+// Mongoose model recording one CSV/spreadsheet import: the file, how many rows
+// were imported, failed or skipped as duplicates, and the per-row errors.
+
 const mongoose = require('mongoose');
 
 const importBatchSchema = new mongoose.Schema(

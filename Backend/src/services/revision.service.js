@@ -1,5 +1,8 @@
+// Writes the transaction history (audit trail) kept in TransactionRevision.
+
 const TransactionRevision = require('../models/TransactionRevision');
 
+// Transaction fields captured in each history snapshot.
 const FIELDS = ['type', 'amount', 'categoryId', 'description', 'merchant', 'occurredAt', 'source'];
 
 /** The parts of a transaction worth remembering, as plain data. */

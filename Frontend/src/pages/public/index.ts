@@ -1,3 +1,5 @@
+// Barrel file for the public pages.
+
 export * from './HomePage';
 export * from './AboutPage';
 export * from './FeaturesPage';

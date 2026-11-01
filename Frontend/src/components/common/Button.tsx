@@ -48,6 +48,10 @@ const sizeStyles: Record<ButtonSize, string> = {
   lg: 'h-11 px-5 text-base gap-2',
 };
 
+/**
+ * The app's standard button. `variant` and `size` pick the style;
+ * `isLoading` disables it and shows a spinner (with optional `loadingText`).
+ */
 export function Button({
   variant = 'primary',
   size = 'md',

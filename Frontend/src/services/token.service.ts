@@ -1,3 +1,5 @@
+// Reads and writes the access/refresh tokens kept in localStorage.
+
 import { AUTH_TOKEN_STORAGE_KEY, REFRESH_TOKEN_STORAGE_KEY } from '@/constants/config';
 
 export const tokenService = {

@@ -13,6 +13,7 @@ import { ApiError } from '@/types/api';
 import type { Category, CategoryType } from '@/types/category';
 import type { RecurringEntry, RecurringFrequency } from '@/types/recurring';
 
+// Display names for each frequency.
 const FREQUENCY_LABEL: Record<RecurringFrequency, string> = {
   daily: 'Daily',
   weekly: 'Weekly',
@@ -23,11 +24,13 @@ const FREQUENCY_LABEL: Record<RecurringFrequency, string> = {
 const fieldCls =
   'w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/20 dark:border-white/[0.08] dark:bg-surface dark:text-text-primary dark:[color-scheme:dark]';
 
+/** Today's date as "YYYY-MM-DD" in local time. */
 function todayIso() {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 }
 
+/** Money routines: recurring income and expenses that are posted automatically when due. */
 export function RecurringPage() {
   const { user } = useAuth();
   const currency = user?.settings?.currency ?? DEFAULT_CURRENCY;
@@ -97,6 +100,7 @@ export function RecurringPage() {
     }
   }
 
+  // Pause or resume a routine.
   async function toggleActive(entry: RecurringEntry) {
     await recurringApi.update(entry.id, { isActive: !entry.isActive });
     setRefreshToken((t) => t + 1);
@@ -248,6 +252,7 @@ export function RecurringPage() {
   );
 }
 
+/** Approximate monthly amount of a routine (daily × 30, weekly × 52/12, yearly ÷ 12). */
 function monthlyEquivalent(entry: RecurringEntry): number {
   const per = entry.interval || 1;
   switch (entry.frequency) {

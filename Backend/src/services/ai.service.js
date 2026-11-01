@@ -1,3 +1,8 @@
+// Provider-agnostic AI client used by the assistant, insights and the
+// categoriser. Every call goes through callAI()/callAIWithInfo(), which try
+// each configured provider and key in turn (Groq first, then Gemini) and fail
+// over automatically when one errors.
+
 const { callGroq } = require('./groq.service');
 const { callGemini } = require('./gemini.service');
 
@@ -10,6 +15,7 @@ const { callGemini } = require('./gemini.service');
 const COOLDOWN_MS = Number(process.env.AI_KEY_COOLDOWN_MS) || 5 * 60 * 1000;
 const cooldownUntil = new Map();
 
+/** Reads a comma-separated key list plus the single-key variable, de-duplicated. */
 function parseKeys(listVar, singleVar) {
   const keys = [
     ...(process.env[listVar] || '').split(','),
@@ -18,6 +24,7 @@ function parseKeys(listVar, singleVar) {
   return [...new Set(keys)];
 }
 
+/** Providers that have at least one key configured, in the order they are tried. */
 function providers() {
   return [
     {
@@ -35,10 +42,12 @@ function providers() {
   ].filter((p) => p.keys.length > 0);
 }
 
+/** True when at least one AI provider has a key configured. */
 function hasAiProvider() {
   return providers().length > 0;
 }
 
+/** The provider/model that will be tried first (reported by the health check). */
 function getConfiguredProvider() {
   const first = providers()[0];
   return first ? { provider: first.name, model: first.model } : { provider: 'none', model: 'none' };
@@ -49,10 +58,16 @@ function getKeyCounts() {
   return Object.fromEntries(providers().map((p) => [p.name.toLowerCase(), p.keys.length]));
 }
 
+// Cool-down map key: provider name + the key's last characters (never the whole key).
 function keyId(provider, key) {
   return `${provider}:${key.slice(-6)}`;
 }
 
+/**
+ * Sends a prompt (Gemini-style `contents`) to the first provider/key that
+ * answers and resolves { text, provider, model }. If every key fails, the
+ * last error is thrown.
+ */
 async function callAIWithInfo(contents, systemInstruction, generationConfig = {}) {
   const available = providers();
   if (!available.length) throw new Error('GEMINI_NOT_CONFIGURED');
@@ -81,6 +96,7 @@ async function callAIWithInfo(contents, systemInstruction, generationConfig = {}
   throw attempts[attempts.length - 1];
 }
 
+/** Same as callAIWithInfo() but resolves only the reply text. */
 async function callAI(contents, systemInstruction, generationConfig = {}) {
   const result = await callAIWithInfo(contents, systemInstruction, generationConfig);
   return result.text;

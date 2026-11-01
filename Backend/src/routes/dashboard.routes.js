@@ -1,3 +1,6 @@
+// Dashboard API (mounted at /dashboard): the summary numbers shown on the
+// student dashboard.
+
 const router = require('express').Router();
 
 const Transaction = require('../models/Transaction');

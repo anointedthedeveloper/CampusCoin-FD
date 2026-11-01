@@ -1,3 +1,5 @@
+// In-app notification types.
+
 export type NotificationType =
   | 'budget-warning'
   | 'budget-exceeded'

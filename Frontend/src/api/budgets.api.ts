@@ -1,8 +1,11 @@
+// Monthly budget endpoints.
+
 import { httpClient } from './httpClient';
 import type { ApiSuccess } from '@/types/api';
 import type { Budget, BudgetPayload, BudgetSummary } from '@/types/budget';
 
 export const budgetsApi = {
+  /** A month's ("YYYY-MM") budgets with spending against each. */
   async getSummary(month: string): Promise<BudgetSummary> {
     const { data } = await httpClient.get<ApiSuccess<BudgetSummary>>('/budgets', {
       params: { month },

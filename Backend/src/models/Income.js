@@ -1,3 +1,7 @@
+// Legacy model from an earlier schema where income had its own collection.
+// Not imported anywhere in the current code — income now lives in
+// Transaction.js with type 'income'.
+
 const mongoose = require('mongoose');
 
 const incomeSchema = new mongoose.Schema(

@@ -1,3 +1,5 @@
+// Barrel file re-exporting the shared types.
+
 export * from './admin';
 export * from './api';
 export * from './auth';

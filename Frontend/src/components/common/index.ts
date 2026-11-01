@@ -1,3 +1,5 @@
+// Barrel file for the shared UI components.
+
 export * from './Button';
 export * from './BrowserFrame';
 export * from './ErrorBoundary';

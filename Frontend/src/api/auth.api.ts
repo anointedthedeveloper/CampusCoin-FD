@@ -1,3 +1,6 @@
+// Authentication endpoints: sign-in/up (password or Google), sign-out, token
+// refresh, password flows and signed-in sessions.
+
 import { httpClient } from './httpClient';
 import type {
   AuthResponse,
@@ -8,6 +11,7 @@ import type {
 } from '@/types/auth';
 import type { ApiSuccess } from '@/types/api';
 
+/** One signed-in device as listed in Settings → Sessions. */
 export interface AuthSession {
   id: string;
   method: 'password' | 'google' | 'register' | 'refresh';
@@ -28,6 +32,7 @@ export const authApi = {
     await httpClient.delete(`/auth/sessions/${id}`);
   },
 
+  /** Signs out every other session; resolves how many were revoked. */
   async revokeOtherSessions(): Promise<number> {
     const { data } = await httpClient.delete<ApiSuccess<{ count: number }>>('/auth/sessions');
     return data.data?.count ?? 0;
@@ -38,6 +43,7 @@ export const authApi = {
     return data.data;
   },
 
+  /** Signs in with a Google ID token; `linkAccount` links Google to an existing password account. */
   async loginWithGoogle(idToken: string, linkAccount = false): Promise<AuthResponse> {
     const { data } = await httpClient.post<ApiSuccess<AuthResponse>>('/auth/google', { idToken, linkAccount });
     return data.data;

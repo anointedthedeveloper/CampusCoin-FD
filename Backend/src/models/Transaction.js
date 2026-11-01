@@ -1,3 +1,6 @@
+// Mongoose model for a single income or expense entry — the core record that
+// budgets, reports, insights and the dashboard are all calculated from.
+
 const mongoose = require('mongoose');
 
 const transactionSchema = new mongoose.Schema(
@@ -8,7 +11,9 @@ const transactionSchema = new mongoose.Schema(
     amount: { type: Number, required: true, min: 0 },
     description: { type: String, trim: true },
     merchant: { type: String, trim: true },
+    // When the money actually moved (not when the record was created).
     occurredAt: { type: Date, required: true },
+    // How the transaction was created.
     source: { type: String, enum: ['manual', 'csv-import', 'recurring', 'ai-suggested'], default: 'manual' },
     // Populated when AI categorization suggests a category name (stored for
     // audit/display even after the user accepts/overrides the suggestion)

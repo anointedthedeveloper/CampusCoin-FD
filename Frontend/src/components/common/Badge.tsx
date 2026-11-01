@@ -18,6 +18,7 @@ const sizeStyles: Record<BadgeSize, string> = {
   md: 'px-2.5 py-0.5 text-xs',
 };
 
+/** Small pill label in one of the semantic tones (success, warning, danger…). */
 export function Badge({
   tone = 'neutral',
   size = 'md',

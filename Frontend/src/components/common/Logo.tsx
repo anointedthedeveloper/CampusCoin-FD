@@ -10,6 +10,7 @@ interface LogoProps {
   showTagline?: boolean;
 }
 
+/** Campus Coin logo mark, optionally with the wordmark and tagline. */
 export function Logo({
   className,
   iconClassName,

@@ -1,3 +1,6 @@
+// AI Assistant endpoints: asking questions, stored conversations, approving or
+// rejecting proposed changes, category suggestions and monthly insights.
+
 import { httpClient } from './httpClient';
 import type { ApiSuccess } from '@/types/api';
 
@@ -30,6 +33,7 @@ export interface AIIdentity {
 // longer timeout instead of failing while the server is still answering.
 const AI_TIMEOUT_MS = 60_000;
 
+/** A structured "can I afford…" question sent alongside the message. */
 export interface AITemplate {
   kind: 'afford' | 'when-afford';
   amount: number;
@@ -78,6 +82,7 @@ export interface AIStoredMessage {
 }
 
 export const aiApi = {
+  /** Sends a question (optionally continuing a stored conversation) and resolves the reply. */
   async answer(
     message: string,
     options: { history?: AIConversationTurn[]; conversationId?: string; template?: AITemplate } = {},
@@ -125,6 +130,7 @@ export const aiApi = {
     await httpClient.delete('/ai/conversations');
   },
 
+  /** Suggests a category for a single transaction while it's being typed. */
   async suggestCategory(description: string, merchant?: string, type?: 'income' | 'expense'): Promise<CategorySuggestion> {
     const { data } = await httpClient.post<ApiSuccess<CategorySuggestion>>('/ai/categorize', {
       description,

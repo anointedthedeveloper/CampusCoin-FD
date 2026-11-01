@@ -1,3 +1,6 @@
+// Root component: wires up the router and the global providers (theme → auth →
+// notifications) around the app's routes.
+
 import { useEffect } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from '@/contexts/AuthContext';
@@ -8,6 +11,7 @@ import { AppRoutes } from '@/routes';
 import { useTawkTo, useTawkToClickOutside } from '@/hooks/useTawkTo';
 
 function App() {
+  // Remove the static loading screen from index.html once React has rendered.
   useEffect(() => {
     document.getElementById('initial-page-loader')?.remove();
   }, []);

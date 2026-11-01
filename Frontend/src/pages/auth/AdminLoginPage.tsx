@@ -10,6 +10,7 @@ import { ApiError } from '@/types/api';
 import { cn } from '@/utils/cn';
 import type { AuthPageOutletContext } from './authOutletContext';
 
+/** Admin sign-in (/adlg). Signs in with email and password, then only lets admin accounts through. */
 export function AdminLoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -21,6 +22,7 @@ export function AdminLoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Validate, sign in, and refuse (with an error) any account that isn't an admin.
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setError(null);

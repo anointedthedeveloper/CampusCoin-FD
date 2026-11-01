@@ -1,3 +1,5 @@
+// Monthly budget types.
+
 export interface Budget {
   id: string;
   userId: string;

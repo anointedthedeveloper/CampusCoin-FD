@@ -1,3 +1,5 @@
+// Mongoose model for the transaction audit trail.
+
 const mongoose = require('mongoose');
 
 // One change to a transaction — created, edited, deleted or restored — with
@@ -8,7 +10,10 @@ const transactionRevisionSchema = new mongoose.Schema(
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     transactionId: { type: mongoose.Schema.Types.ObjectId, required: true },
     action: { type: String, enum: ['created', 'updated', 'deleted', 'restored'], required: true },
+    // Where the change came from.
     via: { type: String, enum: ['app', 'ai', 'import', 'recurring', 'restore'], default: 'app' },
+    // Snapshots of the transaction before/after the change (null when it didn't
+    // exist yet / no longer exists).
     before: { type: mongoose.Schema.Types.Mixed, default: null },
     after: { type: mongoose.Schema.Types.Mixed, default: null },
     restoredAt: { type: Date, default: null },

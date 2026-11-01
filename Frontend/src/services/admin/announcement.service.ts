@@ -1,3 +1,5 @@
+// Service layer for admin announcements, plus the published feed students see.
+
 import { adminAnnouncementsApi } from '@/api/admin/announcements.api';
 import { notificationsApi } from '@/api/notifications.api';
 import type { Announcement, AnnouncementAudience, AnnouncementPayload } from '@/types/admin';
@@ -7,6 +9,7 @@ export const adminAnnouncementService = {
     return adminAnnouncementsApi.list();
   },
 
+  /** Published announcements addressed to everyone or to `_audience`. */
   async listPublishedFor(_audience: Exclude<AnnouncementAudience, 'admins'>): Promise<Announcement[]> {
     const all = await notificationsApi.listAnnouncements();
     return all.filter((a) => a.publishedAt && (a.audience === 'all' || a.audience === _audience));

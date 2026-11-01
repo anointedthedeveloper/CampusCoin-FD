@@ -1,3 +1,7 @@
+// Authentication API (mounted at /auth): register, email/password and Google
+// sign-in, token refresh, sign-out and session management, and the
+// forgot/reset/change password flows.
+
 const router = require('express').Router();
 const { serverError } = require('../utils/httpErrors');
 const bcrypt = require('bcryptjs');

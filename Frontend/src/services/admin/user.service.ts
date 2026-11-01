@@ -1,3 +1,5 @@
+// Service layer for admin user management.
+
 import { adminUsersApi } from '@/api/admin/users.api';
 import type { AdminUserDetail, AdminUserSummary } from '@/types/admin';
 

@@ -1,3 +1,6 @@
+// Default income/expense categories: the admin-managed system templates and
+// the personal copies every new student account starts with.
+
 const Category = require('../models/Category');
 
 // The SRS default categories. These seed the admin-managed system templates
@@ -37,6 +40,7 @@ async function ensureSystemTemplates() {
   ensured = true;
 }
 
+/** The current system template categories (created on first use). */
 async function getSystemTemplates() {
   await ensureSystemTemplates();
   return Category.find({ userId: null, isDefault: true }).sort({ type: 1, name: 1 });

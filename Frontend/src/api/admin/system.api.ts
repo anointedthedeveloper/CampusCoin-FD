@@ -1,3 +1,5 @@
+// Admin system endpoints: email delivery status/test and backup statistics.
+
 import { httpClient } from '../httpClient';
 import type { ApiSuccess } from '@/types/api';
 
@@ -34,6 +36,7 @@ export const adminSystemApi = {
     return data.data;
   },
 
+  /** Runs the daily backups now for everyone who is due one. */
   async runBackups(): Promise<string> {
     const { data } = await httpClient.post<ApiSuccess<unknown> & { message?: string }>('/admin/backups/run');
     return data.message ?? 'Backups finished.';

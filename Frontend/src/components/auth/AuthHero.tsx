@@ -14,6 +14,7 @@ import { assets } from '@/assets';
 // form being pushed off-screen there.
 export const AUTH_HERO_DETAIL_QUERY = '(min-height: 920px), (min-width: 1024px)';
 
+// Highlights listed on the hero panel.
 const features = [
   {
     icon: Wallet,
@@ -32,6 +33,7 @@ const features = [
   },
 ];
 
+/** The hero photo layers behind the panel. */
 function HeroBackground() {
   return (
     <>

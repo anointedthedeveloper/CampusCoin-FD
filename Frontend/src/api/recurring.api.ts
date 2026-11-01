@@ -1,3 +1,6 @@
+// Money routine (recurring transaction) endpoints, plus a helper that
+// predicts the next occurrence date.
+
 import { httpClient } from './httpClient';
 import type { ApiSuccess } from '@/types/api';
 import type { RecurringEntry, RecurringPayload } from '@/types/recurring';

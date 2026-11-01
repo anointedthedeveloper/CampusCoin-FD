@@ -1,3 +1,6 @@
+// The app's route table: public pages, auth pages, the student app and the
+// admin console, each wrapped in its layout and the right access guards.
+
 import { Suspense } from 'react';
 import { lazyWithRetry } from '@/utils/lazyWithRetry';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
@@ -10,6 +13,8 @@ import { RoleRoute } from './RoleRoute';
 import { PUBLIC_ROUTES, STUDENT_ROUTES, ADMIN_ROUTES } from '@/constants/routes';
 import { ErrorBoundary, PageLoader } from '@/components/common';
 
+// Every page is code-split and loaded on first visit. lazyWithRetry reloads
+// once if a chunk is missing after a redeploy.
 const AboutPage = lazyWithRetry(() =>
   import('@/pages/public/AboutPage').then((page) => ({ default: page.AboutPage })),
 );
@@ -148,6 +153,7 @@ const AdminUsersPage = lazyWithRetry(() =>
   import('@/pages/admin/AdminUsersPage').then((page) => ({ default: page.AdminUsersPage })),
 );
 
+/** Renders the matching page; a crash in one page is caught by the error boundary. */
 export function AppRoutes() {
   const location = useLocation();
   return (

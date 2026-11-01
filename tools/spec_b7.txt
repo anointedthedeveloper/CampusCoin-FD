@@ -1,0 +1,142 @@
+@@ Frontend/src/components/common/index.ts
+^^
+Barrel file for the shared UI components.
+
+@@ Frontend/src/components/common/Avatar.tsx
+>> function getInitials(name: string): string {
+/** Up to two initials: first + last word ("Ada Obi" → "AO"), or the first two letters of a single word. */
+>> export function Avatar({ name, src, size = 'md', className }: AvatarProps) {
+/** User avatar: the photo when there is one, otherwise initials on a colour derived from the name. */
+
+@@ Frontend/src/components/common/Badge.tsx
+>> export function Badge({
+/** Small pill label in one of the semantic tones (success, warning, danger…). */
+
+@@ Frontend/src/components/common/Button.tsx
+>> export function Button({
+/**
+ * The app's standard button. `variant` and `size` pick the style;
+ * `isLoading` disables it and shows a spinner (with optional `loadingText`).
+ */
+
+@@ Frontend/src/components/common/Card.tsx
+>> export function Card({ className, noPadding = false, hoverable = false, ...props }: CardProps) {
+/** Rounded surface used to group content on a page. */
+
+@@ Frontend/src/components/common/EmptyState.tsx
+>> export function EmptyState({ icon: Icon, title, description, action, className, compact = false }: EmptyStateProps) {
+/** Placeholder shown when a list or section has nothing to display yet, with an optional call to action. */
+
+@@ Frontend/src/components/common/ErrorBoundary.tsx
+>> function isChunkLoadError(error: Error): boolean {
+/** True when the error came from a lazy-loaded page chunk failing to download. */
+
+@@ Frontend/src/components/common/FormattedNumberInput.tsx
+>> export const FormattedNumberInput = forwardRef<HTMLInputElement, FormattedNumberInputProps>(
+/**
+ * Amount input that shows thousands separators while typing. `value` and
+ * onChange() use the plain numeric string (e.g. "1500.5"), not the
+ * formatted text.
+ */
+
+@@ Frontend/src/components/common/GoogleButton.tsx
+>> export function GoogleButton({
+/** Renders Google's own sign-in button and passes the resulting ID token to `onCredential`. */
+
+@@ Frontend/src/components/common/Input.tsx
+>> export const Input = forwardRef<HTMLInputElement, InputProps>(
+/** Text input with an optional label, leading icon, trailing element, hint and error message. */
+
+@@ Frontend/src/components/common/Logo.tsx
+>> export function Logo({
+/** Campus Coin logo mark, optionally with the wordmark and tagline. */
+
+@@ Frontend/src/components/common/PageLoader.tsx
+>> export function PageLoader() {
+/** Full-screen loader shown while a page or the session is loading. */
+
+@@ Frontend/src/components/common/ScreenshotSlideshow.tsx
+>> export function ScreenshotSlideshow() {
+/** Auto-advancing carousel of app screenshots (pauses on hover), shown on the home page. */
+>> function goTo(index: number) {
+// Wraps around in both directions.
+
+@@ Frontend/src/components/common/ThemeToggle.tsx
+>> export function ThemeToggle({ className }: { className?: string }) {
+/** Button that switches between light and dark mode. */
+
+@@ Frontend/src/components/auth/index.ts
+^^
+Barrel file for the auth page components.
+
+@@ Frontend/src/components/auth/AuthHero.tsx
+>> const features = [
+// Highlights listed on the hero panel.
+>> function HeroBackground() {
+/** The hero photo layers behind the panel. */
+
+@@ Frontend/src/components/budgets/BudgetProgressRow.tsx
+>> const statusBar: Record<string, string> = {
+// Progress-bar colour and label for each budget status.
+>> export function BudgetProgressRow({ categoryName, budget, category }: BudgetProgressRowProps) {
+/** One budget as a row: category, amount spent vs. limit, a progress bar and its status. */
+
+@@ Frontend/src/components/dashboard/CategoryDonutChart.tsx
+>> export function CategoryDonutChart({ data, total, totalLabel = 'Total' }: CategoryDonutChartProps) {
+/** Donut chart of spending by category, with the total in the middle. */
+
+@@ Frontend/src/components/dashboard/IncomeExpenseTrendChart.tsx
+>> export function IncomeExpenseTrendChart({ data }: { data: TrendPoint[] }) {
+/** Line chart of income vs. expenses per month. */
+
+@@ Frontend/src/components/dashboard/StatCard.tsx
+>> export function StatCard({
+/** Dashboard tile showing one figure (e.g. balance or this month's spending) with an icon and optional hint/delta. */
+
+@@ Frontend/src/components/help/MyConversations.tsx
+>> function preview(thread: SupportMessage) {
+/** One-line preview of a thread's latest message, prefixed with who sent it. */
+
+@@ Frontend/src/components/help/SupportThread.tsx
+>> function timeLabel(iso: string) {
+/** Time only for today's messages, otherwise date and time. */
+
+@@ Frontend/src/components/home/FeatureGrid.tsx
+>> export function FeatureGrid() {
+/** Grid of feature highlights for the marketing pages. */
+
+@@ Frontend/src/components/layout/Footer.tsx
+>> const productLinks = [
+// Link columns shown in the footer.
+>> function FooterLink({ to, label }: { to: string; label: string }) {
+/** A single footer link. */
+>> export function Footer() {
+/** Site footer for the public pages. */
+
+@@ Frontend/src/components/onboarding/OnboardingProgress.tsx
+>> export function OnboardingProgress({ step, total }: { step: number; total: number }) {
+/** "Step X of Y" progress bar for the onboarding wizard. */
+
+@@ Frontend/src/components/onboarding/SelectableCard.tsx
+>> export function SelectableCard({ icon: Icon, label, selected, onToggle }: SelectableCardProps) {
+/** Toggleable option card used for the multiple-choice onboarding questions. */
+
+@@ Frontend/src/components/settings/BackupsCard.tsx
+>> function when(iso: string) {
+/** Date and time of a backup, in the viewer's locale. */
+>> function summary(b: BackupSummary) {
+/** "12 transactions · 9 categories · …" line describing what a backup holds. */
+
+@@ Frontend/src/components/settings/SessionsCard.tsx
+>> function ago(iso: string) {
+/** "active now", "5 min ago", "3 h ago", or a date for older sessions. */
+
+@@ Frontend/src/components/transactions/ExportMenu.tsx
+>> const BOM = String.fromCharCode(0xfeff);
+// UTF-8 byte-order mark, and today's date for file names.
+>> function toCsv(rows: ExportRow[]) {
+/** CSV text for the export (expenses as negative amounts). */
+
+@@ Frontend/src/components/transactions/TransactionHistory.tsx
+>> const ICONS = { created: Plus, updated: Pencil, deleted: Trash2, restored: RotateCcw } as const;
+// Icon per history action, and the "how" suffix shown after it.

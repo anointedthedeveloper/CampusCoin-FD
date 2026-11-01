@@ -38,6 +38,7 @@ import type { GoalColor, GoalIcon, SavingsGoal } from '@/types/savingsGoal';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
+// Colour and icon choices for a goal.
 const COLORS: { key: GoalColor; label: string; bar: string; badge: string; ring: string }[] = [
   { key: 'teal',   label: 'Teal',   bar: 'bg-teal-500',   badge: 'bg-teal-100 text-teal-700 dark:bg-teal-400/15 dark:text-teal-400',   ring: 'ring-teal-400'   },
   { key: 'brand',  label: 'Green',  bar: 'bg-brand-500',  badge: 'bg-brand-100 text-brand-700 dark:bg-brand-400/15 dark:text-brand-400', ring: 'ring-brand-400'  },
@@ -62,6 +63,7 @@ const ICONS: { key: GoalIcon; Icon: LucideIcon; label: string }[] = [
   { key: 'zap',            Icon: Zap,            label: 'Quick'      },
 ];
 
+// Celebration text and badge style for each progress milestone (%).
 const MILESTONE_MESSAGES: Record<number, { emoji: string; text: string }> = {
   25:  { emoji: '🌱', text: "You're a quarter of the way there — great start!" },
   50:  { emoji: '🎯', text: "Halfway! You're absolutely crushing it."           },
@@ -78,6 +80,7 @@ const MILESTONE_BADGES: Record<number, string> = {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+// Note: both formatters always use US dollars, not the student's currency setting.
 function fmt(n: number) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
 }
@@ -86,10 +89,12 @@ function fmtDecimal(n: number) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
 }
 
+/** Style config for a goal colour (falls back to the first one). */
 function getColorConfig(key: GoalColor) {
   return COLORS.find((c) => c.key === key) ?? COLORS[0];
 }
 
+/** Icon config for a goal icon (falls back to the first one). */
 function getIconConfig(key: GoalIcon) {
   return ICONS.find((i) => i.key === key) ?? ICONS[0];
 }
@@ -98,6 +103,7 @@ function getIconConfig(key: GoalIcon) {
 
 const CONFETTI_COLORS = ['#22d3ee', '#a855f7', '#f59e0b', '#10b981', '#f43f5e', '#3b82f6'];
 
+/** Short confetti animation played when a milestone is reached. */
 function ConfettiBurst({ onDone }: { onDone: () => void }) {
   const particles = Array.from({ length: 56 }, (_, i) => ({
     id: i,
@@ -131,6 +137,7 @@ function ConfettiBurst({ onDone }: { onDone: () => void }) {
 
 // ─── Milestone toast ──────────────────────────────────────────────────────────
 
+/** Pop-up celebrating a milestone on a goal. */
 function MilestoneToast({
   milestone,
   goalName,
@@ -200,6 +207,7 @@ const EMPTY_FORM = {
   icon: 'piggy-bank' as GoalIcon,
 };
 
+/** Create/edit form for a goal: name, target, date, colour and icon. */
 function GoalFormModal({ mode, initial, onSubmit, onClose }: GoalFormProps) {
   const [form, setForm] = useState(() =>
     initial
@@ -449,6 +457,7 @@ function GoalFormModal({ mode, initial, onSubmit, onClose }: GoalFormProps) {
 
 // ─── Adjust Amount Modal ───────────────────────────────────────────────────────
 
+/** Add money to, or withdraw from, a goal. */
 function AdjustModal({
   goal,
   onConfirm,
@@ -559,6 +568,7 @@ function AdjustModal({
 
 // ─── Single Goal Card ─────────────────────────────────────────────────────────
 
+/** One goal: progress bar, amounts, projection to the target date and actions. */
 function GoalCard({
   goal,
   onEdit,
@@ -765,6 +775,7 @@ function GoalCard({
 
 // ─── Overview stat card ────────────────────────────────────────────────────────
 
+/** Summary tile at the top of the page. */
 function OverviewStat({
   label,
   value,
@@ -794,6 +805,7 @@ function OverviewStat({
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 
+/** Savings goals: create goals, track progress, add or withdraw money, and celebrate milestones. */
 export function SavingsGoalsPage() {
   const { user } = useAuth();
   const [goals, setGoals] = useState<SavingsGoal[]>([]);
@@ -826,6 +838,7 @@ export function SavingsGoalsPage() {
   // "New savings goal" from the quick-add menu opens the form straight away.
   const [searchParams, setSearchParams] = useSearchParams();
   useEffect(() => {
+    // ?new=1 (from the header's quick-add menu) opens the create form.
     if (searchParams.get('new') !== '1') return;
     setModalMode('create');
     setSearchParams({}, { replace: true });
@@ -860,6 +873,7 @@ export function SavingsGoalsPage() {
 
   // ── Handlers ────────────────────────────────────────────────────────────────
 
+  // Runs a change, then reloads the goals. Resolves false (showing the error) if it fails.
   async function run(action: () => Promise<unknown>) {
     setActionError(null);
     try {

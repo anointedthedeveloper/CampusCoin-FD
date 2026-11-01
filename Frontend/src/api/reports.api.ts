@@ -1,8 +1,11 @@
+// Monthly report endpoints (data, PDF download, emailing the PDF).
+
 import { httpClient } from './httpClient';
 import type { ApiSuccess } from '@/types/api';
 import type { MonthlyReport, ReportFilters } from '@/types/report';
 
 export const reportsApi = {
+  /** A month's report data (defaults to the current month). */
   async getMonthlyReport(params: { month?: string } & ReportFilters = {}): Promise<MonthlyReport> {
     const { month, ...filters } = params;
     const { data } = await httpClient.get<ApiSuccess<MonthlyReport>>('/reports/monthly', {

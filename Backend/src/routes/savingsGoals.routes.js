@@ -1,3 +1,6 @@
+// Savings goals API (mounted at /savings-goals): create, import, edit and
+// delete goals, add or withdraw money, and record celebrated milestones.
+
 const router = require('express').Router();
 const { serverError } = require('../utils/httpErrors');
 const SavingsGoal = require('../models/SavingsGoal');
@@ -54,6 +57,7 @@ function parseGoal(body, { partial = false } = {}) {
   return { value };
 }
 
+/** 400 response for a failed validation, pointing at the offending field. */
 function badRequest(res, parsed) {
   return res.status(400).json({ message: parsed.error, fieldErrors: { [parsed.field]: parsed.error } });
 }

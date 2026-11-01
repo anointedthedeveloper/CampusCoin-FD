@@ -1,3 +1,6 @@
+// In-app notifications for the signed-in user: the list, the unread count for
+// the bell, and mark-read / clear actions. Read it with useNotifications().
+
 import { createContext, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { notificationService } from '@/services';
 import { notificationsApi } from '@/api/notifications.api';
@@ -22,6 +25,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  // `silent` refreshes without showing the loading state (used by polling).
   const fetchNotifications = useCallback(async (silent = false) => {
     if (!isAuthenticated || !user) return;
     if (!silent) setIsLoading(true);
@@ -36,6 +40,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   }, [isAuthenticated, user]);
 
   useEffect(() => {
+    // Load on sign-in and clear on sign-out.
     if (isAuthenticated && user) {
       void fetchNotifications();
     } else {

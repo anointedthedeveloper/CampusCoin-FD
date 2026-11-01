@@ -1,3 +1,7 @@
+// Support API (mounted at /support): anyone (signed in or not) can send a
+// message from the Help page; signed-in students can also read their threads
+// and reply.
+
 const router = require('express').Router();
 const { serverError } = require('../utils/httpErrors');
 const rateLimit = require('express-rate-limit');
@@ -60,6 +64,7 @@ function formatThread(m, { forAdmin = false } = {}) {
   };
 }
 
+/** Trimmed string capped at `max` characters ('' for non-strings). */
 function cleanText(value, max = 4000) {
   return typeof value === 'string' ? value.trim().slice(0, max) : '';
 }

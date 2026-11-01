@@ -12,6 +12,7 @@ import type { UserSettings } from '@/types/user';
 import { FONT_SCALES, getFontScale, setFontScale, type FontScaleId } from '@/utils/fontScale';
 import { useAuth } from '@/hooks/useAuth';
 
+// Values shown until the saved settings have loaded.
 const DEFAULT_SETTINGS: UserSettings = {
   currency: DEFAULT_CURRENCY,
   monthlyIncomeGoal: null,
@@ -22,6 +23,7 @@ const DEFAULT_SETTINGS: UserSettings = {
   aiInsightsEnabled: false,
 };
 
+// The on/off preferences listed on the page.
 const TOGGLES = [
   { key: 'emailNotifications', label: 'Email notifications', description: 'Email me budget and limit alerts, announcements and support replies.', icon: Bell },
   { key: 'pushNotifications', label: 'In-app alerts', description: 'Show budget alerts and reminders in the notification bell.', icon: Bell },
@@ -29,6 +31,7 @@ const TOGGLES = [
   { key: 'aiInsightsEnabled', label: 'AI monthly insights', description: 'Write a plain-language summary of each month’s spending.', icon: Brain },
 ] as const;
 
+/** Preferences (currency, alerts, AI features, text size), plus backups and signed-in sessions. */
 export function SettingsPage() {
   const { refreshUser } = useAuth();
   const { theme, toggleTheme } = useTheme();
@@ -47,6 +50,7 @@ export function SettingsPage() {
     return () => { active = false; };
   }, []);
 
+  // Change one setting locally; nothing is saved until "Save".
   function updateSetting<Key extends keyof UserSettings>(key: Key, value: UserSettings[Key]) {
     setSettings((current) => current ? { ...current, [key]: value } : current);
     setSaved(false);

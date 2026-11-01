@@ -1,3 +1,5 @@
+// Service layer over aiApi.
+
 import { aiApi, type AIConversationTurn, type CategorySuggestion } from '@/api/ai.api';
 import { FEATURE_FLAGS } from '@/constants/config';
 

@@ -9,12 +9,14 @@ import { adminStatisticsService, adminUserService } from '@/services';
 import { useMinLoadTime } from '@/hooks/useMinLoadTime';
 import type { SystemStatistics, AdminUserSummary } from '@/types/admin';
 
+// Shortcut links shown on the dashboard.
 const quickActions = [
   { label: 'Add Category',       icon: FolderPlus, to: ADMIN_ROUTES.categories,    desc: 'Create a new system default' },
   { label: 'Send Announcement',  icon: Megaphone,  to: ADMIN_ROUTES.announcements, desc: 'Broadcast to all students' },
   { label: 'View Statistics',    icon: Sparkles,   to: ADMIN_ROUTES.statistics,    desc: 'Detailed usage analytics' },
 ];
 
+/** Admin home: platform statistics, recent sign-ups and quick links. */
 export function AdminDashboardPage() {
   const [statistics,   setStatistics]   = useState<SystemStatistics | null>(null);
   const [recentUsers,  setRecentUsers]  = useState<AdminUserSummary[]>([]);

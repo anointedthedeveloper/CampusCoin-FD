@@ -1,3 +1,8 @@
+// Transactions API (mounted at /transactions): CRUD for income and expenses,
+// export (JSON for the in-browser downloads, or a PDF), the change history and
+// "recently deleted" restore, and the file-import flow (preview → categorise →
+// confirm).
+
 const router = require('express').Router();
 const { serverError } = require('../utils/httpErrors');
 const multer = require('multer');
@@ -17,6 +22,7 @@ const TRANSACTION_TYPES = ['income', 'expense'];
 const MAX_AMOUNT = 1e12;
 const MIN_DATE = new Date('1970-01-01T00:00:00Z');
 
+/** Checks any transaction fields present in a request. Returns an error message, or null if valid. */
 function validateTransactionFields({ categoryId, type, amount, occurredAt, description, merchant }) {
   if (categoryId !== undefined && (typeof categoryId !== 'string' || !isValidObjectId(categoryId))) return 'Invalid categoryId';
   if (type !== undefined && !TRANSACTION_TYPES.includes(type)) return "type must be 'income' or 'expense'";
@@ -50,6 +56,7 @@ const upload = multer({
 router.use(protect);
 router.param('id', validateIdParam);
 
+/** API shape for a transaction. */
 function formatTx(t) {
   return {
     id: t._id.toString(),
@@ -197,11 +204,13 @@ router.get('/', async (req, res) => {
   }
 });
 
+/** API shape for a history entry, with category names filled in. */
 function formatRevision(r, names) {
   const withName = (snap) => (snap ? { ...snap, categoryName: snap.categoryId ? names.get(String(snap.categoryId)) ?? 'Deleted category' : undefined } : null);
   return { id: String(r._id), transactionId: String(r.transactionId), action: r.action, via: r.via, before: withName(r.before), after: withName(r.after), at: r.createdAt, restoredAt: r.restoredAt };
 }
 
+/** Map of the student's category ids → names. */
 async function categoryNames(userId) {
   const cats = await Category.find({ userId }).select('name').lean();
   return new Map(cats.map((c) => [String(c._id), c.name]));

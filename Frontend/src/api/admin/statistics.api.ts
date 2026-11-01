@@ -1,3 +1,5 @@
+// Admin platform statistics endpoint.
+
 import { httpClient } from '../httpClient';
 import type { ApiSuccess } from '@/types/api';
 import type { SystemStatistics } from '@/types/admin';

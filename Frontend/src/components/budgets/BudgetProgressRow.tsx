@@ -5,6 +5,7 @@ import { formatCurrency } from '@/utils/format';
 import { cn } from '@/utils/cn';
 import type { Budget } from '@/types/budget';
 
+// Progress-bar colour and label for each budget status.
 const statusBar: Record<string, string> = {
   'on-track': 'bg-brand-500 dark:bg-primary-accent',
   warning:    'bg-amber-500',
@@ -23,6 +24,7 @@ interface BudgetProgressRowProps {
   category?: { name: string; icon?: string; color?: string };
 }
 
+/** One budget as a row: category, amount spent vs. limit, a progress bar and its status. */
 export function BudgetProgressRow({ categoryName, budget, category }: BudgetProgressRowProps) {
   const utilization = getBudgetUtilization(budget);
   const status      = getBudgetStatus(budget);

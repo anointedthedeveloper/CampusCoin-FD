@@ -11,10 +11,12 @@ const KIND_LABEL: Record<BackupSummary['kind'], { label: string; tone: 'brand' |
   'pre-restore': { label: 'Before restore', tone: 'neutral' },
 };
 
+/** Date and time of a backup, in the viewer's locale. */
 function when(iso: string) {
   return new Date(iso).toLocaleString(undefined, { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' });
 }
 
+/** "12 transactions · 9 categories · …" line describing what a backup holds. */
 function summary(b: BackupSummary) {
   const c = b.counts;
   return `${c.transactions ?? 0} transactions · ${c.categories ?? 0} categories · ${c.budgets ?? 0} budgets · ${c.savingsGoals ?? 0} goals`;

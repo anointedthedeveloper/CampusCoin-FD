@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Logo } from '@/components/common';
 import { PUBLIC_ROUTES, STUDENT_ROUTES } from '@/constants/routes';
 
+// Link columns shown in the footer.
 const productLinks = [
   { to: PUBLIC_ROUTES.home, label: 'Home' },
   { to: PUBLIC_ROUTES.features, label: 'How it works' },
@@ -43,6 +44,7 @@ const footerColumns = [
   { title: 'Account', links: accountLinks },
 ];
 
+/** A single footer link. */
 function FooterLink({ to, label }: { to: string; label: string }) {
   return (
     <li>
@@ -56,6 +58,7 @@ function FooterLink({ to, label }: { to: string; label: string }) {
   );
 }
 
+/** Site footer for the public pages. */
 export function Footer() {
   return (
     <footer className="bg-[#122a1f] text-white dark:border-t dark:border-white/[0.06] dark:bg-surface" aria-label="Site map">

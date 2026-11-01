@@ -1,0 +1,21 @@
+@@ Frontend/src/services/savingsGoals.service.ts
+^^
+Savings goals API calls, plus the progress/projection maths the Savings
+Goals page uses.
+>> function readLegacy(userId: string): SavingsGoal[] {
+/** Goals saved in this browser by older versions of the app (if any). */
+>> function clearLegacy(userId: string) {
+/** Removes the old browser-only copy once it has been uploaded. */
+>> async function migrateLocalGoals(userId: string): Promise<SavingsGoal[] | null> {
+/** Uploads any old browser-only goals to the server, once. Resolves null when there were none. */
+>> export function computeProjection(goal: SavingsGoal): GoalProjection {
+/** Progress % and, when there is a target date, how much to save per day/week/month to reach it. */
+
+@@ Frontend/eslint.config.js
+^^
+ESLint config (flat format) for the TypeScript/React source. Unused
+variables are errors unless their name starts with an underscore.
+
+@@ Frontend/postcss.config.js
+^^
+PostCSS pipeline: Tailwind CSS, then autoprefixer for browser prefixes.

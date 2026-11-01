@@ -13,6 +13,7 @@ import type { Transaction } from '@/types/transaction';
 import { forgetRecentTransaction, recordRecentTransaction } from '@/utils/recentTransactions';
 import { TransactionHistory } from '@/components/transactions/TransactionHistory';
 
+/** One transaction's details and its change history. */
 export function TransactionDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
@@ -58,6 +59,7 @@ export function TransactionDetailPage() {
     );
   }
 
+  // Delete it and drop it from the "recent" list.
   async function handleDelete() {
     if (!user || !transaction) return;
     await transactionService.remove(user.id, transaction.id);

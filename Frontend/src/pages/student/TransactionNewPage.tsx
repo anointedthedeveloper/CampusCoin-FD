@@ -14,11 +14,13 @@ import { ApiError } from '@/types/api';
 import type { Category, CategoryType } from '@/types/category';
 import { formatNumericInput, normalizeNumericInput } from '@/utils/number';
 
+/** Today's date as "YYYY-MM-DD" in local time. */
 function todayIso(): string {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 }
 
+// Entries in a catch-all category must have a description saying what they were for.
 const isCatchAllCategory = (name?: string) => /^(other|miscellaneous)$/i.test(name ?? '');
 
 const fieldCls = cn(
@@ -29,6 +31,10 @@ const fieldCls = cn(
   'dark:hover:border-white/15 dark:focus:border-primary-accent/70 dark:focus:ring-primary-accent/20',
 );
 
+/**
+ * Add an income or expense (?type=income|expense picks the tab). It can also
+ * be set to repeat, which creates a money routine starting at the next occurrence.
+ */
 export function TransactionNewPage() {
   const { user }         = useAuth();
   const navigate         = useNavigate();
@@ -82,11 +88,14 @@ export function TransactionNewPage() {
   }, [user?.id, type]); // eslint-disable-line react-hooks/exhaustive-deps
 
 
+  // Switching between income and expense clears the chosen category.
   function handleTypeChange(next: CategoryType) {
     setType(next);
     setCategoryId('');
   }
 
+  // Save the transaction. If the server flags a possible duplicate, the student
+  // can confirm and it is sent again with confirmDuplicate = true.
   async function handleSubmit(e: FormEvent | null, confirmDuplicate = false) {
     e?.preventDefault();
     if (!user) return;

@@ -1,8 +1,15 @@
+// Route guard for pages that need a signed-in user.
+
 import { Navigate, Outlet, useLocation, useOutletContext } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { PUBLIC_ROUTES } from '@/constants/routes';
 import { PageLoader } from '@/components/common';
 
+/**
+ * Shows a loader while the session is restored, sends signed-out visitors to
+ * /login (remembering where they were going), and makes Google-only accounts
+ * set a password first.
+ */
 export function ProtectedRoute() {
   const { isAuthenticated, isLoading, user } = useAuth();
   // Pass a parent layout's context (e.g. AuthLayout's compact flag) through.

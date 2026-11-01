@@ -1,3 +1,7 @@
+// Signed-in user state for the whole app. On load it restores the session
+// from the stored tokens, and it exposes login/register/Google sign-in/logout
+// helpers that keep the in-memory user and the stored tokens in step.
+
 import { createContext, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { authService, profileService, tokenService } from '@/services';
 import type { LoginCredentials, RegisterPayload } from '@/types/auth';
@@ -18,10 +22,12 @@ interface AuthContextValue {
 // eslint-disable-next-line react-refresh/only-export-components
 export const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
+/** Provides the current user and auth actions; read them with useAuth(). */
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Re-fetches the profile for the stored token (used on load and after profile changes).
   const refreshUser = useCallback(async () => {
     if (!tokenService.getAccessToken()) {
       setUser(null);
@@ -56,6 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    // Restore any existing session once on startup.
     refreshUser().finally(() => setIsLoading(false));
   }, [refreshUser]);
 

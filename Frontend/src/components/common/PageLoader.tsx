@@ -1,5 +1,6 @@
 import { CoinLoader } from '@/components/common/CoinLoader';
 
+/** Full-screen loader shown while a page or the session is loading. */
 export function PageLoader() {
   return (
     <main

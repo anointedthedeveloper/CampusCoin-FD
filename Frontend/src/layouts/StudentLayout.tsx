@@ -1,3 +1,7 @@
+// Student app shell: a collapsible, grouped sidebar, the header (breadcrumbs,
+// quick-add menu, notifications and account menu), a first-visit tour of the
+// sidebar, and the page content via <Outlet />.
+
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
@@ -80,6 +84,7 @@ const NAV_GROUPS: NavGroup[] = [
   },
 ];
 
+// Shortcuts in the header's quick-add menu.
 const QUICK_ADD = [
   { to: `${STUDENT_ROUTES.newTransaction}?type=expense`, label: 'Add an expense', hint: 'Food, transport, data…', icon: ArrowDownRight, tone: 'text-red-600 bg-red-50 dark:bg-red-500/10 dark:text-red-400' },
   { to: `${STUDENT_ROUTES.newTransaction}?type=income`, label: 'Add income', hint: 'Allowance, job, gift…', icon: ArrowUpRight, tone: 'text-brand-700 bg-brand-50 dark:bg-primary/15 dark:text-primary-accent' },
@@ -88,6 +93,7 @@ const QUICK_ADD = [
   { to: STUDENT_ROUTES.import, label: 'Import a file', hint: 'CSV, Excel, Word or JSON', icon: FileUp, tone: 'text-blue-700 bg-blue-50 dark:bg-blue-400/10 dark:text-blue-400' },
 ];
 
+// Steps of the first-visit sidebar tour (matched to nav items by label).
 const TOUR_STEPS = [
   { label: 'Dashboard', title: 'Your money at a glance', text: 'Balance, income, expenses, budgets, and savings — all here.' },
   { label: 'Add Transaction', title: 'Log as you go', text: 'Add income or expenses in seconds. Everything else updates automatically.' },
@@ -95,6 +101,7 @@ const TOUR_STEPS = [
   { label: 'AI Assistant', title: 'Ask anything', text: 'Ask about your spending in plain language — it can even add things for you once you approve.' },
 ];
 
+// Breadcrumb labels for each route.
 const ROUTE_LABELS: Record<string, string> = {
   [STUDENT_ROUTES.dashboard]: 'Dashboard',
   [STUDENT_ROUTES.transactions]: 'Transactions',
@@ -123,9 +130,11 @@ const ROUTE_PARENTS: Record<string, string> = {
   [STUDENT_ROUTES.onboarding]: STUDENT_ROUTES.profile,
 };
 
+// localStorage keys for the sidebar's collapsed state and folded groups.
 const COLLAPSE_KEY = 'campus-coin.sidebarCollapsed';
 const GROUPS_KEY = 'campus-coin.sidebarGroupsClosed';
 
+/** Reads a JSON value from localStorage, or `fallback` if missing/unreadable. */
 function readStored<T>(key: string, fallback: T): T {
   try {
     const raw = localStorage.getItem(key);
@@ -135,6 +144,7 @@ function readStored<T>(key: string, fallback: T): T {
   }
 }
 
+/** Saves a JSON value to localStorage, ignoring failures. */
 function writeStored(key: string, value: unknown) {
   try {
     localStorage.setItem(key, JSON.stringify(value));
@@ -143,6 +153,7 @@ function writeStored(key: string, value: unknown) {
   }
 }
 
+/** "Dashboard / Transactions / …" trail for the current page. */
 function Breadcrumbs({ pathname, className }: { pathname: string; className?: string }) {
   const crumbs: { to: string; label: string }[] = [];
   if (ROUTE_LABELS[pathname]) {
@@ -216,6 +227,7 @@ function HoverMenu({ trigger, children, align = 'right', label }: { trigger: Rea
   );
 }
 
+/** Layout for every signed-in student page. */
 export function StudentLayout() {
   const { user, logout } = useAuth();
   const location = useLocation();
@@ -233,6 +245,7 @@ export function StudentLayout() {
   const rail = collapsed && !isSidebarOpen;
 
   useEffect(() => {
+    // Close the mobile drawer and any tooltip after navigating.
     setIsSidebarOpen(false);
     setTooltip(null);
   }, [location.pathname, location.search]);
@@ -242,6 +255,7 @@ export function StudentLayout() {
 
   useEffect(() => {
     if (!user) return;
+    // Show the sidebar tour once per student, on desktop only.
     if (typeof window === 'undefined' || window.innerWidth < 1024) return;
     const key = `campus-coin.dashboardTourSeen.${user.id}`;
     try {
@@ -263,6 +277,7 @@ export function StudentLayout() {
     setTourStep(tourStep + 1 >= TOUR_STEPS.length ? null : tourStep + 1);
   }
 
+  /** Whether a nav item should be highlighted for the current URL. */
   function isItemActive(item: NavItem) {
     if (item.to === STUDENT_ROUTES.transactions) {
       return location.pathname.startsWith(STUDENT_ROUTES.transactions) && location.pathname !== STUDENT_ROUTES.newTransaction;

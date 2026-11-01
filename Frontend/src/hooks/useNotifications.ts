@@ -1,6 +1,9 @@
+// Access to NotificationContext (notifications, unread count and actions).
+
 import { useContext } from 'react';
 import { NotificationContext } from '@/contexts/NotificationContext';
 
+/** Must be used inside <NotificationProvider>. */
 export function useNotifications() {
   const context = useContext(NotificationContext);
   if (!context) {

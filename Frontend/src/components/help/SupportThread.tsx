@@ -14,6 +14,7 @@ interface SupportThreadProps {
   className?: string;
 }
 
+/** Time only for today's messages, otherwise date and time. */
 function timeLabel(iso: string) {
   const date = new Date(iso);
   const sameDay = date.toDateString() === new Date().toDateString();

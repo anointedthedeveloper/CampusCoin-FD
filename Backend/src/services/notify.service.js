@@ -1,3 +1,6 @@
+// The single place notifications are created, so in-app and email delivery
+// always stay in step.
+
 const Notification = require('../models/Notification');
 const User = require('../models/User');
 const { sendNotificationEmail } = require('./email.service');

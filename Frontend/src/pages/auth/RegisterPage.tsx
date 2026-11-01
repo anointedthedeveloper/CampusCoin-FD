@@ -11,6 +11,7 @@ import { cn } from '@/utils/cn';
 import type { AuthPageOutletContext } from './authOutletContext';
 import { postLoginPath, useGoogleSignIn } from '@/hooks/useGoogleSignIn';
 
+/** Sign-up with name, email and password (or Google); new accounts go to onboarding. */
 export function RegisterPage() {
   const { register , user: signedInUser, isLoading: isAuthLoading } = useAuth();
   const navigate = useNavigate();

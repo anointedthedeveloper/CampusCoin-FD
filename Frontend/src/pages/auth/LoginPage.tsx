@@ -12,6 +12,11 @@ import type { AuthPageOutletContext } from './authOutletContext';
 import { LOGOUT_REASON_STORAGE_KEY } from '@/api/httpClient';
 import { postLoginPath, useGoogleSignIn } from '@/hooks/useGoogleSignIn';
 
+/**
+ * Student sign-in with email/password or Google. After signing in, the user
+ * goes back to the page they were trying to open, or to onboarding/the
+ * dashboard (see postLoginPath).
+ */
 export function LoginPage() {
   const { login , user: signedInUser, isLoading: isAuthLoading } = useAuth();
   const navigate = useNavigate();
@@ -24,6 +29,7 @@ export function LoginPage() {
   const [error, setError]               = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Set by ProtectedRoute when it redirected here from a protected page.
   const redirectFrom = (location.state as { from?: Location })?.from?.pathname;
   // Why the previous session ended (e.g. the account was suspended). Read
   // once, then cleared in an effect so it isn't shown again next time.
@@ -41,6 +47,7 @@ export function LoginPage() {
       // ignore
     }
   }, []);
+  // e.g. "Password reset successful…" passed from the reset page.
   const notice = (location.state as { notice?: string } | null)?.notice;
 
   const google = useGoogleSignIn(redirectFrom);

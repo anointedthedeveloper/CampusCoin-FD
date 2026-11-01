@@ -1,3 +1,8 @@
+// Original model for recurring transactions. Same 'recurringtransactions'
+// collection as MoneyRoutine.js (the name the routes use now); this one is
+// still used by financialData.service.js and by admin.routes.js when deleting
+// a user's data.
+
 const mongoose = require('mongoose');
 
 const recurringSchema = new mongoose.Schema(

@@ -1,3 +1,6 @@
+// Layout for the public marketing pages: header with navigation (and a link
+// into the app when signed in), the page content and the footer.
+
 import { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -8,6 +11,7 @@ import { Logo, ThemeToggle } from '@/components/common';
 import { Footer } from '@/components/layout/Footer';
 import { cn } from '@/utils/cn';
 
+// Header navigation links.
 const navLinks = [
   { to: PUBLIC_ROUTES.home, label: 'Home', end: true },
   { to: PUBLIC_ROUTES.features, label: 'Features', end: false },

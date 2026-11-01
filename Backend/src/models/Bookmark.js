@@ -1,3 +1,5 @@
+// Mongoose model for a student's bookmark on an insight or a saving tip.
+
 const mongoose = require('mongoose');
 
 const bookmarkSchema = new mongoose.Schema(

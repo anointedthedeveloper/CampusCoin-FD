@@ -12,6 +12,7 @@ import { isStrongPassword } from '@/utils/validation';
 import { ApiError } from '@/types/api';
 import { cn } from '@/utils/cn';
 
+/** Display labels for saved onboarding choices ("other" shows the student's own text). */
 function labelsFor(values: string[] | undefined, options: { value: string; label: string }[], other?: string) {
   return (values ?? []).map((v) => (v === 'other' && other ? other : options.find((o) => o.value === v)?.label ?? v));
 }

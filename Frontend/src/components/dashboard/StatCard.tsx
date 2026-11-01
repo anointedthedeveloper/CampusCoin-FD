@@ -29,6 +29,7 @@ interface StatCardProps {
   deltaPositive?: boolean;
 }
 
+/** Dashboard tile showing one figure (e.g. balance or this month's spending) with an icon and optional hint/delta. */
 export function StatCard({
   icon: Icon,
   label,

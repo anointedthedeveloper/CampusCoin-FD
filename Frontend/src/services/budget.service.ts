@@ -1,14 +1,20 @@
+// Service layer over budgetsApi, plus helpers for a budget's % used and
+// status. The unused `_userId` parameters are kept so older call sites keep
+// working; the backend always uses the signed-in user.
+
 import { budgetsApi } from '@/api/budgets.api';
 import { DEFAULT_BUDGET_ALERT_THRESHOLD } from '@/constants/config';
 import type { Budget, BudgetPayload, BudgetSummary } from '@/types/budget';
 
 export type BudgetStatus = 'on-track' | 'warning' | 'exceeded';
 
+/** Percentage of the limit already spent (rounded). */
 export function getBudgetUtilization(budget: Budget): number {
   if (budget.limitAmount <= 0) return 0;
   return Math.round((budget.spentAmount / budget.limitAmount) * 100);
 }
 
+/** "exceeded" at 100%+, "warning" from the alert threshold, otherwise "on-track". */
 export function getBudgetStatus(
   budget: Budget,
   warningThreshold: number = DEFAULT_BUDGET_ALERT_THRESHOLD,

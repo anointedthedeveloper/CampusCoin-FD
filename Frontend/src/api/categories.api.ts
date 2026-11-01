@@ -1,3 +1,5 @@
+// The student's own income/expense category endpoints.
+
 import { httpClient } from './httpClient';
 import type { ApiSuccess } from '@/types/api';
 import type { Category, CategoryPayload } from '@/types/category';
@@ -18,6 +20,7 @@ export const categoriesApi = {
     return data.data;
   },
 
+  /** Deletes a category; anything using it moves to the fallback category, and the count is returned. */
   async remove(id: string): Promise<{ reassignedCount: number }> {
     const { data } = await httpClient.delete<{ data?: { reassignedCount?: number } }>(`/categories/${id}`);
     return { reassignedCount: data?.data?.reassignedCount ?? 0 };

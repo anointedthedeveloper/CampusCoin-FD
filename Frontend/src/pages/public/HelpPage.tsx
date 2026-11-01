@@ -21,6 +21,7 @@ import { MyConversations } from '@/components/help/MyConversations';
 import { PUBLIC_ROUTES, STUDENT_ROUTES } from '@/constants/routes';
 import { cn } from '@/utils/cn';
 
+// Quick search suggestions and links to guides.
 const POPULAR = ['reset password', 'budget alerts', 'recurring', 'export report', 'Google sign in', 'delete account'];
 
 const GUIDES = [
@@ -32,6 +33,7 @@ const GUIDES = [
   { icon: KeyRound, title: 'Reset your password', steps: ['On the login page, click Forgot password?', 'Enter your email', 'Use the code or the link in the email'], to: PUBLIC_ROUTES.forgotPassword },
 ];
 
+/** Opens the Tawk.to live-chat window. */
 function openLiveChat() {
   const tawk = window.Tawk_API as { maximize?: () => void; showWidget?: () => void } | undefined;
   tawk?.showWidget?.();
@@ -57,6 +59,7 @@ export function HelpPage({ inApp = false }: { inApp?: boolean }) {
     return () => window.clearTimeout(timer);
   }, [inApp, focusThread]);
 
+  // Searching sends the visitor to the FAQ page with their query.
   function search(event?: FormEvent, text = query) {
     event?.preventDefault();
     const q = text.trim();

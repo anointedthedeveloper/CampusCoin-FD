@@ -1,3 +1,6 @@
+// Service layer over reportsApi, plus the six-month income/expense trend used
+// by the charts.
+
 import { reportsApi } from '@/api/reports.api';
 import type { MonthlyReport, ReportFilters } from '@/types/report';
 
@@ -12,6 +15,7 @@ export const reportService = {
     return reportsApi.getMonthlyReport({ month: month ?? new Date().toISOString().slice(0, 7), ...filters });
   },
 
+  /** Income and expenses for the six months ending at `endMonth` (one report request per month). */
   async getSixMonthTrend(_userId?: string, endMonth?: string): Promise<TrendPoint[]> {
     const end = endMonth ?? new Date().toISOString().slice(0, 7);
     const months: string[] = [];
@@ -30,6 +34,7 @@ export const reportService = {
     }));
   },
 
+  /** Category breakdown in the { name, value, percentage } shape the charts expect. */
   toChartData(report: MonthlyReport) {
     return report.categoryBreakdown.map((item) => ({
       name: item.categoryName,

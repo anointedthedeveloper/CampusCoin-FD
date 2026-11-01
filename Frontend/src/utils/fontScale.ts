@@ -11,6 +11,7 @@ export type FontScaleId = (typeof FONT_SCALES)[number]['id'];
 
 const STORAGE_KEY = 'campus-coin.fontScale';
 
+/** The saved text-size preference (falls back to "default"). */
 export function getFontScale(): FontScaleId {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -21,11 +22,13 @@ export function getFontScale(): FontScaleId {
   return 'default';
 }
 
+/** Applies a text size by setting the root font size. */
 export function applyFontScale(id: FontScaleId = getFontScale()): void {
   const scale = FONT_SCALES.find((s) => s.id === id) ?? FONT_SCALES[1];
   document.documentElement.style.fontSize = scale.id === 'default' ? '' : `${scale.px}px`;
 }
 
+/** Saves and applies a new text-size preference. */
 export function setFontScale(id: FontScaleId): void {
   try {
     localStorage.setItem(STORAGE_KEY, id);

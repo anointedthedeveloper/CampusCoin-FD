@@ -1,3 +1,6 @@
+// Mongoose model for in-app notifications (budget alerts, announcements,
+// support replies, backups and other system messages).
+
 const mongoose = require('mongoose');
 
 const notificationSchema = new mongoose.Schema(

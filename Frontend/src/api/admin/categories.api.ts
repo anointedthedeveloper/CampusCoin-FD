@@ -1,3 +1,5 @@
+// Admin endpoints for the system category templates every new student gets.
+
 import { httpClient } from '../httpClient';
 import type { ApiSuccess } from '@/types/api';
 import type { CategoryType } from '@/types/category';
@@ -40,6 +42,7 @@ export const adminCategoriesApi = {
     return data.data;
   },
 
+  /** Deletes a template; with `removeFromStudents`, students' copies are removed too. */
   async remove(id: string, removeFromStudents = false): Promise<{ studentsRemoved: number }> {
     const { data } = await httpClient.delete<ApiSuccess<{ studentsRemoved: number }>>(`/admin/categories/${id}`, {
       params: removeFromStudents ? { removeFromStudents: 'true' } : undefined,

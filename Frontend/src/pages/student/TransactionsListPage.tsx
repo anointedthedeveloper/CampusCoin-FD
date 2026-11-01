@@ -18,12 +18,14 @@ import { RecentlyDeleted } from '@/components/transactions/RecentlyDeleted';
 
 type TypeFilter = 'all' | CategoryType;
 
+// Options for the income/expense filter.
 const TYPE_OPTIONS: { value: TypeFilter; label: string }[] = [
   { value: 'all',     label: 'All' },
   { value: 'income',  label: 'Income' },
   { value: 'expense', label: 'Expense' },
 ];
 
+/** All transactions with filters, search, paging ("load more"), export and recently-deleted restore. */
 export function TransactionsListPage() {
   const { user } = useAuth();
   const [search, setSearch]               = useState('');
@@ -49,6 +51,7 @@ export function TransactionsListPage() {
 
   const PAGE_SIZE = 50;
 
+  // The API query for the current filters and page.
   function currentFilters(pageNumber: number) {
     return {
       type:       typeFilter === 'all' ? undefined : typeFilter,
@@ -61,6 +64,7 @@ export function TransactionsListPage() {
     };
   }
 
+  // Load the first page for the current filters.
   async function load() {
     if (!user) return;
     setIsLoading(true);
@@ -75,6 +79,7 @@ export function TransactionsListPage() {
     setIsLoading(false);
   }
 
+  // Append the next page.
   async function loadMore() {
     if (!user) return;
     setIsLoadingMore(true);

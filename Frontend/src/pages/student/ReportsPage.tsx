@@ -16,17 +16,20 @@ import type { Category } from '@/types/category';
 import type { MonthlyReport } from '@/types/report';
 import type { TrendPoint } from '@/services/report.service';
 
+/** "YYYY-MM" for the month `offset` months from now (0 = this month). */
 function monthForOffset(offset: number): string {
   const now = new Date();
   const d = new Date(now.getFullYear(), now.getMonth() + offset, 1);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 }
 
+/** "YYYY-MM-DD" of the last day of a "YYYY-MM" month. */
 function lastDayOfMonth(month: string): string {
   const [y, m] = month.split('-').map(Number);
   return `${month}-${String(new Date(y, m, 0).getDate()).padStart(2, '0')}`;
 }
 
+/** Saves a Blob as a file download. */
 function downloadBlob(filename: string, blob: Blob) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -38,6 +41,7 @@ function downloadBlob(filename: string, blob: Blob) {
 
 interface WeekBucket { label: string; amount: number }
 
+/** Groups daily spending into "Week 1" (days 1–7), "Week 2" (8–14)… for the weekly chart. */
 function groupIntoWeeks(dailySpend: { date: string; amount: number }[]): WeekBucket[] {
   const buckets = new Map<number, number>();
   for (const { date, amount } of dailySpend) {
@@ -53,6 +57,7 @@ function groupIntoWeeks(dailySpend: { date: string; amount: number }[]): WeekBuc
 interface HeatmapCell { day: number | null; amount: number }
 const WEEKDAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
+/** Calendar cells for the spending heatmap, padded so the 1st lands on the right weekday. */
 function buildHeatmapCells(month: string, dailySpend: { date: string; amount: number }[]): HeatmapCell[] {
   const [year, monthNum] = month.split('-').map(Number);
   const daysInMonth  = new Date(year, monthNum, 0).getDate();
@@ -64,6 +69,7 @@ function buildHeatmapCells(month: string, dailySpend: { date: string; amount: nu
   return cells;
 }
 
+/** Heatmap shade for a day, relative to the month's biggest day. */
 function heatmapClass(amount: number, max: number): string {
   if (amount <= 0) return 'bg-gray-100 dark:bg-white/5';
   const ratio = max > 0 ? amount / max : 0;
@@ -73,6 +79,7 @@ function heatmapClass(amount: number, max: number): string {
   return 'bg-brand-100 dark:bg-primary-accent/15';
 }
 
+/** Builds a CSV from rows of cells and downloads it. */
 function downloadCsv(filename: string, rows: (string | number)[][]) {
   const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -83,6 +90,11 @@ function downloadCsv(filename: string, rows: (string | number)[][]) {
   document.body.removeChild(a); URL.revokeObjectURL(url);
 }
 
+/**
+ * Monthly report: totals, spending by category, daily/weekly charts and a
+ * spending heatmap for a chosen month (optionally a date range within it),
+ * with PDF, image, CSV and email exports.
+ */
 export function ReportsPage() {
   const { user } = useAuth();
   const [monthOffset, setMonthOffset]   = useState(0);
@@ -179,6 +191,7 @@ export function ReportsPage() {
     );
   }
 
+  // Export: the server-rendered PDF.
   async function handleExportPdf() {
     setExporting('pdf');
     setExportError(null);
@@ -191,6 +204,7 @@ export function ReportsPage() {
     }
   }
 
+  // Export: a PNG snapshot of the report section.
   async function handleExportImage() {
     if (!reportRef.current) return;
     setExporting('image');
@@ -219,6 +233,7 @@ export function ReportsPage() {
     { label: 'Net Savings',    value: formatCurrency(report.netSavings, currency),   icon: Wallet,         tone: 'blue'  as const },
   ];
 
+  // Export: a CSV of the month's summary and breakdowns.
   function handleExport() {
     downloadCsv(`campuscoin-${month}.csv`, [
       ['Campus Coin Report', formatMonthLabel(month)],

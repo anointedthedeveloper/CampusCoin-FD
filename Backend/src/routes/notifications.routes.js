@@ -1,3 +1,6 @@
+// Notifications API (mounted at /notifications): list notifications and
+// announcements, and mark them read or dismissed.
+
 const router = require('express').Router();
 const { serverError } = require('../utils/httpErrors');
 const Notification = require('../models/Notification');
@@ -8,6 +11,7 @@ const { validateIdParam } = require('../utils/objectId');
 router.use(protect);
 router.param('id', validateIdParam);
 
+/** API shape for a notification. */
 function formatNotif(n) {
   return {
     id: n._id.toString(),

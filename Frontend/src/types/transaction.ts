@@ -1,3 +1,5 @@
+// Transaction types, including filters and the CSV import preview.
+
 import type { CategoryType } from './category';
 
 export type TransactionSource = 'manual' | 'csv-import' | 'ai-suggested' | 'recurring';

@@ -1,3 +1,6 @@
+// Profile API (mounted at /profile): the student's profile, onboarding
+// progress and settings.
+
 const router = require('express').Router();
 const { serverError } = require('../utils/httpErrors');
 const User = require('../models/User');
@@ -28,6 +31,7 @@ const SPENDING_CATEGORY_TO_CATEGORY = {
   other: { name: 'Miscellaneous', aliases: ['Miscellaneous', 'Other'], icon: 'more-horizontal', color: '#94a3b8' },
 };
 
+// Escapes text for safe use inside a RegExp.
 const escapeRe = (v) => v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 /** The student's existing category for an onboarding choice, or a new one. */
@@ -49,6 +53,7 @@ async function resolveSpendingCategory(userId, value, otherSpendingCategory) {
   );
 }
 
+/** Makes sure the student has a category for each spending area picked in onboarding. */
 async function ensureSpendingCategories(userId, spendingCategories, otherSpendingCategory) {
   for (const value of spendingCategories) {
     await resolveSpendingCategory(userId, value, otherSpendingCategory);

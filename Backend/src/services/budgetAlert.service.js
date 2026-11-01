@@ -1,3 +1,7 @@
+// Budget and monthly-limit notifications, checked after a transaction is
+// saved. Each alert is sent at most once per budget/month, so students aren't
+// notified again on every later transaction.
+
 const Budget = require('../models/Budget');
 const Transaction = require('../models/Transaction');
 const Notification = require('../models/Notification');
@@ -6,8 +10,14 @@ const User = require('../models/User');
 const { createNotification } = require('./notify.service');
 const mongoose = require('mongoose');
 
+// Accepts an ObjectId or its string form.
 const toObjectId = (id) => (id instanceof mongoose.Types.ObjectId ? id : new mongoose.Types.ObjectId(String(id)));
 
+/**
+ * Compares the month's spending in the transaction's category with its
+ * budget and sends "budget-near" (at the student's alert threshold) or
+ * "budget-exceeded" (100%+) the first time either is crossed. Never throws.
+ */
 async function checkBudgetAfterTransaction(userIdInput, categoryIdInput, occurredAt) {
   try {
     // $match in an aggregate does not cast strings to ObjectIds.

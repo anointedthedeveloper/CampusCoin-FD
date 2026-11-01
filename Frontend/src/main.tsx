@@ -1,3 +1,5 @@
+// Browser entry point: applies the saved font size, then mounts <App /> into #root.
+
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';

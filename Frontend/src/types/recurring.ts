@@ -1,3 +1,5 @@
+// Money routine (recurring transaction) types.
+
 import type { CategoryType } from './category';
 
 export type RecurringFrequency = 'daily' | 'weekly' | 'monthly' | 'yearly';

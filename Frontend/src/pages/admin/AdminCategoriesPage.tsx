@@ -9,11 +9,13 @@ import { IconPicker } from '@/components/categories/IconPicker';
 import { CategoryIconBadge } from '@/components/categories/CategoryIconBadge';
 import { suggestIcons } from '@/constants/categoryIcons';
 
+// Colours an admin can choose for a category.
 const PALETTE = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#14b8a6', '#3b82f6', '#6366f1', '#8b5cf6', '#ec4899', '#94a3b8'];
 
 const inputCls =
   'w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-white/10 dark:bg-surface dark:text-text-primary';
 
+/** Row of colour swatches. */
 function ColorPicker({ value, onChange }: { value: string; onChange: (color: string) => void }) {
   return (
     <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Colour">
@@ -33,6 +35,10 @@ function ColorPicker({ value, onChange }: { value: string; onChange: (color: str
   );
 }
 
+/**
+ * Manage the default category templates new students start with. Edits can
+ * optionally be applied to every student's existing copy as well.
+ */
 export function AdminCategoriesPage() {
   const [templates, setTemplates] = useState<DefaultCategoryTemplate[]>([]);
   const [refreshToken, setRefreshToken] = useState(0);
@@ -65,6 +71,7 @@ export function AdminCategoriesPage() {
   }, [refreshToken]);
 
   useEffect(() => {
+    // Suggest an icon from the name as it's typed, until the admin picks one.
     if (iconTouched) return;
     const best = suggestIcons(name, type, 1)[0];
     setIcon(best ?? (type === 'income' ? 'hand-coins' : 'tag'));
@@ -89,6 +96,7 @@ export function AdminCategoriesPage() {
     }
   }
 
+  // Open the edit dialog pre-filled with the template's current values.
   function openEdit(template: DefaultCategoryTemplate) {
     setEditing(template);
     setEditName(template.name);

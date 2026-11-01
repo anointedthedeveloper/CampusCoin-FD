@@ -18,6 +18,7 @@ import { PUBLIC_ROUTES } from '@/constants/routes';
 import { assets } from '@/assets';
 import { cn } from '@/utils/cn';
 
+// FAQ content, grouped by topic.
 const categories = [
   {
     key: 'getting-started',
@@ -197,6 +198,7 @@ const categories = [
   },
 ];
 
+/** One expandable question and answer. */
 function FaqItem({ question, answer }: { question: string; answer: string }) {
   return (
     <details className="group border-b border-[#1d3d2d]/10 first:border-t dark:border-white/10">
@@ -217,6 +219,7 @@ function FaqIllustration() {
   );
 }
 
+// Filler words ignored by the search, and synonyms each search word also matches.
 const STOP_WORDS = new Set(['how', 'do', 'does', 'can', 'the', 'my', 'is', 'to', 'an', 'and', 'or', 'of', 'in', 'on', 'for', 'what', 'where', 'why', 'with', 'it', 'me', 'am', 'are', 'be', 'if', 'at', 'this', 'that', 'there', 'your', 'you']);
 const SYNONYMS: Record<string, string[]> = {
   reset: ['forgot', 'new password', 'change'],
@@ -232,6 +235,7 @@ const SYNONYMS: Record<string, string[]> = {
   bank: ['bank account'],
 };
 
+/** Searchable FAQ (the Help page's search links here with ?q=…). */
 export function FaqPage() {
   const [searchParams] = useSearchParams();
   const [query, setQuery] = useState(() => searchParams.get('q') ?? '');
@@ -280,6 +284,7 @@ export function FaqPage() {
   const hasResults = filteredCategories.length > 0;
   const resultCount = useMemo(() => filteredCategories.reduce((sum, c) => sum + c.faqs.length, 0), [filteredCategories]);
 
+  // Clear the search and jump to a topic section.
   function goToCategory(key: string) {
     setQuery('');
     setExpandedKey(key);

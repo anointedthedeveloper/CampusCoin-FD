@@ -10,6 +10,7 @@ import { ApiError } from '@/types/api';
 import { cn } from '@/utils/cn';
 import { SessionsCard } from '@/components/settings/SessionsCard';
 
+/** The signed-in admin's own profile and password. */
 export function AdminProfilePage() {
   const { user, refreshUser } = useAuth();
   const [fullName, setFullName] = useState(user?.fullName ?? '');
@@ -60,6 +61,7 @@ export function AdminProfilePage() {
     }
   }
 
+  // Success/error line shown under each form.
   const message = (m: { ok: boolean; text: string } | null) =>
     m && <p role={m.ok ? 'status' : 'alert'} className={cn('text-sm', m.ok ? 'text-brand-700 dark:text-primary-accent' : 'text-red-600 dark:text-red-400')}>{m.text}</p>;
 

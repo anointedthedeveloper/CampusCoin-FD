@@ -1,3 +1,5 @@
+// Small data-fetching hook with loading/error state and a refetch() trigger.
+
 import { useCallback, useEffect, useState } from 'react';
 
 interface AsyncState<T> {

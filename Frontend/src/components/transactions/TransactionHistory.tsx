@@ -4,6 +4,7 @@ import { Card, Spinner } from '@/components/common';
 import { transactionsApi, type TransactionRevision, type TransactionSnapshot } from '@/api/transactions.api';
 import { formatCurrency } from '@/utils/format';
 
+// Icon per history action, and the "how" suffix shown after it.
 const ICONS = { created: Plus, updated: Pencil, deleted: Trash2, restored: RotateCcw } as const;
 const VIA_LABEL: Record<TransactionRevision['via'], string> = { app: '', ai: ' by the AI Assistant (you approved)', import: ' from an imported file', recurring: ' by a recurring schedule', restore: '' };
 

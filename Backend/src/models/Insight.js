@@ -1,3 +1,6 @@
+// Mongoose model for a written insight shown to a student (monthly summary,
+// spending alert or saving tip), either rule-based or AI-generated.
+
 const mongoose = require('mongoose');
 
 const insightSchema = new mongoose.Schema(

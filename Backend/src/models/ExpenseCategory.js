@@ -1,3 +1,6 @@
+// Legacy model from an earlier schema with separate expense categories.
+// Not imported anywhere in the current code — see Category.js instead.
+
 const mongoose = require('mongoose');
 
 const expenseCategorySchema = new mongoose.Schema(

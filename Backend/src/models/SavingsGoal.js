@@ -1,3 +1,5 @@
+// Mongoose model for a student's savings goals.
+
 const mongoose = require('mongoose');
 
 const COLORS = ['teal', 'brand', 'purple', 'amber', 'rose', 'blue', 'orange', 'indigo'];
@@ -15,6 +17,7 @@ const savingsGoalSchema = new mongoose.Schema(
     targetDate: { type: Date, default: null },
     color: { type: String, enum: COLORS, default: 'teal' },
     icon: { type: String, enum: ICONS, default: 'piggy-bank' },
+    // Progress milestones (25/50/75/100%) already celebrated, so each shows once.
     celebratedMilestones: { type: [Number], default: [] },
   },
   { timestamps: true },
@@ -23,6 +26,7 @@ const savingsGoalSchema = new mongoose.Schema(
 savingsGoalSchema.statics.COLORS = COLORS;
 savingsGoalSchema.statics.ICONS = ICONS;
 
+// Shape sent to the frontend: string id and a YYYY-MM-DD target date.
 savingsGoalSchema.methods.toPublic = function toPublic() {
   return {
     id: this._id.toString(),

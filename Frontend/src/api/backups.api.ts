@@ -1,6 +1,9 @@
+// Backup endpoints: list, create, download, restore and delete backups.
+
 import { httpClient } from './httpClient';
 import type { ApiSuccess } from '@/types/api';
 
+/** A stored backup's metadata, with how many records of each kind it holds. */
 export interface BackupSummary {
   id: string;
   kind: 'daily' | 'manual' | 'pre-restore';
@@ -9,6 +12,7 @@ export interface BackupSummary {
   createdAt: string;
 }
 
+// Number of records restored per collection.
 export type RestoreCounts = Record<string, number>;
 
 export const backupsApi = {
@@ -32,6 +36,7 @@ export const backupsApi = {
     return data.data;
   },
 
+  /** Restores from a backup file the student uploaded (already parsed to JSON). */
   async restoreFile(snapshot: unknown): Promise<RestoreCounts> {
     const { data } = await httpClient.post<ApiSuccess<RestoreCounts>>('/backups/restore-file', snapshot);
     return data.data;

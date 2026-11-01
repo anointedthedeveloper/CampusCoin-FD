@@ -33,6 +33,7 @@ import {
 import type { IncomeFrequency, OnboardingUpdate } from '@/types/user';
 import { cn } from '@/utils/cn';
 
+/** Adds `value` to the list, or removes it if it's already there. */
 function toggleValue(list: string[], value: string): string[] {
   return list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
 }
@@ -94,6 +95,7 @@ function PreviewCard({ initial, title, description, children }: {
   );
 }
 
+/** One line in the live preview card. */
 function PreviewRow({ icon: Icon, label, amount }: { icon?: React.ElementType; label: string; amount?: string }) {
   return (
     <div className="flex items-center justify-between gap-3 rounded-xl border border-brand-100 bg-brand-50 px-4 py-3 dark:border-white/5 dark:bg-white/5">
@@ -106,6 +108,7 @@ function PreviewRow({ icon: Icon, label, amount }: { icon?: React.ElementType; l
   );
 }
 
+/** Placeholder in the preview card before anything is filled in. */
 function PreviewEmpty({ text }: { text: string }) {
   return (
     <p className="rounded-xl border-2 border-dashed border-gray-200 px-4 py-10 text-center text-sm text-gray-400 dark:border-white/10 dark:text-text-muted">
@@ -147,6 +150,7 @@ export function OnboardingPage() {
     'Final touches…',
   ];
 
+  // Cycle the "setting up your wallet" messages while the profile is being created.
   useEffect(() => {
     if (!isCreatingWallet) { setWalletMsgIdx(0); return; }
     const id = setInterval(
@@ -168,6 +172,8 @@ export function OnboardingPage() {
   const [savingsTarget,      setSavingsTarget]       = useState('');
   const [currency,           setCurrency]            = useState(DEFAULT_CURRENCY);
 
+  // Students who already finished or skipped onboarding go to the dashboard
+  // (unless they opened it with ?edit=1 to change their profile).
   useEffect(() => {
     if (!user) return;
     const status = user.onboarding?.status ?? 'not_started';
@@ -191,6 +197,7 @@ export function OnboardingPage() {
   const firstName     = user?.fullName?.split(' ')[0] ?? 'there';
   const avatarInitial = firstName.charAt(0).toUpperCase() || 'C';
 
+  // Save onboarding progress to the profile and refresh the signed-in user.
   async function persist(payload: OnboardingUpdate) {
     setIsSaving(true);
     setError(null);
@@ -205,6 +212,7 @@ export function OnboardingPage() {
     }
   }
 
+  // Save the current answers and move to another step (remembering skipped steps).
   async function goToStep(next: number, extra: OnboardingUpdate = {}, stepWasBlank = false) {
     if (stepWasBlank) {
       setSkippedSteps((prev) => new Set(prev).add(step));
@@ -256,6 +264,7 @@ export function OnboardingPage() {
     return goals.length === 0 && monthlyBudget.trim() === '' && savingsTarget.trim() === '';
   }
 
+  // Last question answered: refuse to finish when every step was left blank.
   async function handleFinishGoals() {
     // All three data steps blank → not really completed
     const allBlank = step2IsBlank() && step3IsBlank() && step4IsBlank() && step4IsBlank();
@@ -287,6 +296,7 @@ export function OnboardingPage() {
     }
   }
 
+  // Finish onboarding (or, in edit mode, just save and return to the profile).
   async function handleComplete() {
     if (isEditMode) {
       // Updating an existing profile: save and go back — no set-up animation
@@ -390,6 +400,7 @@ export function OnboardingPage() {
     }
   }
 
+  // Skip onboarding for now and go to the dashboard.
   async function handleSkip() {
     try {
       await persist({ currentStep: step, status: 'skipped' });

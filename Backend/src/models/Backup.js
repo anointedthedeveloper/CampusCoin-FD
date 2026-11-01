@@ -1,3 +1,5 @@
+// Mongoose model for per-student data backups.
+
 const mongoose = require('mongoose');
 
 // A point-in-time copy of one student's data (gzip-compressed JSON), used to
@@ -8,7 +10,9 @@ const backupSchema = new mongoose.Schema(
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     kind: { type: String, enum: ['daily', 'manual', 'pre-restore'], required: true },
     sizeBytes: { type: Number, default: 0 },
+    // How many records of each kind the backup holds, for display.
     counts: { type: mongoose.Schema.Types.Mixed, default: {} },
+    // The gzip-compressed JSON snapshot itself.
     data: { type: Buffer, required: true },
   },
   { timestamps: true },

@@ -20,6 +20,7 @@ const labelClass = 'text-sm font-medium text-gray-700 dark:text-text-secondary';
 
 type Tab = 'announcements' | 'tips';
 
+/** Admin "Announcements & Tips" page, with one tab for each panel below. */
 export function AdminAnnouncementsPage() {
   const [tab, setTab] = useState<Tab>('announcements');
 
@@ -61,6 +62,7 @@ export function AdminAnnouncementsPage() {
   );
 }
 
+/** Create, edit, publish/unpublish and delete announcements. */
 function AnnouncementsPanel() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [title, setTitle] = useState('');
@@ -74,6 +76,7 @@ function AnnouncementsPanel() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [refreshToken, setRefreshToken] = useState(0);
 
+  // Load an announcement into the form for editing.
   function startEdit(announcement: Announcement) {
     setEditingId(announcement.id);
     setTitle(announcement.title);
@@ -85,6 +88,7 @@ function AnnouncementsPanel() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  // Publishing state changes save immediately, then reload the list.
   async function unpublish(id: string) {
     await adminAnnouncementService.update(id, { unpublish: true });
     setRefreshToken((t) => t + 1);
@@ -250,6 +254,7 @@ function AnnouncementsPanel() {
   );
 }
 
+/** Create, edit and delete the general saving-tip templates every student sees. */
 function SavingTipsPanel() {
   const [tips, setTips] = useState<SavingTipTemplate[]>([]);
   const [editing, setEditing] = useState<SavingTipTemplate | 'new' | null>(null);
@@ -265,6 +270,7 @@ function SavingTipsPanel() {
     adminSavingTipsApi.list().then(setTips).catch(() => setTips([]));
   }, [refreshToken]);
 
+  // Open the editor for a new tip or an existing one.
   function openEditor(tip: SavingTipTemplate | 'new') {
     setEditing(tip);
     setError(null);

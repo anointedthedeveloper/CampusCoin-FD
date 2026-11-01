@@ -1,8 +1,12 @@
+// Reset-code generation for the forgot-password flow.
+
 const crypto = require('crypto');
 const { sendPasswordResetCode } = require('./email.service');
 
+// Reset codes are valid for 15 minutes.
 const RESET_CODE_TTL_MS = 15 * 60 * 1000;
 
+/** SHA-256 hex digest — reset codes are only ever stored hashed. */
 function hashToken(rawToken) {
   return crypto.createHash('sha256').update(rawToken).digest('hex');
 }

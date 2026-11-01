@@ -1,3 +1,6 @@
+// Light/dark theme state. The chosen theme is saved and applied by toggling
+// the `dark` class on <html> (Tailwind's class-based dark mode).
+
 import { createContext, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 
 type Theme = 'light' | 'dark';
@@ -16,6 +19,7 @@ export const ThemeContext = createContext<ThemeContextValue | undefined>(undefin
 // is ignored — otherwise light could never become the default.)
 export const THEME_STORAGE_KEY = 'campus-coin.theme-choice';
 
+/** The saved theme choice, or light by default. */
 function getInitialTheme(): Theme {
   try {
     const stored = localStorage.getItem(THEME_STORAGE_KEY);

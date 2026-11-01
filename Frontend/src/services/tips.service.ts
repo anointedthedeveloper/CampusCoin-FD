@@ -1,3 +1,5 @@
+// Service layer over the saving-tips endpoints.
+
 import { insightsApi } from '@/api/insights.api';
 import type { SavingTip } from '@/types/insight';
 

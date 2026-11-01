@@ -1,3 +1,5 @@
+// Keeps a loading indicator up for a minimum time so it never just flickers.
+
 import { useEffect, useRef, useState } from 'react';
 
 /**

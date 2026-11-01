@@ -1,9 +1,20 @@
+// MongoDB connection helpers shared by the server, the serverless entry and
+// the scripts. A native MongoClient is connected once and handed to Mongoose,
+// and the in-flight connection promise is cached so concurrent requests share
+// a single connection attempt instead of each opening their own.
+
 const mongoose = require('mongoose');
 const { MongoClient } = require('mongodb');
 const dns = require('node:dns');
 let client;
 let connectionPromise;
 
+/**
+ * Connects to MONGO_URI if not already connected. Resolves true when the
+ * database is reachable and false otherwise — it never throws, so callers can
+ * reply 503 instead of crashing. A failed attempt is forgotten, so the next
+ * call tries again.
+ */
 async function connectDB() {
   if (mongoose.connection.readyState === 1) return true;
   if (connectionPromise) return connectionPromise;
@@ -20,6 +31,8 @@ async function connectDB() {
         throw new Error('Set MONGO_URI to a valid mongodb:// or mongodb+srv:// connection string.');
       }
 
+      // Optional comma-separated DNS servers to resolve with — useful on networks
+      // whose default resolver can't look up the SRV records mongodb+srv:// needs.
       const dnsServers = process.env.MONGODB_DNS_SERVERS
         ?.split(',')
         .map((server) => server.trim())
@@ -45,6 +58,7 @@ async function connectDB() {
   return connected;
 }
 
+/** Closes the shared client and resets state so connectDB() can reconnect later. */
 async function disconnectDB() {
   if (!client) return;
   await client.close();

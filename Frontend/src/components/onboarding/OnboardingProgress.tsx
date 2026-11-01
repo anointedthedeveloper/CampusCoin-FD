@@ -1,5 +1,6 @@
 import { cn } from '@/utils/cn';
 
+/** "Step X of Y" progress bar for the onboarding wizard. */
 export function OnboardingProgress({ step, total }: { step: number; total: number }) {
   return (
     <div className="flex flex-col items-center gap-2.5">

@@ -1,6 +1,7 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { AlertTriangle, RotateCcw } from 'lucide-react';
 
+/** True when the error came from a lazy-loaded page chunk failing to download. */
 function isChunkLoadError(error: Error): boolean {
   return (
     error.name === 'ChunkLoadError' ||

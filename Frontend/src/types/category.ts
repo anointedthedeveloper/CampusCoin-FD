@@ -1,3 +1,5 @@
+// Income/expense category types.
+
 export type CategoryType = 'income' | 'expense';
 
 export interface Category {

@@ -9,6 +9,7 @@ interface SelectableCardProps {
   onToggle: () => void;
 }
 
+/** Toggleable option card used for the multiple-choice onboarding questions. */
 export function SelectableCard({ icon: Icon, label, selected, onToggle }: SelectableCardProps) {
   return (
     <button

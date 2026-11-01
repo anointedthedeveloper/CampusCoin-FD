@@ -1,3 +1,7 @@
+// Service layer over transactionsApi. The unused `_userId` parameters are
+// kept so older call sites keep working; the backend always uses the
+// signed-in user.
+
 import { transactionsApi } from '@/api/transactions.api';
 import type { Transaction, TransactionFilters, TransactionPayload } from '@/types/transaction';
 

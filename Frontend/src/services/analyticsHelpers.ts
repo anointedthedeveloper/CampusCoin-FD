@@ -1,3 +1,5 @@
+// Small month/date and totals helpers used by the dashboard and reports.
+
 import type { CategoryType } from '@/types/category';
 
 /** Current month as 'YYYY-MM', or the month of a given date. */
@@ -5,12 +7,14 @@ export function monthKey(date: Date = new Date()): string {
   return date.toISOString().slice(0, 7);
 }
 
+/** The "YYYY-MM" month before `month`. */
 export function previousMonthKey(month: string): string {
   const [year, monthNumber] = month.split('-').map(Number);
   const date = new Date(year, monthNumber - 2, 1);
   return monthKey(date);
 }
 
+/** The `count` months before `month`, oldest first. */
 export function monthsBefore(month: string, count: number): string[] {
   const result: string[] = [];
   let cursor = month;
@@ -21,6 +25,7 @@ export function monthsBefore(month: string, count: number): string[] {
   return result;
 }
 
+/** Sum of the `amount` fields. */
 export function sumAmount(transactions: { amount: number }[]): number {
   return transactions.reduce((sum, txn) => sum + txn.amount, 0);
 }
@@ -30,6 +35,7 @@ export interface MonthOverMonthDelta {
   percent: number;
 }
 
+/** Direction and percentage change from `previous` to `current` ("flat" when there's no previous value). */
 export function monthOverMonthDelta(current: number, previous: number): MonthOverMonthDelta {
   if (previous <= 0) return { direction: 'flat', percent: 0 };
   const percent = Math.round((Math.abs(current - previous) / previous) * 100);

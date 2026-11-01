@@ -1,9 +1,14 @@
+// Saving tips for the Saving Tips page: personalised tips worked out from
+// each student's own spending, plus the general tip templates admins manage,
+// with per-student pinned/dismissed state.
+
 const Transaction = require('../models/Transaction');
 const Budget = require('../models/Budget');
 const Category = require('../models/Category');
 const SavingTip = require('../models/SavingTip');
 const TipState = require('../models/TipState');
 
+// Starter general tips, inserted the first time no templates exist.
 const DEFAULT_TEMPLATES = [
   { title: 'Cook at home', body: 'Preparing your own meals can save you up to 60% compared to eating out regularly.', category: 'Food' },
   { title: 'Use student discounts', body: 'Always carry your student ID — many stores, cinemas, and transport services offer significant discounts.', category: 'Entertainment' },
@@ -13,16 +18,19 @@ const DEFAULT_TEMPLATES = [
   { title: 'Walk or cycle short distances', body: 'Skipping transport fares for short trips adds up to meaningful savings over a month.', category: 'Transport' },
 ];
 
+/** Seeds DEFAULT_TEMPLATES when the tip collection is empty. */
 async function ensureTemplates() {
   if ((await SavingTip.countDocuments()) === 0) {
     await SavingTip.insertMany(DEFAULT_TEMPLATES).catch(() => undefined);
   }
 }
 
+/** "YYYY-MM" for a date (UTC). */
 function monthKey(date) {
   return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`;
 }
 
+/** First day (UTC) of the month `offset` months from now (0 = this month). */
 function monthStart(offset, now = new Date()) {
   return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + offset, 1));
 }
@@ -175,6 +183,10 @@ async function getTipsForUser(user) {
   return { tips: [...all, ...pinnedArchive], dismissedCount };
 }
 
+/**
+ * Saves a student's pinned/dismissed state for one tip, with a snapshot of
+ * its text so a pinned tip can still be shown after it stops being generated.
+ */
 async function setTipState(user, tipKey, patch) {
   const { tips } = await getTipsForUser(user);
   const tip = tips.find((t) => t.id === tipKey);

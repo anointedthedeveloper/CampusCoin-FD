@@ -4,6 +4,7 @@ import { PUBLIC_ROUTES } from '@/constants/routes';
 import { assets } from '@/assets';
 import { BrowserFrame } from '@/components/common';
 
+// Feature descriptions, grouped by area.
 const groups = [
   {
     key: 'track',
@@ -138,6 +139,7 @@ const EXTRAS = [
   { icon: SunMoon, title: 'Comfortable to use', text: 'Dark mode, adjustable text size, works on any screen.' },
 ];
 
+/** Public "Features" page. */
 export function FeaturesPage() {
   return (
     <div className="overflow-hidden">

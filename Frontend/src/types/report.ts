@@ -1,3 +1,5 @@
+// Monthly report types.
+
 export interface CategoryBreakdownItem {
   categoryId: string;
   categoryName: string;

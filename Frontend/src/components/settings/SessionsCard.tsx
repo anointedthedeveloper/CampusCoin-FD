@@ -12,6 +12,7 @@ function describeDevice(ua: string): { label: string; mobile: boolean } {
   return { label: `${browser} on ${os}`, mobile: /Mobile|Android|iPhone/.test(ua) };
 }
 
+/** "active now", "5 min ago", "3 h ago", or a date for older sessions. */
 function ago(iso: string) {
   const mins = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
   if (mins < 2) return 'active now';

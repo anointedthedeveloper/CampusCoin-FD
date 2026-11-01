@@ -1,3 +1,6 @@
+// Service layer over authApi: performs each auth call and stores or clears the
+// tokens it returns.
+
 import { authApi } from '@/api/auth.api';
 import { tokenService } from './token.service';
 import type {

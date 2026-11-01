@@ -1,3 +1,5 @@
+// Mongoose model for a monthly spending limit on one expense category.
+
 const mongoose = require('mongoose');
 
 const budgetSchema = new mongoose.Schema(

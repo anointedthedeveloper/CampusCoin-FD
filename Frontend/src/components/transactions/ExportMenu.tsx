@@ -16,9 +16,11 @@ const OPTIONS: { id: Format; label: string; hint: string; icon: typeof FileText 
   { id: 'json', label: 'JSON', hint: 'For developers / re-import', icon: FileJson },
 ];
 
+// UTF-8 byte-order mark, and today's date for file names.
 const BOM = String.fromCharCode(0xfeff);
 const stamp = () => new Date().toISOString().slice(0, 10);
 
+/** CSV text for the export (expenses as negative amounts). */
 function toCsv(rows: ExportRow[]) {
   const head = ['Date', 'Type', 'Category', 'Description', 'Merchant', 'Amount'];
   const esc = (v: string | number) => `"${String(v).replace(/"/g, '""')}"`;

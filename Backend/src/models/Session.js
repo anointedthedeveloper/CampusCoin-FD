@@ -1,3 +1,5 @@
+// Mongoose model for signed-in sessions.
+
 const mongoose = require('mongoose');
 
 // One signed-in device/browser. Access and refresh tokens carry the session

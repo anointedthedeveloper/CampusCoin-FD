@@ -1,3 +1,6 @@
+// Reports API (mounted at /reports): the monthly report (JSON, PDF download or
+// emailed PDF) and the six-month overview.
+
 const router = require('express').Router();
 const { serverError } = require('../utils/httpErrors');
 const Transaction = require('../models/Transaction');
@@ -21,11 +24,13 @@ router.use(protect);
 
 // ── Helpers ───────────────────────────────────────────────────────────
 
+/** Start (inclusive) and end (exclusive) dates of a "YYYY-MM" month. */
 function getMonthRange(month) {
   const [year, mon] = month.split('-').map(Number);
   return { start: new Date(year, mon - 1, 1), end: new Date(year, mon, 1) };
 }
 
+/** Expense totals per category with their share of all spending, largest first. */
 async function buildCategoryBreakdown(expenseTxs, totalExpense) {
   const categoryTotals = {};
   expenseTxs.forEach((t) => {
@@ -48,6 +53,7 @@ async function buildCategoryBreakdown(expenseTxs, totalExpense) {
     .sort((a, b) => b.amount - a.amount);
 }
 
+/** Expense total per day ("YYYY-MM-DD"), in date order. */
 function buildDailySpend(expenseTxs) {
   const dailyMap = {};
   expenseTxs.forEach((t) => {

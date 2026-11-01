@@ -1,3 +1,5 @@
+// Every route path in the app, grouped by area.
+
 export const PUBLIC_ROUTES = {
   home: '/',
   about: '/about',
@@ -46,6 +48,7 @@ export const ADMIN_ROUTES = {
   system: '/admin/system',
 } as const;
 
+/** Fills in route params, e.g. buildPath('/transactions/:id', { id: 'abc' }) → "/transactions/abc". */
 export function buildPath(pattern: string, params: Record<string, string>): string {
   return Object.entries(params).reduce(
     (path, [key, value]) => path.replace(`:${key}`, value),

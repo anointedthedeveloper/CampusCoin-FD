@@ -1,3 +1,5 @@
+// Insights, saving tips and bookmark endpoints.
+
 import { httpClient } from './httpClient';
 import type { ApiSuccess } from '@/types/api';
 import type { Bookmark, BookmarkTargetType, Insight, SavingTip } from '@/types/insight';
@@ -15,6 +17,7 @@ export const insightsApi = {
     return data.data ?? [];
   },
 
+  /** Saving tips plus how many the student has dismissed (for "restore dismissed"). */
   async listSavingTipsWithMeta(): Promise<{ tips: SavingTip[]; dismissedCount: number }> {
     const { data } = await httpClient.get<ApiSuccess<SavingTip[]> & { meta?: { dismissedCount?: number } }>('/saving-tips');
     return { tips: data.data ?? [], dismissedCount: data.meta?.dismissedCount ?? 0 };

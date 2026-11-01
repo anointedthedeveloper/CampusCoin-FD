@@ -1,3 +1,5 @@
+// Imports every image asset once and exposes them as the `assets` object.
+
 import aboutDeskDark from './about-desk-dark.webp';
 import authHero from './auth-hero.webp';
 import featuresDesk from './features-desk.webp';

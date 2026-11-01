@@ -11,6 +11,7 @@ interface CategoryDonutChartProps {
   totalLabel?: string;
 }
 
+/** Donut chart of spending by category, with the total in the middle. */
 export function CategoryDonutChart({ data, total, totalLabel = 'Total' }: CategoryDonutChartProps) {
   const { theme } = useTheme();
   const isDark = theme === 'dark';

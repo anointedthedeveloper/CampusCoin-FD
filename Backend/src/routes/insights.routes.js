@@ -1,3 +1,6 @@
+// Insights, saving tips, "money moves" and bookmarks. Mounted directly under
+// the API prefix, so the paths below are /insights, /saving-tips, etc.
+
 const router = require('express').Router();
 const { serverError } = require('../utils/httpErrors');
 const Insight = require('../models/Insight');
@@ -17,6 +20,7 @@ const { validateIdParam, isValidObjectId } = require('../utils/objectId');
 // handler.
 router.param('id', validateIdParam);
 
+/** API shape for an insight. */
 function formatInsight(i) {
   return {
     id: i._id.toString(),
@@ -30,6 +34,7 @@ function formatInsight(i) {
   };
 }
 
+/** API shape for a saving tip. */
 function formatTip(t) {
   return {
     id: t._id.toString(),
@@ -41,6 +46,7 @@ function formatTip(t) {
   };
 }
 
+/** API shape for a bookmark. */
 function formatBookmark(b) {
   return {
     id: b._id.toString(),
@@ -75,6 +81,7 @@ router.get('/saving-tips', protect, async (req, res) => {
   }
 });
 
+/** Tip keys look like "personal:<rule>:<detail>" or "template:<id>". */
 function validTipKey(key) {
   return typeof key === 'string' && /^(personal|template):[\w:.-]{1,180}$/.test(key);
 }

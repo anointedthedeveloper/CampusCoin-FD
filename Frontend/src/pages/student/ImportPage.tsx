@@ -27,6 +27,7 @@ import {
   type Table,
 } from '@/utils/fileImport';
 
+// Wizard steps: upload a file → map its columns → review and categorise rows → done.
 type Step = 'upload' | 'map' | 'review' | 'done';
 
 interface ReviewRow {
@@ -47,6 +48,7 @@ const selectCls = cn(
   'dark:border-white/[0.08] dark:bg-surface dark:text-text-primary dark:focus:border-primary-accent/70',
 );
 
+// What each column can be mapped to on the "map" step.
 const ROLE_LABELS: { role: ColumnRole; label: string; help: string }[] = [
   { role: 'date', label: 'Date', help: 'Required' },
   { role: 'description', label: 'Description', help: 'What it was' },
@@ -57,6 +59,7 @@ const ROLE_LABELS: { role: ColumnRole; label: string; help: string }[] = [
   { role: 'category', label: 'Category', help: 'Optional — matched by name' },
 ];
 
+// Badge showing where a row's suggested category came from.
 const SOURCE_BADGE: Record<string, { label: string; icon: typeof Bot; tone: 'brand' | 'info' | 'neutral' }> = {
   ai: { label: 'AI', icon: Sparkles, tone: 'brand' },
   history: { label: 'Your history', icon: History, tone: 'info' },
@@ -66,6 +69,11 @@ const SOURCE_BADGE: Record<string, { label: string; icon: typeof Bot; tone: 'bra
 
 const FORMATS = ['CSV', 'TSV', 'Excel .xlsx', 'Excel .xls', 'OpenDocument .ods', 'Word .docx (tables)', 'JSON'];
 
+/**
+ * Imports transactions from a file (CSV, Excel, ODS, Word tables or JSON).
+ * The file is parsed in the browser; only the rows the student keeps after
+ * reviewing are sent to the server, in batches of 500.
+ */
 export function ImportPage() {
   const { user } = useAuth();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -103,6 +111,7 @@ export function ImportPage() {
     [table, columns, dateOrder, amountMode, hasHeader],
   );
 
+  // Step 1: read the file and guess which columns hold the date, amount, etc.
   async function handleFile(file: File) {
     setError(null);
     setIsReading(true);
@@ -125,11 +134,14 @@ export function ImportPage() {
     }
   }
 
+  /** The student's catch-all category of a type (or their first one). */
   function defaultCategory(type: 'income' | 'expense') {
     const pool = categories.filter((c) => c.type === type);
     return (pool.find((c) => (type === 'income' ? /other/i : /misc|other/i).test(c.name)) ?? pool[0])?.id ?? '';
   }
 
+  // Step 2 → 3: turn the mapped table into review rows, then ask the server
+  // to suggest categories for rows the file didn't already categorise.
   async function goToReview() {
     if (columns.date === undefined) { setError('Choose which column has the date.'); return; }
     if (columns.amount === undefined && columns.debit === undefined && columns.credit === undefined) { setError('Choose the amount column (or the money in / money out columns).'); return; }
@@ -181,12 +193,14 @@ export function ImportPage() {
     }));
   }
 
+  // Give every selected row of the matching type the chosen category.
   function applyBulkCategory() {
     const cat = catById.get(bulkCategory);
     if (!cat) return;
     setRows((prev) => prev.map((r) => (r.include && r.type === cat.type ? { ...r, categoryId: cat.id, suggestion: undefined } : r)));
   }
 
+  // Step 3: save the selected rows in batches, adding up the results.
   async function handleImport() {
     const chosen = rows.filter((r) => r.include);
     if (!chosen.length) { setError('Select at least one row to import.'); return; }
@@ -216,6 +230,7 @@ export function ImportPage() {
     }
   }
 
+  // Start over with a new file.
   function reset() {
     setStep('upload'); setTable([]); setRows([]); setFileName(null); setResult(null); setError(null); setColumns({});
   }

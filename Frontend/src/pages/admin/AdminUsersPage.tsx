@@ -10,8 +10,10 @@ import { cn } from '@/utils/cn';
 import { useMinLoadTime } from '@/hooks/useMinLoadTime';
 import type { AdminUserSummary } from '@/types/admin';
 
+// The action waiting in the confirm dialog, if any.
 type PendingAction = { kind: 'suspend' | 'activate' | 'reset' | 'delete'; user: AdminUserSummary } | null;
 
+/** Searchable list of every user, with quick suspend/reset/delete actions. */
 export function AdminUsersPage() {
   const { user: currentUser } = useAuth();
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
@@ -50,6 +52,7 @@ export function AdminUsersPage() {
     return matchesSearch && matchesRole && matchesStatus;
   });
 
+  // Runs the confirmed action and reloads the list.
   async function runPendingAction() {
     if (!pendingAction) return;
     const { kind, user: target } = pendingAction;

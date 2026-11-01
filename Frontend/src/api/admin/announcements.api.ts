@@ -1,3 +1,5 @@
+// Admin announcement endpoints.
+
 import { httpClient } from '../httpClient';
 import type { ApiSuccess } from '@/types/api';
 import type { Announcement, AnnouncementPayload } from '@/types/admin';

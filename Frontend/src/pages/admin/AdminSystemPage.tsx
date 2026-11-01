@@ -9,6 +9,7 @@ import { cn } from '@/utils/cn';
 
 const PROVIDER_LABEL: Record<string, string> = { brevo: 'Brevo', resend: 'Resend', smtp: 'SMTP' };
 
+/** Success/error line under an action. */
 function Message({ ok, text }: { ok: boolean; text: string }) {
   return (
     <p role={ok ? 'status' : 'alert'} className={cn('text-sm', ok ? 'text-brand-700 dark:text-primary-accent' : 'text-red-600 dark:text-red-400')}>

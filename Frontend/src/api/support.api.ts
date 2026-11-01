@@ -1,3 +1,6 @@
+// Support endpoints: the Help-page contact form, a student's own support
+// threads, and the admin support inbox.
+
 import { httpClient } from './httpClient';
 import type { ApiSuccess } from '@/types/api';
 
@@ -36,6 +39,7 @@ export interface SupportListResult {
 }
 
 export const supportApi = {
+  /** Sends a Help-page message; `linked` is true when it was attached to the signed-in account. */
   async send(payload: SupportMessagePayload): Promise<{ id: string; linked: boolean }> {
     const { data } = await httpClient.post<ApiSuccess<{ id: string; linked: boolean }>>('/support/messages', payload);
     return data.data;
@@ -70,6 +74,7 @@ export const supportApi = {
     return data.data;
   },
 
+  /** Admin reply (optionally resolving the thread); reports whether it was emailed and/or shown in-app. */
   async reply(id: string, text: string, resolve = false): Promise<{ thread: SupportMessage; emailed: boolean; inApp: boolean }> {
     const { data } = await httpClient.post<ApiSuccess<SupportMessage> & { meta?: { emailed?: boolean; inApp?: boolean } }>(
       `/admin/support/${id}/replies`,

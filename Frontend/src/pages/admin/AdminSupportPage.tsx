@@ -9,10 +9,12 @@ import { cn } from '@/utils/cn';
 
 type Filter = 'open' | 'resolved' | 'all';
 
+/** Tells AdminLayout to refresh the Support badge count. */
 function announceChange() {
   window.dispatchEvent(new Event('campus-coin:support-updated'));
 }
 
+/** Short relative time, e.g. "just now", "5m ago", "3h ago", "12 Sep". */
 function relative(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.round(diff / 60000);
@@ -23,6 +25,7 @@ function relative(iso: string) {
   return new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
 }
 
+/** Admin support inbox: thread list (filtered by status) beside the open conversation. */
 export function AdminSupportPage() {
   const [filter, setFilter] = useState<Filter>('open');
   const [items, setItems] = useState<SupportMessage[]>([]);
@@ -36,6 +39,7 @@ export function AdminSupportPage() {
   const [notice, setNotice] = useState<string | null>(null);
   const [resolveOnSend, setResolveOnSend] = useState(false);
 
+  // `quiet` refreshes in the background without the loading state.
   const loadList = useCallback(async (quiet = false) => {
     if (!quiet) setIsLoading(true);
     try {
@@ -61,6 +65,7 @@ export function AdminSupportPage() {
     return () => window.clearInterval(timer);
   }, [loadList, activeId]);
 
+  // Load the selected thread (opening it also marks it read on the server).
   useEffect(() => {
     if (!activeId) { setActive(null); return; }
     let cancelled = false;
@@ -76,6 +81,7 @@ export function AdminSupportPage() {
     return () => { cancelled = true; };
   }, [activeId]);
 
+  // Hide the notice banner after 5 seconds.
   useEffect(() => {
     if (!notice) return undefined;
     const timer = window.setTimeout(() => setNotice(null), 5000);

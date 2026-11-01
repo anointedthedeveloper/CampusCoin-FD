@@ -11,6 +11,7 @@ interface EmptyStateProps {
   compact?: boolean;
 }
 
+/** Placeholder shown when a list or section has nothing to display yet, with an optional call to action. */
 export function EmptyState({ icon: Icon, title, description, action, className, compact = false }: EmptyStateProps) {
   return (
     <div

@@ -6,6 +6,7 @@ import { SupportThread } from './SupportThread';
 import { ApiError } from '@/types/api';
 import { cn } from '@/utils/cn';
 
+/** One-line preview of a thread's latest message, prefixed with who sent it. */
 function preview(thread: SupportMessage) {
   const last = thread.messages[thread.messages.length - 1];
   return `${last.from === 'admin' ? 'Support: ' : 'You: '}${last.text}`;

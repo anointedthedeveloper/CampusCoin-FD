@@ -1,3 +1,6 @@
+// Tawk.to live-chat widget integration: loading the script on demand, showing
+// it only on public pages, and closing it on an outside click.
+
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { TAWKTO_EMBED_SRC } from '@/constants/config';
@@ -33,6 +36,7 @@ const TAWK_SCRIPT_ID = 'tawkto-embed-script';
  * StrictMode double-invokes effects in dev, and the guard needs to survive
  * that as a script tag already present in the DOM, not component state.
  */
+// Injects the Tawk.to embed script once (see the note above for why).
 function loadTawkScript() {
   if (document.getElementById(TAWK_SCRIPT_ID)) return;
 

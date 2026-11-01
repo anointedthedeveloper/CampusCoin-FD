@@ -40,6 +40,7 @@ interface ChatMessage {
   actions?: AIAction[];
 }
 
+// Ready-made prompts offered in the chat.
 const STARTERS = [
   { icon: Receipt, title: 'Log something', prompt: 'I spent ₦1,500 on lunch today', hint: 'The assistant prepares it — you approve' },
   { icon: Wallet, title: 'Set a budget', prompt: 'Set my Food budget to ₦20,000 this month', hint: 'Creates or updates the budget' },
@@ -73,6 +74,11 @@ const FOLLOW_UPS = ['Show that as a table', 'How can I cut back?', 'Compare with
 const inputCls =
   'w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/20 dark:border-white/10 dark:bg-surface dark:text-text-primary dark:placeholder:text-text-muted';
 
+/**
+ * AI Assistant chat. Conversations are saved on the server. The assistant
+ * can propose changes (add a transaction, set a budget…), which are only
+ * saved once the student approves them.
+ */
 export function InsightsPage() {
   const { user, refreshUser } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -98,6 +104,7 @@ export function InsightsPage() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const initialQuestionHandled = useRef(false);
 
+  // Load the student's saved conversations.
   useEffect(() => {
     if (!user) { setIsLoading(false); return; }
     let cancelled = false;
@@ -119,6 +126,7 @@ export function InsightsPage() {
     if (c || q) setSearchParams({}, { replace: true });
   }, [isLoading]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Keep the newest message in view.
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages, isSending]);
@@ -162,6 +170,7 @@ export function InsightsPage() {
     void refreshConversations();
   }
 
+  // Show the question straight away, then append the assistant's reply and any proposed actions.
   async function sendMessage(text: string, aiTemplate?: AITemplate) {
     const trimmedText = text.trim();
     if (!trimmedText || isSending) return;
@@ -190,6 +199,7 @@ export function InsightsPage() {
     }
   }
 
+  // Swap in the updated state of a message's actions after approve/reject.
   function updateActions(messageId: string, next: AIAction[]) {
     setMessages((prev) => prev.map((m) => {
       if (m.id !== messageId || !m.actions) return m;
@@ -208,6 +218,7 @@ export function InsightsPage() {
     void sendMessage(draft);
   }
 
+  // Enter sends; Shift+Enter starts a new line.
   function handleKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
@@ -215,6 +226,7 @@ export function InsightsPage() {
     }
   }
 
+  // The "Can I afford…" form: sends a structured question with the item and price.
   function handleTemplate(event: FormEvent) {
     event.preventDefault();
     const item = itemName.trim() || 'this item';

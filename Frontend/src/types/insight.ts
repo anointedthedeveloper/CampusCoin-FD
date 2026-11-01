@@ -1,3 +1,5 @@
+// Insight, saving-tip and bookmark types.
+
 export type InsightKind = 'monthly-summary' | 'spending-alert' | 'saving-tip';
 
 export interface Insight {

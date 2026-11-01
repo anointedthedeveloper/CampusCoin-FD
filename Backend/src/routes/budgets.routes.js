@@ -1,3 +1,6 @@
+// Monthly budgets API (mounted at /budgets): list a month's budgets with how
+// much has been spent against each, and create, update or delete them.
+
 const router = require('express').Router();
 const { serverError } = require('../utils/httpErrors');
 const { checkBudgetAfterTransaction } = require('../services/budgetAlert.service');
@@ -13,6 +16,7 @@ router.param('id', validateIdParam);
 
 const MONTH_RE = /^\d{4}-\d{2}$/;
 
+/** API shape for a budget, including spending so far and % used. */
 function formatBudget(b, spentAmount = 0) {
   return {
     id: b._id.toString(),
@@ -26,6 +30,7 @@ function formatBudget(b, spentAmount = 0) {
   };
 }
 
+/** Total expenses per category for a "YYYY-MM" month → { categoryId: amount }. */
 async function getSpentAmounts(userId, month, categoryIds) {
   const [year, mon] = month.split('-').map(Number);
   const start = new Date(year, mon - 1, 1);

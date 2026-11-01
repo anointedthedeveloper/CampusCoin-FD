@@ -1,10 +1,15 @@
+// Mongoose model for user accounts (students and admins), including their
+// preferences, onboarding progress and password-reset state.
+
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
+// Per-user preferences from the Settings page.
 const settingsSchema = new mongoose.Schema(
   {
     currency: { type: String, default: 'NGN' },
     monthlyIncomeGoal: { type: Number, default: null },
+    // Percentage of a budget at which a "nearly spent" alert is sent.
     budgetAlertThreshold: { type: Number, default: 80 },
     emailNotifications: { type: Boolean, default: true },
     pushNotifications: { type: Boolean, default: true },
@@ -37,6 +42,7 @@ const onboardingSchema = new mongoose.Schema(
   { _id: false },
 );
 
+// The account itself.
 const userSchema = new mongoose.Schema(
   {
     fullName: { type: String, required: true, trim: true },
@@ -50,9 +56,11 @@ const userSchema = new mongoose.Schema(
     role: { type: String, enum: ['student', 'admin'], default: 'student' },
     school: { type: String, trim: true },
     academicYear: { type: String, trim: true },
+    // Expected monthly income and savings target, collected during onboarding.
     monthlyAllowanceBaseline: { type: Number },
     savingsGoalAmount: { type: Number },
     avatarUrl: { type: String },
+    // false = suspended by an admin; the auth middleware then refuses all requests.
     isActive: { type: Boolean, default: true },
     settings: { type: settingsSchema, default: () => ({}) },
     onboarding: { type: onboardingSchema, default: () => ({}) },

@@ -42,6 +42,7 @@ const slides: Slide[] = [
   },
 ];
 
+/** Auto-advancing carousel of app screenshots (pauses on hover), shown on the home page. */
 export function ScreenshotSlideshow() {
   const [active, setActive] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -54,6 +55,7 @@ export function ScreenshotSlideshow() {
     return () => clearInterval(timer);
   }, [isPaused]);
 
+  // Wraps around in both directions.
   function goTo(index: number) {
     setActive((index + slides.length) % slides.length);
   }

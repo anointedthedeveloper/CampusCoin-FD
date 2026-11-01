@@ -1,3 +1,7 @@
+// App-wide configuration: names, API URL, feature flags, currency options and
+// storage keys. Values read from import.meta.env can be set with VITE_*
+// environment variables at build time.
+
 export const APP_NAME = 'Campus Coin';
 export const APP_TAGLINE = 'NextGen BudgetBee';
 

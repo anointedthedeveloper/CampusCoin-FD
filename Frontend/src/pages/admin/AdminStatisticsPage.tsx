@@ -8,6 +8,7 @@ import { formatCurrency, formatDate } from '@/utils/format';
 import { useMinLoadTime } from '@/hooks/useMinLoadTime';
 import type { SystemStatistics, AdminUserSummary } from '@/types/admin';
 
+/** Platform statistics: most-used categories, most active users and average monthly spend. */
 export function AdminStatisticsPage() {
   const [statistics, setStatistics] = useState<SystemStatistics | null>(null);
   const [topUsers, setTopUsers] = useState<AdminUserSummary[]>([]);

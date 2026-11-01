@@ -1,3 +1,6 @@
+// ESLint config (flat format) for the TypeScript/React source. Unused
+// variables are errors unless their name starts with an underscore.
+
 import js from '@eslint/js';
 import globals from 'globals';
 import reactHooks from 'eslint-plugin-react-hooks';

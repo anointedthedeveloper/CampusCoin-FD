@@ -11,6 +11,7 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   compact?: boolean;
 }
 
+/** Text input with an optional label, leading icon, trailing element, hint and error message. */
 export const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ label, error, hint, icon, trailing, id, className, compact = false, ...props }, ref) => {
     // Always link the label to the field (screen readers, click-to-focus),

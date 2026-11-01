@@ -27,6 +27,7 @@ export function SetPasswordPage() {
   if (!user) return <Navigate to="/login" replace />;
   if (user.hasPassword !== false) return <Navigate to={postLoginPath(user)} replace />;
 
+  // Validate and save the new password, then continue into the app.
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setError(null);

@@ -1,6 +1,9 @@
+// Access to AuthContext (current user and auth actions).
+
 import { useContext } from 'react';
 import { AuthContext } from '@/contexts/AuthContext';
 
+/** Must be used inside <AuthProvider>. */
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {

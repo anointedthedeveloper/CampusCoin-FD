@@ -1,3 +1,7 @@
+// Money routines (recurring transactions) API, mounted at /money-routines
+// (and the older /recurring-transactions). Also exports the helpers other
+// routes call to post any routine occurrences that have come due.
+
 const router = require('express').Router();
 const { serverError } = require('../utils/httpErrors');
 
@@ -11,6 +15,7 @@ const { checkBudgetAfterTransaction } = require('../services/budgetAlert.service
 router.use(protect);
 router.param('id', validateIdParam);
 
+/** API shape for a money routine. */
 function formatRecurring(item) {
   return {
     id: item._id.toString(),
@@ -31,6 +36,7 @@ function formatRecurring(item) {
   };
 }
 
+/** The date of the next occurrence after `date` for the given frequency/interval. */
 function getNextRunDate(date, frequency, interval) {
   const next = new Date(date);
 
@@ -188,6 +194,11 @@ router.delete('/:id', async (req, res) => {
 
 // ── Background processor (called by a cron / scheduled job) ──────────────────
 
+/**
+ * Posts due occurrences for every student at once. Exported for a scheduled
+ * job, but nothing in this codebase calls it at the moment — requests use
+ * ensureRecurringProcessed() for the signed-in student instead.
+ */
 async function processDueRecurringTransactions() {
   const now = new Date();
 

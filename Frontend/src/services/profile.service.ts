@@ -1,3 +1,5 @@
+// Service layer over profileApi.
+
 import { profileApi } from '@/api/profile.api';
 import type { OnboardingUpdate, User, UserProfileUpdate, UserSettings } from '@/types/user';
 

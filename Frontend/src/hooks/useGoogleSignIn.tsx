@@ -1,3 +1,6 @@
+// "Continue with Google" sign-in logic shared by the login and sign-up pages,
+// including the dialog that offers to link Google to an existing account.
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ConfirmDialog } from '@/components/common';
@@ -29,6 +32,8 @@ export function useGoogleSignIn(redirectFrom?: string) {
   const [error, setError] = useState<string | null>(null);
   const [pendingLink, setPendingLink] = useState<{ idToken: string; message: string } | null>(null);
 
+  // Sign in with the Google ID token; if the email already has a password
+  // account, ask before linking the two (the backend answers ACCOUNT_LINK_REQUIRED).
   async function signIn(idToken: string, linkAccount = false) {
     setError(null);
     setIsLoading(true);
@@ -46,6 +51,7 @@ export function useGoogleSignIn(redirectFrom?: string) {
     }
   }
 
+  // Rendered by the calling page; only present while a link decision is pending.
   const linkDialog = pendingLink ? (
     <ConfirmDialog
       open

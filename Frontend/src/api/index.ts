@@ -1,3 +1,5 @@
+// Barrel file re-exporting the API modules.
+
 export * from './httpClient';
 export * from './auth.api';
 export * from './transactions.api';

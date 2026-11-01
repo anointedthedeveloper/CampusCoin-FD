@@ -1,3 +1,5 @@
+// Per-IP rate limiters for the public authentication endpoints.
+
 const rateLimit = require('express-rate-limit');
 
 // The automated test suite exercises register/login/reset-password far more

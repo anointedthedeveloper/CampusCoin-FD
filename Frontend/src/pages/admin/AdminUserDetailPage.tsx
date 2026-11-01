@@ -29,8 +29,10 @@ import { cn } from '@/utils/cn';
 import { useMinLoadTime } from '@/hooks/useMinLoadTime';
 import type { AdminUserDetail } from '@/types/admin';
 
+// Actions that need confirmation before they run.
 type ActionKind = 'suspend' | 'activate' | 'reset' | 'delete' | 'promote' | 'demote' | 'send-reset';
 
+/** One user's details and recent transactions, with account actions (suspend, reset, delete, change role…). */
 export function AdminUserDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -85,6 +87,7 @@ export function AdminUserDetailPage() {
   const isSelf = user.id === currentUser?.id;
   const currency = user.settings?.currency ?? DEFAULT_CURRENCY;
 
+  // Runs the confirmed action, then shows the result and reloads the user.
   async function runAction() {
     if (!user || !pending) return;
     if (pending === 'suspend' || pending === 'activate') {
@@ -117,6 +120,7 @@ export function AdminUserDetailPage() {
     delete: { title: `Delete ${user.fullName}?`, description: 'Permanently deletes this account and all of its financial records. This cannot be undone.', confirmLabel: 'Delete permanently', tone: 'danger' as const },
   }[pending];
 
+  // Saves an edited display name.
   async function saveName() {
     if (!user) return;
     const value = nameDraft.trim();

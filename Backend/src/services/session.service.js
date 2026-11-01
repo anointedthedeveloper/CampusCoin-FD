@@ -1,9 +1,14 @@
+// Sign-in sessions and their JWTs. Each sign-in stores a Session document; the
+// short-lived access token (15 min) and the 7-day refresh token both carry its
+// id ("sid"), so a session can be revoked server-side at any time.
+
 const jwt = require('jsonwebtoken');
 const Session = require('../models/Session');
 
 const ACCESS_TTL = '15m';
 const REFRESH_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
+/** Device details (user agent and IP) recorded on a session. */
 function clientInfo(req) {
   return {
     userAgent: String(req?.headers?.['user-agent'] || '').slice(0, 400),
@@ -11,6 +16,7 @@ function clientInfo(req) {
   };
 }
 
+/** Signs a fresh access + refresh token pair for the session. */
 function signPair(userId, sessionId) {
   const accessToken = jwt.sign({ id: String(userId), sid: String(sessionId) }, process.env.JWT_SECRET, { expiresIn: ACCESS_TTL });
   const refreshToken = jwt.sign(
@@ -49,6 +55,7 @@ async function refreshSession(decoded, req) {
   return { ...signPair(decoded.id, session._id), sessionId: String(session._id) };
 }
 
+/** Signs out one session. Resolves true if it was still active. */
 async function revokeSession(userId, sessionId) {
   const result = await Session.updateOne({ _id: sessionId, userId, revokedAt: null }, { $set: { revokedAt: new Date() } });
   return result.modifiedCount > 0;

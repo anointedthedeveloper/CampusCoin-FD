@@ -1,3 +1,6 @@
+// Mongoose model for admin announcements, shown to everyone, students only or
+// admins only.
+
 const mongoose = require('mongoose');
 
 const announcementSchema = new mongoose.Schema(
@@ -5,6 +8,7 @@ const announcementSchema = new mongoose.Schema(
     title: { type: String, required: true, trim: true, maxlength: 160 },
     body: { type: String, required: true, maxlength: 5000 },
     audience: { type: String, enum: ['all', 'students', 'admins'], required: true },
+    // null while it's a draft; set when an admin publishes it.
     publishedAt: { type: Date, default: null },
     // Set once the announcement has been emailed, so re-publishing after an
     // unpublish never emails everyone twice.

@@ -1,3 +1,6 @@
+// Student backups API (mounted at /backups): list, create, download, restore
+// (from a stored backup or an uploaded file) and delete backups.
+
 const router = require('express').Router();
 const express = require('express');
 const rateLimit = require('express-rate-limit');
@@ -20,6 +23,7 @@ const backupLimiter = rateLimit({
   message: { message: 'Too many backup requests. Please try again later.' },
 });
 
+/** Sends a known (status-carrying) error as-is, anything else as a 500. */
 function sendError(res, err) {
   if (err.status) return res.status(err.status).json({ message: err.message });
   console.error(err);
@@ -61,6 +65,7 @@ router.get('/:id/download', async (req, res) => {
   }
 });
 
+/** After a restore: notifies the student what was restored and responds with the counts. */
 async function afterRestore(req, res, counts, label) {
   await Notification.create({
     userId: req.user._id,

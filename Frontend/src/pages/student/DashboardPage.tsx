@@ -41,6 +41,7 @@ import type { SavingTip, Insight } from '@/types/insight';
 import { aiApi, type AIConversationSummary } from '@/api/ai.api';
 import { AskAssistantCard } from '@/components/dashboard/AskAssistantCard';
 
+/** Current month as "YYYY-MM". */
 function monthKey() {
   return new Date().toISOString().slice(0, 7);
 }
@@ -72,6 +73,11 @@ function TxIcon({ type }: { type: 'income' | 'expense' }) {
   );
 }
 
+/**
+ * Student home: balance and this month's totals, budgets, spending by
+ * category, a month-end forecast, recent transactions, notifications, a
+ * saving tip and recent AI chats.
+ */
 export function DashboardPage() {
   const { user } = useAuth();
   const currency = user?.settings?.currency ?? DEFAULT_CURRENCY;
@@ -92,6 +98,7 @@ export function DashboardPage() {
 
     async function load() {
       setIsLoading(true);
+      // Load every section at once; allSettled so one failing request only empties its own section.
       const [txResult, cats, budgetSum, report, notifs, tips, insights, chats] = await Promise.allSettled([
         transactionService.list(user!.id),
         categoryService.list(user!.id),

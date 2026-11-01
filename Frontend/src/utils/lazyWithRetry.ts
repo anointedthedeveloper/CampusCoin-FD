@@ -3,6 +3,7 @@ import { lazy, type ComponentType } from 'react';
 const RELOAD_FLAG_KEY = 'campus-coin.chunk-reload-at';
 const RELOAD_COOLDOWN_MS = 30_000;
 
+/** True when a lazy import failed because its JS chunk couldn't be fetched. */
 function isChunkLoadError(error: unknown): boolean {
   const message = error instanceof Error ? error.message : String(error);
   return /Failed to fetch dynamically imported module|Importing a module script failed|error loading dynamically imported module|Loading chunk|MIME type/i.test(

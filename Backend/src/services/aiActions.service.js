@@ -70,6 +70,7 @@ function parseAmount(text) {
   return Number.isFinite(n) && n > 0 ? n : null;
 }
 
+/** Date → "YYYY-MM-DD" (UTC). */
 function isoDay(d) {
   return d.toISOString().slice(0, 10);
 }
@@ -86,6 +87,7 @@ function parseDateWords(text) {
   return isoDay(now);
 }
 
+// Collapses whitespace and trims.
 const clean = (s) => String(s || '').replace(/\s+/g, ' ').trim();
 
 /**
@@ -167,16 +169,19 @@ function ruleBasedActions(message, ctx) {
 /* ── Resolution (validate + describe) ────────────────────────────────── */
 
 const SYMBOLS = { NGN: '₦', USD: '$', GBP: '£', EUR: '€', GHS: 'GH₵', KES: 'KSh ' };
+/** Formats an amount with the student's currency symbol for proposal summaries. */
 function money(n, currency) {
   const sym = SYMBOLS[currency] ?? `${currency} `;
   return `${n < 0 ? '−' : ''}${sym}${Math.abs(n).toLocaleString('en-US', { maximumFractionDigits: 2 })}`;
 }
 
+/** Positive amount up to MAX_AMOUNT, rounded to 2 decimals — or null. */
 function validAmount(v) {
   const n = Number(v);
   return Number.isFinite(n) && n > 0 && n <= MAX_AMOUNT ? Math.round(n * 100) / 100 : null;
 }
 
+/** "YYYY-MM-DD" → Date (noon UTC), rejecting impossible or far-future dates — or null. */
 function validDay(v) {
   if (typeof v !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return null;
   const d = new Date(`${v}T12:00:00.000Z`);
@@ -184,6 +189,7 @@ function validDay(v) {
   return d;
 }
 
+/** Finds a category by exact name first, then by partial match. */
 function findCategory(categories, name, type) {
   const n = clean(name).toLowerCase();
   const pool = type ? categories.filter((c) => c.type === type) : categories;
@@ -193,6 +199,7 @@ function findCategory(categories, name, type) {
     || null;
 }
 
+/** The student's categories, savings goals and latest 25 transactions, used to resolve actions. */
 async function loadContext(user) {
   const [categories, goals, recent] = await Promise.all([
     Category.find({ userId: user._id }).select('name type icon').lean(),
@@ -292,8 +299,10 @@ async function resolveActions(user, rawActions, ctxIn) {
 
 /* ── Applying an approved action ─────────────────────────────────────── */
 
+// Builds a 400 error with a message the student can read.
 const fail = (message) => Object.assign(new Error(message), { status: 400 });
 
+/** Performs one approved action. Throws a 400 error if it is no longer valid. */
 async function applyAction(user, action) {
   const p = action.payload || {};
   const userId = user._id;

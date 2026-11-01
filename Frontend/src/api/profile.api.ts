@@ -1,3 +1,5 @@
+// Profile, onboarding and settings endpoints for the signed-in user.
+
 import { httpClient } from './httpClient';
 import type { ApiSuccess } from '@/types/api';
 import type { OnboardingUpdate, User, UserProfileUpdate, UserSettings } from '@/types/user';

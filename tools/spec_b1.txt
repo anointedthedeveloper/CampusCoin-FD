@@ -1,0 +1,246 @@
+@@ Backend/server.js
+^^
+Entry point for the CampusCoin API (Express).
+Sets up security middleware (helmet, CORS, JSON body parsing), the health
+and cron endpoints, mounts every route module under both /api/v1 and
+/api/ccoin, and — when run directly — starts the HTTP server and the hourly
+backup scheduler. The app is exported so Vercel's serverless entry
+(api/index.js) can reuse it without opening a port.
+>> function isLocalFrontendOrigin(origin) {
+/**
+ * Development-only CORS allowance: accepts http://localhost, 127.0.0.1 or a
+ * private LAN address (10.x, 172.16–31.x, 192.168.x) on Vite's dev ports
+ * 5173–5200, so the dev frontend also works when opened from another device
+ * on the same network. Always false in production.
+ */
+>> app.use(cors({
+// Browsers may only call the API from the allowed origins above (or a local
+// dev origin); requests from anywhere else are rejected.
+>> const databaseIndependentRoutes = new Set([
+// Routes that never touch MongoDB, so they keep working while it's down.
+>> app.use(async (_req, res, next) => {
+// Every other request needs the database: connect on demand (the first
+// request after a serverless cold start does the connecting) and answer 503
+// straight away if MongoDB is unreachable rather than letting queries hang.
+>> if (require.main === module) {
+// Only listen when run directly (`npm start` / `npm run dev`). When the file is
+// imported — e.g. by Vercel through api/index.js — the app is just exported.
+>> const shutdown = () => {
+// Graceful shutdown: stop accepting new connections, then close MongoDB.
+
+@@ Backend/api/index.js
+^^
+Vercel serverless entry point. vercel.json rewrites every request to /api,
+which lands here and is handled by the Express app from server.js.
+
+@@ Backend/src/config/db.js
+^^
+MongoDB connection helpers shared by the server, the serverless entry and
+the scripts. A native MongoClient is connected once and handed to Mongoose,
+and the in-flight connection promise is cached so concurrent requests share
+a single connection attempt instead of each opening their own.
+>> async function connectDB() {
+/**
+ * Connects to MONGO_URI if not already connected. Resolves true when the
+ * database is reachable and false otherwise — it never throws, so callers can
+ * reply 503 instead of crashing. A failed attempt is forgotten, so the next
+ * call tries again.
+ */
+>> const dnsServers = process.env.MONGODB_DNS_SERVERS
+// Optional comma-separated DNS servers to resolve with — useful on networks
+// whose default resolver can't look up the SRV records mongodb+srv:// needs.
+>> async function disconnectDB() {
+/** Closes the shared client and resets state so connectDB() can reconnect later. */
+
+@@ Backend/src/middleware/auth.js
+^^
+Authentication / authorisation middleware for protected API routes.
+>> async function protect(req, res, next) {
+/**
+ * Requires an "Authorization: Bearer <access token>" header. Verifies the JWT,
+ * loads the user, and checks that the session hasn't been revoked and the
+ * account isn't suspended. On success it sets req.user and req.sessionId and
+ * passes control on; otherwise it answers 401/403 (or 503 if the DB is down).
+ */
+>> function requireAdmin(req, res, next) {
+/** Use after `protect`: lets only admin accounts through, 403 for everyone else. */
+
+@@ Backend/src/middleware/rateLimit.js
+^^
+Per-IP rate limiters for the public authentication endpoints.
+
+@@ Backend/src/utils/objectId.js
+^^
+Helpers for validating MongoDB ObjectId values that arrive in requests.
+>> function validateIdParam(req, res, next, id) {
+/** router.param handler: 400 for a malformed :id, otherwise continue. */
+>> function isValidObjectId(id) {
+/** True for a 24-hex-character id string or an actual ObjectId instance. */
+
+@@ Backend/src/models/AiConversation.js
+^^
+Mongoose model for AI Assistant chat history. Each conversation belongs to
+one student and stores its messages, including any changes the assistant
+proposed in a reply and whether the student approved them.
+>> const messageSchema = new mongoose.Schema(
+// One chat message, from the student or the assistant. Assistant messages
+// also record which AI provider/model answered and any proposed actions.
+
+@@ Backend/src/models/Announcement.js
+^^
+Mongoose model for admin announcements, shown to everyone, students only or
+admins only.
+>> publishedAt: { type: Date, default: null },
+// null while it's a draft; set when an admin publishes it.
+
+@@ Backend/src/models/Anomaly.js
+^^
+Legacy model: a transaction flagged as unusually large or a possible
+duplicate. It points at the old Income/Expense collections; nothing in the
+current code creates anomalies — admin.routes.js only clears them when a
+user's account is deleted.
+>> isReviewed: { type: Boolean, default: false },
+// Review state, so a flagged item can be acknowledged or dismissed.
+>> anomalySchema.index({ user: 1, transaction: 1, type: 1 }, { unique: true });
+// One flag of each type per transaction.
+
+@@ Backend/src/models/Backup.js
+^^
+Mongoose model for per-student data backups.
+>> counts: { type: mongoose.Schema.Types.Mixed, default: {} },
+// How many records of each kind the backup holds, for display.
+>> data: { type: Buffer, required: true },
+// The gzip-compressed JSON snapshot itself.
+
+@@ Backend/src/models/Bookmark.js
+^^
+Mongoose model for a student's bookmark on an insight or a saving tip.
+
+@@ Backend/src/models/Budget.js
+^^
+Mongoose model for a monthly spending limit on one expense category.
+
+@@ Backend/src/models/Category.js
+^^
+Mongoose model for income/expense categories. System defaults (userId null)
+are visible to everyone; students can also create their own.
+
+@@ Backend/src/models/Expense.js
+^^
+Legacy model from an earlier schema where expenses had their own collection.
+Not imported anywhere in the current code — expenses now live in
+Transaction.js with type 'expense'.
+
+@@ Backend/src/models/ExpenseCategory.js
+^^
+Legacy model from an earlier schema with separate expense categories.
+Not imported anywhere in the current code — see Category.js instead.
+
+@@ Backend/src/models/Income.js
+^^
+Legacy model from an earlier schema where income had its own collection.
+Not imported anywhere in the current code — income now lives in
+Transaction.js with type 'income'.
+
+@@ Backend/src/models/IncomeCategory.js
+^^
+Legacy model from an earlier schema with separate income categories.
+Not imported anywhere in the current code — see Category.js instead.
+
+@@ Backend/src/models/ImportBatch.js
+^^
+Mongoose model recording one CSV/spreadsheet import: the file, how many rows
+were imported, failed or skipped as duplicates, and the per-row errors.
+
+@@ Backend/src/models/Insight.js
+^^
+Mongoose model for a written insight shown to a student (monthly summary,
+spending alert or saving tip), either rule-based or AI-generated.
+
+@@ Backend/src/models/MoneyMove.js
+^^
+"Money moves" are the saving-tip templates under another name: this model
+reads and writes the same 'savingtips' collection as SavingTip.js, and
+backs the /money-moves alias route in insights.routes.js.
+
+@@ Backend/src/models/MoneyRoutine.js
+^^
+Mongoose model for a "money routine" — a recurring income or expense (rent,
+allowance, subscriptions) that is turned into a real transaction each time
+it falls due. Stored in the 'recurringtransactions' collection, the same one
+RecurringTransaction.js uses, so the two models share the same documents.
+>> frequency: {
+// How often it repeats: every `interval` days/weeks/months/years.
+>> startDate: { type: Date, required: true },
+// Scheduling: endDate null = runs forever; nextRunAt is when the next
+// transaction is due to be generated.
+
+@@ Backend/src/models/Notification.js
+^^
+Mongoose model for in-app notifications (budget alerts, announcements,
+support replies, backups and other system messages).
+
+@@ Backend/src/models/RecurringTransaction.js
+^^
+Original model for recurring transactions. Same 'recurringtransactions'
+collection as MoneyRoutine.js (the name the routes use now); this one is
+still used by financialData.service.js and by admin.routes.js when deleting
+a user's data.
+
+@@ Backend/src/models/SavingTip.js
+^^
+Mongoose model for general saving-tip templates written by admins (or
+generated by AI) and shown to every student.
+
+@@ Backend/src/models/SavingsGoal.js
+^^
+Mongoose model for a student's savings goals.
+>> celebratedMilestones: { type: [Number], default: [] },
+// Progress milestones (25/50/75/100%) already celebrated, so each shows once.
+>> savingsGoalSchema.methods.toPublic = function toPublic() {
+// Shape sent to the frontend: string id and a YYYY-MM-DD target date.
+
+@@ Backend/src/models/Session.js
+^^
+Mongoose model for signed-in sessions.
+
+@@ Backend/src/models/SupportMessage.js
+^^
+Mongoose model for Help-page support conversations.
+
+@@ Backend/src/models/TipState.js
+^^
+Mongoose model for per-student saving-tip state.
+
+@@ Backend/src/models/Transaction.js
+^^
+Mongoose model for a single income or expense entry — the core record that
+budgets, reports, insights and the dashboard are all calculated from.
+>> occurredAt: { type: Date, required: true },
+// When the money actually moved (not when the record was created).
+>> source: { type: String, enum: ['manual', 'csv-import', 'recurring', 'ai-suggested'], default: 'manual' },
+// How the transaction was created.
+
+@@ Backend/src/models/TransactionRevision.js
+^^
+Mongoose model for the transaction audit trail.
+>> via: { type: String, enum: ['app', 'ai', 'import', 'recurring', 'restore'], default: 'app' },
+// Where the change came from.
+>> before: { type: mongoose.Schema.Types.Mixed, default: null },
+// Snapshots of the transaction before/after the change (null when it didn't
+// exist yet / no longer exists).
+
+@@ Backend/src/models/User.js
+^^
+Mongoose model for user accounts (students and admins), including their
+preferences, onboarding progress and password-reset state.
+>> const settingsSchema = new mongoose.Schema(
+// Per-user preferences from the Settings page.
+>> budgetAlertThreshold: { type: Number, default: 80 },
+// Percentage of a budget at which a "nearly spent" alert is sent.
+>> const userSchema = new mongoose.Schema(
+// The account itself.
+>> monthlyAllowanceBaseline: { type: Number },
+// Expected monthly income and savings target, collected during onboarding.
+>> isActive: { type: Boolean, default: true },
+// false = suspended by an admin; the auth middleware then refuses all requests.

@@ -1,3 +1,6 @@
+// Types for the admin console: user summaries/details, announcements, saving
+// tip templates and platform statistics.
+
 import type { User } from './user';
 
 export interface AdminUserSummary extends User {

@@ -1,3 +1,7 @@
+// Service layer over the insights endpoints. getMonthlyStats() and
+// getFinancialHealthSnapshot() are placeholders that return empty values;
+// the real numbers come from the reports/insights endpoints.
+
 import { insightsApi } from '@/api/insights.api';
 import type { Insight } from '@/types/insight';
 

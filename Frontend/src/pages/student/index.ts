@@ -1,3 +1,5 @@
+// Barrel file for the student app pages.
+
 export * from './DashboardPage';
 export * from './TransactionsListPage';
 export * from './TransactionNewPage';

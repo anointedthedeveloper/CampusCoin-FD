@@ -1,7 +1,15 @@
+// Authentication / authorisation middleware for protected API routes.
+
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { isSessionActive } = require('../services/session.service');
 
+/**
+ * Requires an "Authorization: Bearer <access token>" header. Verifies the JWT,
+ * loads the user, and checks that the session hasn't been revoked and the
+ * account isn't suspended. On success it sets req.user and req.sessionId and
+ * passes control on; otherwise it answers 401/403 (or 503 if the DB is down).
+ */
 async function protect(req, res, next) {
   const header = req.headers.authorization;
   if (!header || !header.startsWith('Bearer ')) {
@@ -50,6 +58,7 @@ async function protect(req, res, next) {
   next();
 }
 
+/** Use after `protect`: lets only admin accounts through, 403 for everyone else. */
 function requireAdmin(req, res, next) {
   if (req.user?.role !== 'admin') {
     return res.status(403).json({ message: 'Admin access required', code: 'FORBIDDEN' });

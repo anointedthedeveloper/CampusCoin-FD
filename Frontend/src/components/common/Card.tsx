@@ -8,6 +8,7 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
   hoverable?: boolean;
 }
 
+/** Rounded surface used to group content on a page. */
 export function Card({ className, noPadding = false, hoverable = false, ...props }: CardProps) {
   return (
     <div

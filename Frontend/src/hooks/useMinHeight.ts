@@ -1,3 +1,5 @@
+// Viewport media-query hooks.
+
 import { useEffect, useState } from 'react';
 
 /** True while the given media query matches — re-evaluated live as the viewport changes. */

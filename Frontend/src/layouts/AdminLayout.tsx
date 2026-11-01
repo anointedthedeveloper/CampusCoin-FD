@@ -1,3 +1,6 @@
+// Admin console shell: the sidebar navigation, a header showing the current
+// section, and the page content via <Outlet />.
+
 import { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import {
@@ -22,6 +25,7 @@ import { Avatar, Logo, ThemeToggle } from '@/components/common';
 import { cn } from '@/utils/cn';
 import { supportApi } from '@/api/support.api';
 
+// Sidebar sections of the admin console.
 const navItems = [
   { to: ADMIN_ROUTES.dashboard,     label: 'Overview',             icon: LayoutDashboard, description: 'Platform overview and quick actions' },
   { to: ADMIN_ROUTES.users,         label: 'Users',                icon: Users,           description: 'View, suspend, reset or delete accounts' },
@@ -34,11 +38,13 @@ const navItems = [
 
 const profileSection = { to: ADMIN_ROUTES.profile, label: 'My Profile', icon: UserCircle, description: 'Your account and password' };
 
+/** The nav section the current URL belongs to (detail pages map to their parent). */
 function currentSection(pathname: string) {
   if (pathname === profileSection.to) return profileSection;
   return navItems.find((item) => pathname === item.to || pathname.startsWith(`${item.to}/`)) ?? navItems[0];
 }
 
+/** Layout for every /admin page. */
 export function AdminLayout() {
   const { user, logout } = useAuth();
   const location = useLocation();
@@ -62,6 +68,7 @@ export function AdminLayout() {
   const isDetail = location.pathname !== section.to;
 
   useEffect(() => {
+    // Close the mobile sidebar after navigating.
     setIsSidebarOpen(false);
   }, [location.pathname]);
 

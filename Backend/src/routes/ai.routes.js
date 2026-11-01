@@ -27,6 +27,7 @@ const { ACTIONS_INSTRUCTION, extractActions, ruleBasedActions, resolveActions, a
 // Messages that ask to change data ("add…", "I spent…", "set my budget…").
 const COMMAND_RE = /\b(add|log|record|create|make|set|save|put|deposit|delete|remove|undo|change|update|edit|i spent|i paid|i bought|i received|i earned|got paid|received|earned|spent|bought)\b/i;
 
+/** API shape for an action the assistant proposed. */
 function formatAction(a) {
   return { id: a._id.toString(), kind: a.kind, summary: a.summary, status: a.status, error: a.error || undefined, result: a.result?.message ? { message: a.result.message } : undefined };
 }
@@ -84,6 +85,7 @@ function buildSystemInstruction(aiContext) {
   );
 }
 
+/** Fallback answer built from the month's numbers when no AI provider responds. */
 function buildUnavailableAiAnswer(summary) {
   if (!summary?.hasData) {
     return 'The AI service is temporarily unavailable, and there are no transactions in this month to summarize yet.';
@@ -109,6 +111,7 @@ function buildUnavailableAiAnswer(summary) {
 const MAX_STORED_MESSAGES = 200;
 const MONEY_TEMPLATE_KINDS = ['afford', 'when-afford'];
 
+/** Formats an amount for use inside a markdown answer. */
 function markdownAmount(amount, currency) {
   return formatAmount(Number(amount) || 0, currency);
 }
@@ -297,6 +300,7 @@ async function findAction(req) {
   return { conversation, action };
 }
 
+/** Applies one pending action and records the outcome (applied/failed) on it. */
 async function applyOne(req, conversation, action) {
   if (action.status !== 'pending') return;
   try {
@@ -359,6 +363,7 @@ router.post('/conversations/:conversationId/messages/:messageId/actions/apply-al
   }
 });
 
+/** Conversation list item: title, last message preview and timestamps. */
 function formatConversationSummary(c) {
   const last = c.messages[c.messages.length - 1];
   return {
@@ -1060,6 +1065,7 @@ router.post('/savings-scenario', async (req, res) => {
 // (used when GEMINI_API_KEY is unset or Gemini fails)
 // ─────────────────────────────────────────────────────────────────────────────
 
+/** Guesses what kind of question the student asked from keywords. */
 function detectIntent(message) {
   const lower = message.toLowerCase();
   if (/afford|buy|purchase|cost|price|how long|months?/.test(lower)) return 'affordability';
@@ -1072,6 +1078,7 @@ function detectIntent(message) {
   return 'general_budgeting';
 }
 
+/** Rule-based saving suggestions built from the month's summary and budgets. */
 function buildRuleSuggestions(summary, budgetStatus, currency) {
   const tips = [];
 
@@ -1125,6 +1132,7 @@ function buildRuleSuggestions(summary, budgetStatus, currency) {
   return tips;
 }
 
+/** One-paragraph summary of how the student's budgets are doing. */
 function buildBudgetCommentary(budgetStatus, currency) {
   if (budgetStatus.exceededBudgets > 0) {
     const names = budgetStatus.budgets
@@ -1143,6 +1151,7 @@ function buildBudgetCommentary(budgetStatus, currency) {
   return `All ${budgetStatus.budgets.length} of your budgets are on track this month. Great job staying within your limits!`;
 }
 
+/** Plain-language explanation of a "what if I cut X" savings scenario. */
 function buildScenarioExplanation(scenario, currency) {
   if (!scenario.hasData) {
     return `There's no spending recorded for ${scenario.category} this month, so there's nothing to reduce yet.`;

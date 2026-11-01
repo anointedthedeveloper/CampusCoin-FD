@@ -7,6 +7,11 @@ import { PUBLIC_ROUTES } from '@/constants/routes';
 import { isValidEmail, isStrongPassword } from '@/utils/validation';
 import { ApiError } from '@/types/api';
 
+/**
+ * Two-step password reset: (1) request a 6-digit code by email, (2) enter
+ * the code and a new password. Opening the link from the email skips
+ * straight to step 2 with the email and code filled in.
+ */
 export function ForgotPasswordPage() {
   const navigate = useNavigate();
   // The reset email links here with ?email=…&code=… so the student can
@@ -33,6 +38,7 @@ export function ForgotPasswordPage() {
     return () => window.clearTimeout(timer);
   }, [resendIn]);
 
+  // Requests a reset code; resolves true on success. Starts the 60s resend cooldown.
   async function sendCode() {
     setError(null);
     setErrorCode(null);
@@ -63,6 +69,7 @@ export function ForgotPasswordPage() {
     await sendCode();
   }
 
+  // Step 2: check the code and new password, reset, then go to the login page.
   async function handleVerifyAndReset(event: FormEvent) {
     event.preventDefault();
     setError(null);

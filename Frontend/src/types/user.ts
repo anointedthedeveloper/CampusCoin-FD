@@ -1,3 +1,5 @@
+// User account, settings and onboarding types.
+
 export type UserRole = 'student' | 'admin';
 
 export type OnboardingStatus = 'not_started' | 'in_progress' | 'completed' | 'skipped';

@@ -1,6 +1,9 @@
+// Service layer over notificationsApi.
+
 import { notificationsApi } from '@/api/notifications.api';
 import type { AppNotification } from '@/types/notification';
 
+/** Number of notifications not yet read. */
 export function countUnread(list: AppNotification[]): number {
   return list.filter((n) => !n.isRead).length;
 }

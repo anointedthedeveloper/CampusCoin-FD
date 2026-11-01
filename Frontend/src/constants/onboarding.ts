@@ -1,3 +1,5 @@
+// Choices shown in the onboarding (money profile) wizard.
+
 import {
   Activity,
   Briefcase,

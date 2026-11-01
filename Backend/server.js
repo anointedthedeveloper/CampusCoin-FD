@@ -1,3 +1,10 @@
+// Entry point for the CampusCoin API (Express).
+// Sets up security middleware (helmet, CORS, JSON body parsing), the health
+// and cron endpoints, mounts every route module under both /api/v1 and
+// /api/ccoin, and — when run directly — starts the HTTP server and the hourly
+// backup scheduler. The app is exported so Vercel's serverless entry
+// (api/index.js) can reuse it without opening a port.
+
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -57,6 +64,12 @@ if (process.env.NODE_ENV !== 'production' && !allowedOrigins.includes('http://lo
   allowedOrigins.push('http://localhost:5173');
 }
 
+/**
+ * Development-only CORS allowance: accepts http://localhost, 127.0.0.1 or a
+ * private LAN address (10.x, 172.16–31.x, 192.168.x) on Vite's dev ports
+ * 5173–5200, so the dev frontend also works when opened from another device
+ * on the same network. Always false in production.
+ */
 function isLocalFrontendOrigin(origin) {
   if (process.env.NODE_ENV === 'production') return false;
 
@@ -87,6 +100,8 @@ function isLocalFrontendOrigin(origin) {
   );
 }
 
+// Browsers may only call the API from the allowed origins above (or a local
+// dev origin); requests from anywhere else are rejected.
 app.use(cors({
   origin: (origin, callback) => {
     // Allow non-browser requests (no Origin header, e.g. curl/health checks)
@@ -147,11 +162,15 @@ async function cronDailyBackups(req, res) {
 }
 app.get('/api/v1/cron/daily-backups', cronDailyBackups);
 
+// Routes that never touch MongoDB, so they keep working while it's down.
 const databaseIndependentRoutes = new Set([
   '/api/v1/auth/google/config',
   '/api/ccoin/auth/google/config',
 ]);
 
+// Every other request needs the database: connect on demand (the first
+// request after a serverless cold start does the connecting) and answer 503
+// straight away if MongoDB is unreachable rather than letting queries hang.
 app.use(async (_req, res, next) => {
   if (databaseIndependentRoutes.has(_req.path)) return next();
   if (await connectDB()) return next();
@@ -215,6 +234,8 @@ app.use((err, _req, res, _next) => {
 
 // ── Start ─────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 5000;
+// Only listen when run directly (`npm start` / `npm run dev`). When the file is
+// imported — e.g. by Vercel through api/index.js — the app is just exported.
 if (require.main === module) {
   connectDB().then((isConnected) => {
   const server = app.listen(PORT, () => {
@@ -225,6 +246,7 @@ if (require.main === module) {
     }
   });
 
+  // Graceful shutdown: stop accepting new connections, then close MongoDB.
   const shutdown = () => {
     server.close(async () => {
       await disconnectDB();

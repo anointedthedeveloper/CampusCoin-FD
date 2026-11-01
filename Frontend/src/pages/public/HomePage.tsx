@@ -8,6 +8,7 @@ import { assets } from '@/assets';
 import { useRipple } from '@/hooks/useRipple';
 import { cn } from '@/utils/cn';
 
+// Static content for the home page sections.
 const stats = [
   { value: '100%', label: 'Free to use' },
   { value: '0', label: 'Bank links required' },
@@ -100,6 +101,7 @@ const appFeatureHighlights = [
   { icon: PiggyBank, label: 'Savings Goal', description: 'Set a target and track progress on your dashboard.' },
 ];
 
+/** Rotating background photos behind the hero (pauses on hover). */
 function HeroBackground() {
   const slides = [assets.heroBackground, assets.heroSlideOne, assets.heroSlideThree];
   const [active, setActive] = useState(0);
@@ -161,6 +163,7 @@ function HeroBackground() {
   );
 }
 
+/** Public landing page. */
 export function HomePage() {
   const primaryRipple = useRipple();
   const secondaryRipple = useRipple();

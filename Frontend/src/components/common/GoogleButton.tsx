@@ -3,6 +3,7 @@ import { Loader2 } from 'lucide-react';
 import { mountGoogleButton } from '@/lib/googleIdentity';
 import { cn } from '@/utils/cn';
 
+/** Renders Google's own sign-in button and passes the resulting ID token to `onCredential`. */
 export function GoogleButton({
   onCredential,
   isLoading,

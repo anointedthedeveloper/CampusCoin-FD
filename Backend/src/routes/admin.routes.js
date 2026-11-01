@@ -1,3 +1,7 @@
+// Admin console API (mounted at /admin): users, system categories,
+// announcements, saving-tip templates, the support inbox, platform statistics,
+// backups and email diagnostics. Every route requires an admin account.
+
 const router = require('express').Router();
 const { serverError } = require('../utils/httpErrors');
 const User = require('../models/User');
@@ -151,6 +155,7 @@ router.patch('/users/:id', async (req, res) => {
   }
 });
 
+/** Deletes everything a user owns (optionally keeping their categories). */
 async function deleteUserData(userId, { includeCategories }) {
   await Promise.all([
     Transaction.deleteMany({ userId }),
@@ -235,6 +240,7 @@ router.delete('/users/:id', async (req, res) => {
 
 /* ──────────────────────────── CATEGORIES ───────────────────────────── */
 
+/** API shape for a category. */
 function formatCat(c) {
   return { id: c._id.toString(), name: c.name, type: c.type, icon: c.icon, color: c.color, isDefault: c.isDefault, userId: c.userId?.toString() ?? null, createdAt: c.createdAt, updatedAt: c.updatedAt };
 }
@@ -382,6 +388,7 @@ async function emailAnnouncement(ann) {
   await sendAnnouncementEmails(users.map((u) => u.email), ann);
 }
 
+/** API shape for an announcement. */
 function formatAnn(a) {
   return { id: a._id.toString(), title: a.title, body: a.body, audience: a.audience, publishedAt: a.publishedAt, createdAt: a.createdAt, updatedAt: a.updatedAt };
 }
@@ -461,6 +468,7 @@ router.delete('/announcements/:id', async (req, res) => {
 
 /* ─────────────────────────── SAVING TIPS ──────────────────────────── */
 
+/** API shape for a saving-tip template. */
 function formatTip(t) {
   return { id: t._id.toString(), title: t.title, body: t.body, category: t.category ?? '', createdAt: t.createdAt, updatedAt: t.updatedAt };
 }
@@ -477,6 +485,7 @@ router.get('/saving-tips', async (_req, res) => {
   }
 });
 
+// POST /api/v1/admin/saving-tips — create a general saving-tip template
 router.post('/saving-tips', async (req, res) => {
   try {
     const title = typeof req.body.title === 'string' ? req.body.title.trim() : '';
@@ -493,6 +502,7 @@ router.post('/saving-tips', async (req, res) => {
   }
 });
 
+// PATCH /api/v1/admin/saving-tips/:id — edit a template's title, body or category
 router.patch('/saving-tips/:id', async (req, res) => {
   try {
     const tip = await SavingTip.findById(req.params.id);
@@ -507,6 +517,7 @@ router.patch('/saving-tips/:id', async (req, res) => {
   }
 });
 
+// DELETE /api/v1/admin/saving-tips/:id — remove a template
 router.delete('/saving-tips/:id', async (req, res) => {
   try {
     const tip = await SavingTip.findByIdAndDelete(req.params.id);
@@ -522,6 +533,7 @@ router.delete('/saving-tips/:id', async (req, res) => {
 /* ─────────────────────────── SUPPORT INBOX ─────────────────────────── */
 
 const { formatThread } = require('./support.routes');
+// Support threads as admins see them.
 const formatSupport = (m) => formatThread(m, { forAdmin: true });
 
 // GET /api/v1/admin/support?status=open|resolved
