@@ -130,9 +130,8 @@ const ROUTE_PARENTS: Record<string, string> = {
   [STUDENT_ROUTES.onboarding]: STUDENT_ROUTES.profile,
 };
 
-// localStorage keys for the sidebar's collapsed state and folded groups.
+// localStorage key for the sidebar's collapsed state.
 const COLLAPSE_KEY = 'campus-coin.sidebarCollapsed';
-const GROUPS_KEY = 'campus-coin.sidebarGroupsClosed';
 
 /** Reads a JSON value from localStorage, or `fallback` if missing/unreadable. */
 function readStored<T>(key: string, fallback: T): T {
@@ -235,7 +234,6 @@ export function StudentLayout() {
   const { unreadCount } = useNotifications();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState<boolean>(() => readStored(COLLAPSE_KEY, false));
-  const [closedGroups, setClosedGroups] = useState<string[]>(() => readStored(GROUPS_KEY, []));
   const [tooltip, setTooltip] = useState<{ label: string; top: number } | null>(null);
   const [tourStep, setTourStep] = useState<number | null>(null);
   const [tourAnchorTop, setTourAnchorTop] = useState<number | null>(null);
@@ -251,7 +249,6 @@ export function StudentLayout() {
   }, [location.pathname, location.search]);
 
   useEffect(() => { writeStored(COLLAPSE_KEY, collapsed); }, [collapsed]);
-  useEffect(() => { writeStored(GROUPS_KEY, closedGroups); }, [closedGroups]);
 
   useEffect(() => {
     if (!user) return;
@@ -262,7 +259,7 @@ export function StudentLayout() {
       if (localStorage.getItem(key)) return;
       localStorage.setItem(key, '1');
     } catch { /* ignore */ }
-    const timer = setTimeout(() => { setCollapsed(false); setClosedGroups([]); setTourStep(0); }, 800);
+    const timer = setTimeout(() => { setCollapsed(false); setTourStep(0); }, 800);
     return () => clearTimeout(timer);
   }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -284,10 +281,6 @@ export function StudentLayout() {
     }
     if (item.to === STUDENT_ROUTES.savingTips) return location.pathname === item.to || location.pathname === STUDENT_ROUTES.bookmarks;
     return item.end ? location.pathname === item.to : location.pathname.startsWith(item.to);
-  }
-
-  function toggleGroup(id: string) {
-    setClosedGroups((prev) => (prev.includes(id) ? prev.filter((g) => g !== id) : [...prev, id]));
   }
 
   return (
@@ -322,24 +315,16 @@ export function StudentLayout() {
         <nav className="student-sidebar-nav min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 py-2 [scrollbar-width:thin]" onScroll={() => setTooltip(null)}>
           {NAV_GROUPS.map((group) => {
             const groupActive = group.items.some(isItemActive);
-            const isOpen = rail || groupActive || !closedGroups.includes(group.id);
             return (
               <div key={group.id} className="mb-1">
                 {rail ? (
                   <div className="mx-2 my-2 border-t border-white/5 first:hidden" aria-hidden="true" />
                 ) : (
-                  <button
-                    type="button"
-                    onClick={() => toggleGroup(group.id)}
-                    aria-expanded={isOpen}
-                    className="flex w-full items-center justify-between rounded-md px-3 pb-1.5 pt-2 text-2xs font-semibold uppercase tracking-widest text-gray-500 hover:text-gray-300"
-                  >
+                  <p className="flex w-full items-center rounded-md px-3 pb-1.5 pt-2 text-2xs font-semibold uppercase tracking-widest text-gray-500">
                     {group.label}
-                    <ChevronDown className={cn('h-3 w-3 transition-transform', !isOpen && '-rotate-90')} aria-hidden="true" />
-                  </button>
+                  </p>
                 )}
-                {isOpen && (
-                  <div className="space-y-0.5">
+                <div className="space-y-0.5">
                     {group.items.map((item) => {
                       const active = isItemActive(item);
                       const Icon = item.icon;
@@ -367,16 +352,10 @@ export function StudentLayout() {
                             <Icon className="h-4 w-4" />
                           </span>
                           {!rail && <span className="truncate">{item.label}</span>}
-                          {!rail && item.label === 'Add Transaction' && (
-                            <span className="ml-auto flex h-4 w-4 items-center justify-center rounded bg-brand-600/30 text-brand-400">
-                              <Plus className="h-2.5 w-2.5" />
-                            </span>
-                          )}
                         </NavLink>
                       );
                     })}
                   </div>
-                )}
               </div>
             );
           })}
