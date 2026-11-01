@@ -314,7 +314,6 @@ export function StudentLayout() {
         {/* Nav — scrolls on short screens */}
         <nav className="student-sidebar-nav min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 py-2 [scrollbar-width:thin]" onScroll={() => setTooltip(null)}>
           {NAV_GROUPS.map((group) => {
-            const groupActive = group.items.some(isItemActive);
             return (
               <div key={group.id} className="mb-1">
                 {rail ? (
