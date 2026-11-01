@@ -35,6 +35,12 @@ export const adminUsersApi = {
     return data.message ?? 'Password reset email sent.';
   },
 
+  /** Directly sets a new password for the user and signs them out of all devices. */
+  async setPassword(id: string, password: string): Promise<string> {
+    const { data } = await httpClient.post<ApiSuccess<null>>(`/admin/users/${id}/set-password`, { password });
+    return data.message ?? 'Password updated.';
+  },
+
   /** Wipes the student's financial data and restarts onboarding; their login is kept. */
   async resetAccount(id: string): Promise<AdminUserSummary> {
     const { data } = await httpClient.post<ApiSuccess<AdminUserSummary>>(`/admin/users/${id}/reset`);

@@ -25,6 +25,10 @@ export const adminUserService = {
     return adminUsersApi.sendPasswordReset(id);
   },
 
+  setPassword(id: string, password: string) {
+    return adminUsersApi.setPassword(id, password);
+  },
+
   async resetAccount(id: string): Promise<void> {
     await adminUsersApi.resetAccount(id);
   },

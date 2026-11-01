@@ -30,6 +30,7 @@ const { protect, requireAdmin } = require('../middleware/auth');
 const { validateIdParam } = require('../utils/objectId');
 const { isEmailConfigured, emailStatus, sendTestEmail, sendAnnouncementEmails, sendSupportReplyEmail } = require('../services/email.service');
 const { issuePasswordReset } = require('../services/passwordReset.service');
+const bcrypt = require('bcryptjs');
 
 // All admin routes require auth + admin role
 router.use(protect, requireAdmin);
@@ -188,6 +189,36 @@ router.post('/users/:id/send-password-reset', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(502).json({ message: 'The reset email could not be sent. Please try again.' });
+  }
+});
+
+// POST /api/v1/admin/users/:id/set-password — lets an admin directly set a
+// new password for any user. The new password must be at least 8 characters.
+// The user is signed out of all devices so they must log in with the new one.
+router.post('/users/:id/set-password', async (req, res) => {
+  try {
+    const { password } = req.body;
+    if (typeof password !== 'string' || password.length < 8) {
+      return res.status(400).json({ message: 'Password must be at least 8 characters.' });
+    }
+    if (password.length > 128) {
+      return res.status(400).json({ message: 'Password must be 128 characters or fewer.' });
+    }
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    user.password = await bcrypt.hash(password, 12);
+    // Clear any in-flight password reset tokens so they can't be reused.
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    await user.save();
+
+    // Sign the user out of every active session so they must log in again.
+    await Session.updateMany({ userId: user._id, revokedAt: null }, { $set: { revokedAt: new Date() } });
+
+    res.json({ data: null, message: `Password updated for ${user.email}. They have been signed out of all devices.` });
+  } catch (err) {
+    return serverError(res, err);
   }
 });
 

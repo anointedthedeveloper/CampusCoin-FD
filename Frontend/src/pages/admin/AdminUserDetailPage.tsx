@@ -46,6 +46,11 @@ export function AdminUserDetailPage() {
   const [isEditingName, setIsEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState('');
   const [nameError, setNameError] = useState<string | null>(null);
+  const [isSettingPassword, setIsSettingPassword] = useState(false);
+  const [passwordDraft, setPasswordDraft] = useState('');
+  const [passwordConfirm, setPasswordConfirm] = useState('');
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordSaving, setPasswordSaving] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -136,6 +141,26 @@ export function AdminUserDetailPage() {
     }
   }
 
+  // Directly sets a new password for the user.
+  async function savePassword() {
+    if (!user) return;
+    if (passwordDraft.length < 8) { setPasswordError('Password must be at least 8 characters.'); return; }
+    if (passwordDraft !== passwordConfirm) { setPasswordError('Passwords do not match.'); return; }
+    setPasswordSaving(true);
+    setPasswordError(null);
+    try {
+      const message = await adminUserService.setPassword(user.id, passwordDraft);
+      setIsSettingPassword(false);
+      setPasswordDraft('');
+      setPasswordConfirm('');
+      setFlash(message);
+    } catch (err) {
+      setPasswordError(err instanceof Error ? err.message : 'Could not update the password.');
+    } finally {
+      setPasswordSaving(false);
+    }
+  }
+
   const details = [
     { icon: Mail, label: 'Email', value: user.email },
     { icon: GraduationCap, label: 'School', value: user.school || '—' },
@@ -216,6 +241,9 @@ export function AdminUserDetailPage() {
                 <button type="button" onClick={() => setPending('send-reset')} className="inline-flex items-center gap-1.5 rounded-lg bg-white/10 px-3.5 py-2 text-sm font-semibold text-white hover:bg-white/20">
                   <KeyRound className="h-4 w-4" /> Send reset email
                 </button>
+                <button type="button" onClick={() => { setIsSettingPassword((v) => !v); setPasswordDraft(''); setPasswordConfirm(''); setPasswordError(null); }} className="inline-flex items-center gap-1.5 rounded-lg bg-white/10 px-3.5 py-2 text-sm font-semibold text-white hover:bg-white/20">
+                  <KeyRound className="h-4 w-4" /> {isSettingPassword ? 'Cancel' : 'Set password'}
+                </button>
                 <button type="button" onClick={() => setPending('reset')} className="inline-flex items-center gap-1.5 rounded-lg bg-white/10 px-3.5 py-2 text-sm font-semibold text-white hover:bg-white/20">
                   <RotateCcw className="h-4 w-4" /> Reset data
                 </button>
@@ -226,6 +254,48 @@ export function AdminUserDetailPage() {
             )}
           </div>
         </div>
+
+        {/* Inline set-password form */}
+        {isSettingPassword && !isSelf && (
+          <div className="border-t border-gray-100 bg-gray-50 px-6 py-4 dark:border-white/[0.06] dark:bg-white/[0.02]">
+            <p className="mb-3 text-sm font-semibold text-gray-900 dark:text-text-primary">Set a new password for {user.fullName}</p>
+            <div className="flex flex-wrap items-end gap-3">
+              <div className="flex-1 min-w-[180px]">
+                <label className="block text-xs font-medium text-gray-600 dark:text-text-secondary mb-1">New password</label>
+                <input
+                  type="password"
+                  value={passwordDraft}
+                  onChange={(e) => { setPasswordDraft(e.target.value); setPasswordError(null); }}
+                  placeholder="Min. 8 characters"
+                  minLength={8}
+                  maxLength={128}
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/20 dark:border-white/[0.08] dark:bg-surface dark:text-text-primary"
+                />
+              </div>
+              <div className="flex-1 min-w-[180px]">
+                <label className="block text-xs font-medium text-gray-600 dark:text-text-secondary mb-1">Confirm password</label>
+                <input
+                  type="password"
+                  value={passwordConfirm}
+                  onChange={(e) => { setPasswordConfirm(e.target.value); setPasswordError(null); }}
+                  placeholder="Repeat password"
+                  maxLength={128}
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/20 dark:border-white/[0.08] dark:bg-surface dark:text-text-primary"
+                />
+              </div>
+              <button
+                type="button"
+                disabled={passwordSaving}
+                onClick={() => void savePassword()}
+                className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-700 disabled:opacity-60 dark:bg-primary dark:hover:bg-primary-accent"
+              >
+                {passwordSaving ? 'Saving…' : 'Save password'}
+              </button>
+            </div>
+            {passwordError && <p className="mt-2 text-xs text-red-600 dark:text-red-400">{passwordError}</p>}
+            <p className="mt-2 text-xs text-gray-400 dark:text-text-muted">The user will be signed out of all devices immediately.</p>
+          </div>
+        )}
 
         <div className="grid grid-cols-2 gap-px bg-gray-100 dark:bg-white/[0.04] sm:grid-cols-4">
           {[
