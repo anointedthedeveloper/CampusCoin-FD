@@ -21,6 +21,10 @@ export const adminUserService = {
     return adminUsersApi.update(id, payload);
   },
 
+  createUser(payload: { fullName: string; email: string; password: string; role: 'student' | 'admin'; school?: string; academicYear?: string }) {
+    return adminUsersApi.createUser(payload);
+  },
+
   sendPasswordReset(id: string) {
     return adminUsersApi.sendPasswordReset(id);
   },

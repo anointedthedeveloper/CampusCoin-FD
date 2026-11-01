@@ -30,6 +30,11 @@ export const adminUsersApi = {
     return data.data;
   },
 
+  async createUser(payload: { fullName: string; email: string; password: string; role: 'student' | 'admin'; school?: string; academicYear?: string }): Promise<{ user: AdminUserSummary; message: string }> {
+    const { data } = await httpClient.post<ApiSuccess<AdminUserSummary> & { message: string }>('/admin/users', payload);
+    return { user: data.data, message: data.message ?? 'Account created.' };
+  },
+
   async sendPasswordReset(id: string): Promise<string> {
     const { data } = await httpClient.post<ApiSuccess<null>>(`/admin/users/${id}/send-password-reset`);
     return data.message ?? 'Password reset email sent.';

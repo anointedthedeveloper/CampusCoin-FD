@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Ban, CheckCircle2, RotateCcw, Search, Trash2, Users } from 'lucide-react';
+import { Ban, CheckCircle2, Plus, RotateCcw, Search, ShieldCheck, Trash2, UserPlus, Users, X } from 'lucide-react';
 import { Avatar, Badge, Card, ConfirmDialog, EmptyState, PageSpinner } from '@/components/common';
 import { useAuth } from '@/hooks/useAuth';
 import { ADMIN_ROUTES, buildPath } from '@/constants/routes';
@@ -25,6 +25,12 @@ export function AdminUsersPage() {
   const [isLoading,    setIsLoading]    = useState(true);
   const showLoader = useMinLoadTime(isLoading);
   const [refreshToken, setRefreshToken] = useState(0);
+
+  // Create user form state
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [createForm, setCreateForm] = useState({ fullName: '', email: '', password: '', role: 'student' as 'student' | 'admin', school: '', academicYear: '' });
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [createSaving, setCreateSaving] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -69,6 +75,26 @@ export function AdminUsersPage() {
     setRefreshToken((t) => t + 1);
   }
 
+  async function handleCreateUser(e: React.FormEvent) {
+    e.preventDefault();
+    const { fullName, email, password, role, school, academicYear } = createForm;
+    if (!fullName.trim() || !email.trim() || !password) { setCreateError('Name, email and password are required.'); return; }
+    if (password.length < 8) { setCreateError('Password must be at least 8 characters.'); return; }
+    setCreateSaving(true);
+    setCreateError(null);
+    try {
+      const { message } = await adminUserService.createUser({ fullName: fullName.trim(), email: email.trim(), password, role, school: school.trim() || undefined, academicYear: academicYear.trim() || undefined });
+      setFlash(message);
+      setShowCreateForm(false);
+      setCreateForm({ fullName: '', email: '', password: '', role: 'student', school: '', academicYear: '' });
+      setRefreshToken((t) => t + 1);
+    } catch (err) {
+      setCreateError(err instanceof Error ? err.message : 'Could not create the user.');
+    } finally {
+      setCreateSaving(false);
+    }
+  }
+
   const dialogCopy = pendingAction && {
     suspend: {
       title: `Suspend ${pendingAction.user.fullName}?`,
@@ -101,12 +127,78 @@ export function AdminUsersPage() {
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-text-primary">Users</h1>
-        <p className="mt-0.5 text-sm text-gray-500 dark:text-text-secondary">
-          {users.length} registered user{users.length !== 1 ? 's' : ''} on the platform.
-        </p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-text-primary">Users</h1>
+          <p className="mt-0.5 text-sm text-gray-500 dark:text-text-secondary">
+            {users.length} registered user{users.length !== 1 ? 's' : ''} on the platform.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => { setShowCreateForm(true); setCreateError(null); }}
+          className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-700 dark:bg-primary dark:hover:bg-primary-accent"
+        >
+          <UserPlus className="h-4 w-4" /> Create user
+        </button>
       </div>
+
+      {/* Create user modal */}
+      {showCreateForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="create-user-title">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => !createSaving && setShowCreateForm(false)} />
+          <Card className="relative w-full max-w-lg p-6">
+            <button type="button" onClick={() => setShowCreateForm(false)} disabled={createSaving} className="absolute right-3 top-3 rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10" aria-label="Close"><X className="h-4 w-4" /></button>
+            <h2 id="create-user-title" className="mb-4 text-lg font-bold text-gray-900 dark:text-text-primary">Create a new user</h2>
+            <form onSubmit={(e) => void handleCreateUser(e)} className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-text-secondary">
+                  Full name <span className="text-red-500">*</span>
+                  <input required maxLength={100} value={createForm.fullName} onChange={(e) => setCreateForm((f) => ({ ...f, fullName: e.target.value }))} placeholder="e.g. Thomas Adeyemi" className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/20 dark:border-white/[0.08] dark:bg-surface dark:text-text-primary" />
+                </label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-text-secondary">
+                  Email <span className="text-red-500">*</span>
+                  <input required type="email" maxLength={200} value={createForm.email} onChange={(e) => setCreateForm((f) => ({ ...f, email: e.target.value }))} placeholder="user@example.com" className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/20 dark:border-white/[0.08] dark:bg-surface dark:text-text-primary" />
+                </label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-text-secondary">
+                  Password <span className="text-red-500">*</span>
+                  <input required type="password" minLength={8} maxLength={128} value={createForm.password} onChange={(e) => setCreateForm((f) => ({ ...f, password: e.target.value }))} placeholder="Min. 8 characters" className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/20 dark:border-white/[0.08] dark:bg-surface dark:text-text-primary" />
+                </label>
+                <div className="block text-sm font-medium text-gray-700 dark:text-text-secondary">
+                  Role
+                  <div className="mt-1 inline-flex w-full rounded-lg bg-gray-100 p-1 dark:bg-white/[0.08]">
+                    {(['student', 'admin'] as const).map((r) => (
+                      <button key={r} type="button" onClick={() => setCreateForm((f) => ({ ...f, role: r }))} className={cn('flex-1 rounded-md py-2 text-sm font-semibold capitalize transition-all', createForm.role === r ? 'bg-white text-gray-900 shadow-btn dark:bg-surface-elevated dark:text-text-primary' : 'text-gray-500 dark:text-text-muted')}>
+                        {r === 'admin' ? <span className="flex items-center justify-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5" />Admin</span> : 'Student'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-text-secondary">
+                  School <span className="font-normal text-gray-400">(optional)</span>
+                  <input maxLength={100} value={createForm.school} onChange={(e) => setCreateForm((f) => ({ ...f, school: e.target.value }))} placeholder="e.g. University of Lagos" className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/20 dark:border-white/[0.08] dark:bg-surface dark:text-text-primary" />
+                </label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-text-secondary">
+                  Academic year <span className="font-normal text-gray-400">(optional)</span>
+                  <input maxLength={100} value={createForm.academicYear} onChange={(e) => setCreateForm((f) => ({ ...f, academicYear: e.target.value }))} placeholder="e.g. 200 Level" className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/20 dark:border-white/[0.08] dark:bg-surface dark:text-text-primary" />
+                </label>
+              </div>
+              {createError && <p className="text-sm text-red-600 dark:text-red-400">{createError}</p>}
+              {createForm.role === 'admin' && (
+                <p className="rounded-lg bg-amber-50 px-3.5 py-2.5 text-xs text-amber-700 dark:bg-amber-400/10 dark:text-amber-300">
+                  This user will have full admin access including managing other users.
+                </p>
+              )}
+              <div className="flex justify-end gap-2 pt-1">
+                <button type="button" onClick={() => setShowCreateForm(false)} disabled={createSaving} className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-white/[0.08] dark:text-text-secondary dark:hover:bg-white/5">Cancel</button>
+                <button type="submit" disabled={createSaving} className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60 dark:bg-primary dark:hover:bg-primary-accent">
+                  <Plus className="h-4 w-4" />{createSaving ? 'Creating…' : 'Create user'}
+                </button>
+              </div>
+            </form>
+          </Card>
+        </div>
+      )}
 
       {flash && (
         <div className="flex items-center justify-between gap-3 rounded-xl border border-brand-200 bg-brand-50 px-4 py-3 text-sm text-brand-800 dark:border-primary/25 dark:bg-primary/10 dark:text-primary-accent" role="status">

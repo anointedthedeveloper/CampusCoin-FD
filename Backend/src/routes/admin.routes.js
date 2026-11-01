@@ -28,15 +28,62 @@ const { ensureTemplates } = require('../services/savingTips.service');
 const { getSystemTemplates, seedDefaultCategories } = require('../services/defaultCategories.service');
 const { protect, requireAdmin } = require('../middleware/auth');
 const { validateIdParam } = require('../utils/objectId');
-const { isEmailConfigured, emailStatus, sendTestEmail, sendAnnouncementEmails, sendSupportReplyEmail } = require('../services/email.service');
+const { isEmailConfigured, emailStatus, sendTestEmail, sendAnnouncementEmails, sendSupportReplyEmail, sendWelcomeEmail } = require('../services/email.service');
 const { issuePasswordReset } = require('../services/passwordReset.service');
 const bcrypt = require('bcryptjs');
+const { toTitleCaseName } = require('../utils/formatName');
 
 // All admin routes require auth + admin role
 router.use(protect, requireAdmin);
 router.param('id', validateIdParam);
 
 /* ─────────────────────────────── USERS ─────────────────────────────── */
+
+// POST /api/v1/admin/users — create a new user (student or admin) directly
+// without going through the public registration flow.
+router.post('/users', async (req, res) => {
+  try {
+    const { fullName, email, password, role = 'student', school, academicYear } = req.body;
+
+    if (typeof fullName !== 'string' || !fullName.trim() || fullName.trim().length > 100) {
+      return res.status(400).json({ message: 'Full name is required (up to 100 characters)' });
+    }
+    if (typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) || email.length > 200) {
+      return res.status(400).json({ message: 'Enter a valid email address' });
+    }
+    if (typeof password !== 'string' || password.length < 8 || password.length > 128) {
+      return res.status(400).json({ message: 'Password must be at least 8 characters' });
+    }
+    if (!['student', 'admin'].includes(role)) {
+      return res.status(400).json({ message: "role must be 'student' or 'admin'" });
+    }
+
+    const existing = await User.findOne({ email: email.toLowerCase().trim() });
+    if (existing) return res.status(409).json({ message: 'An account with this email already exists.' });
+
+    const passwordHash = await bcrypt.hash(password, 12);
+    const user = await User.create({
+      fullName: toTitleCaseName(fullName.trim()),
+      email: email.toLowerCase().trim(),
+      passwordHash,
+      role,
+      school: school?.trim() || undefined,
+      academicYear: academicYear?.trim() || undefined,
+    });
+
+    await seedDefaultCategories(user._id);
+
+    // Attempt welcome email but don't fail the request if it errors.
+    if (isEmailConfigured()) {
+      try { await Promise.race([sendWelcomeEmail(user), new Promise((r) => setTimeout(r, 6000))]); } catch { /* ignore */ }
+    }
+
+    const txCount = 0;
+    res.status(201).json({ data: { ...user.toPublic(), transactionCount: txCount }, message: `Account created for ${user.email}.` });
+  } catch (err) {
+    return serverError(res, err);
+  }
+});
 
 // GET /api/v1/admin/users
 router.get('/users', async (req, res) => {
