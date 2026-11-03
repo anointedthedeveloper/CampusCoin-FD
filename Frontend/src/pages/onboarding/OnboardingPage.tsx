@@ -264,11 +264,24 @@ export function OnboardingPage() {
     return goals.length === 0 && monthlyBudget.trim() === '' && savingsTarget.trim() === '';
   }
 
+  // Returns true when budget + savings would exceed income (only when income is known).
+  function exceedsIncome() {
+    if (!incomeAmount) return false;
+    const income  = Number(incomeAmount);
+    const budget  = Number(monthlyBudget  || 0);
+    const savings = Number(savingsTarget  || 0);
+    return budget + savings > income;
+  }
+
   // Last question answered: refuse to finish when every step was left blank.
   async function handleFinishGoals() {
-    // Savings target cannot exceed income
-    if (savingsTarget && incomeAmount && Number(savingsTarget) >= Number(incomeAmount)) {
-      setError(`Your savings target must be less than your income (${formatCurrency(Number(incomeAmount), currency)}).`);
+    if (exceedsIncome()) {
+      const income  = Number(incomeAmount);
+      const budget  = Number(monthlyBudget  || 0);
+      const savings = Number(savingsTarget  || 0);
+      setError(
+        `Your spending budget (${formatCurrency(budget, currency)}) + savings target (${formatCurrency(savings, currency)}) = ${formatCurrency(budget + savings, currency)}, which exceeds your income of ${formatCurrency(income, currency)}. Please reduce one or both values.`,
+      );
       return;
     }
 
@@ -841,8 +854,12 @@ export function OnboardingPage() {
                     label="Monthly spending budget (optional)"
                     placeholder="0.00"
                     value={monthlyBudget}
-                    onChange={setMonthlyBudget}
-                    hint="We'll track this against your actual spending."
+                    onChange={(v) => { setMonthlyBudget(v); setError(null); }}
+                    hint={
+                      exceedsIncome()
+                        ? `Budget + savings exceeds your income of ${formatCurrency(Number(incomeAmount), currency)}.`
+                        : "We'll track this against your actual spending."
+                    }
                   />
                   <FormattedNumberInput
                     label="Savings target (optional)"
@@ -850,8 +867,8 @@ export function OnboardingPage() {
                     value={savingsTarget}
                     onChange={(v) => { setSavingsTarget(v); setError(null); }}
                     hint={
-                      savingsTarget && incomeAmount && Number(savingsTarget) >= Number(incomeAmount)
-                        ? `Must be less than your income (${formatCurrency(Number(incomeAmount), currency)}).`
+                      exceedsIncome()
+                        ? `Budget + savings exceeds your income of ${formatCurrency(Number(incomeAmount), currency)}.`
                         : 'Shown as a progress bar on your dashboard.'
                     }
                   />
