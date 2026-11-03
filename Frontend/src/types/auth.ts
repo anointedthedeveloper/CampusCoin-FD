@@ -5,6 +5,7 @@ import type { User } from './user';
 export interface LoginCredentials {
   email: string;
   password: string;
+  loginAs?: 'admin' | 'student';
 }
 
 export interface RegisterPayload {

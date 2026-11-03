@@ -38,11 +38,7 @@ export function AdminLoginPage() {
 
     setIsSubmitting(true);
     try {
-      const loggedInUser = await login({ email, password });
-      if (loggedInUser.role !== 'admin') {
-        setError('Access denied. Admins only.');
-        return;
-      }
+      const loggedInUser = await login({ email, password, loginAs: 'admin' });
       navigate(ADMIN_ROUTES.dashboard, { replace: true });
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Something went wrong. Please try again.');

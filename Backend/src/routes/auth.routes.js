@@ -172,14 +172,16 @@ router.post('/google', authLimiter, async (req, res) => {
 });
 
 // POST /api/v1/auth/login
+// Accepts an optional `loginAs` field ('admin' | 'student'). When supplied,
+// a role mismatch returns the same generic invalid-credentials response so
+// neither role can enumerate accounts belonging to the other.
 router.post('/login', authLimiter, async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, loginAs } = req.body;
     if (typeof email !== 'string' || typeof password !== 'string' || !email || !password) return res.status(400).json({ message: 'Email and password are required' });
 
-    // Same status/message whether the email doesn't exist or the password is
-    // wrong — distinguishing the two would let a caller enumerate registered
-    // emails.
+    // Same status/message for every failure — prevents email enumeration and
+    // role enumeration.
     const invalidCredentials = () =>
       res.status(401).json({ message: 'Your email or password is incorrect.', code: 'INVALID_CREDENTIALS' });
 
@@ -188,6 +190,10 @@ router.post('/login', authLimiter, async (req, res) => {
 
     const match = await user.matchPassword(password);
     if (!match) return invalidCredentials();
+
+    // Role gate: treat a role mismatch identically to wrong credentials.
+    if (loginAs === 'admin' && user.role !== 'admin') return invalidCredentials();
+    if (loginAs === 'student' && user.role !== 'student') return invalidCredentials();
 
     if (!user.isActive) return res.status(403).json({ message: 'Your account has been suspended. Please contact the Campus Coin administrator.', code: 'ACCOUNT_SUSPENDED' });
 

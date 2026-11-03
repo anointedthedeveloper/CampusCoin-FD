@@ -60,7 +60,7 @@ export function LoginPage() {
 
     setIsSubmitting(true);
     try {
-      const loggedInUser = await login({ email, password });
+      const loggedInUser = await login({ email, password, loginAs: 'student' });
       navigate(postLoginPath(loggedInUser, redirectFrom), { replace: true });
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Something went wrong. Please try again.');
