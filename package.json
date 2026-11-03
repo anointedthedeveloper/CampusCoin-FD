@@ -1,0 +1,10 @@
+{
+  "scripts": {
+    "present": "node serve.js",
+    "pptx": "node make-pptx.js"
+  },
+  "devDependencies": {
+    "express": "^5.0.1",
+    "pptxgenjs": "^4.0.1"
+  }
+}

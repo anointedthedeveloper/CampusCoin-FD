@@ -266,6 +266,12 @@ export function OnboardingPage() {
 
   // Last question answered: refuse to finish when every step was left blank.
   async function handleFinishGoals() {
+    // Savings target cannot exceed income
+    if (savingsTarget && incomeAmount && Number(savingsTarget) >= Number(incomeAmount)) {
+      setError(`Your savings target must be less than your income (${formatCurrency(Number(incomeAmount), currency)}).`);
+      return;
+    }
+
     // All three data steps blank → not really completed
     const allBlank = step2IsBlank() && step3IsBlank() && step4IsBlank() && step4IsBlank();
     if (allBlank) {
@@ -842,8 +848,12 @@ export function OnboardingPage() {
                     label="Savings target (optional)"
                     placeholder="0.00"
                     value={savingsTarget}
-                    onChange={setSavingsTarget}
-                    hint="Shown as a progress bar on your dashboard."
+                    onChange={(v) => { setSavingsTarget(v); setError(null); }}
+                    hint={
+                      savingsTarget && incomeAmount && Number(savingsTarget) >= Number(incomeAmount)
+                        ? `Must be less than your income (${formatCurrency(Number(incomeAmount), currency)}).`
+                        : 'Shown as a progress bar on your dashboard.'
+                    }
                   />
                 </div>
 

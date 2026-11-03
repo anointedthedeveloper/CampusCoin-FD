@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CampusCoin — Team Flandek</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --g:#1c8f53;--gd:#0f5c35;--gl:#edf7f1;--gm:#c8e6d4;
+  --text:#111827;--muted:#6b7280;--border:#e5e7eb;--bg:#f9fafb;
+  --gold:#d97706;--red:#dc2626;--redl:#fef2f2;
+}
+html,body{font-family:'Inter',sans-serif;background:#111;overflow:hidden;height:100%;width:100%}
+#app{width:100vw;height:100vh;display:flex;align-items:center;justify-content:center}
+#stage{width:1280px;height:720px;position:relative;overflow:hidden;border-radius:10px;box-shadow:0 30px 80px rgba(0,0,0,.6);transform-origin:center center}
+.slide{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .4s ease,transform .4s ease;transform:translateX(50px)}
+.slide.active{opacity:1;pointer-events:auto;transform:translateX(0)}
+.slide.exit{opacity:0;transform:translateX(-50px)}
+
+/* NAV */
+#nav{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;background:rgba(0,0,0,.4);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.12);padding:7px 18px;border-radius:50px;z-index:9999}
+#nav button{background:none;border:none;color:#fff;cursor:pointer;padding:5px 8px;border-radius:6px;display:flex;align-items:center;transition:background .15s}
+#nav button:hover{background:rgba(255,255,255,.1)}
+#nav button:disabled{opacity:.2;cursor:default}
+#ctr{font-size:12px;font-weight:700;color:rgba(255,255,255,.7);min-width:38px;text-align:center}
+.dots{display:flex;gap:5px}
+.dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.3);cursor:pointer;transition:all .2s}
+.dot.on{background:#fff;transform:scale(1.5)}
+
+/* TOOLBAR */
+#bar{position:fixed;top:14px;right:14px;display:flex;gap:6px;z-index:9999}
+.tbtn{background:rgba(0,0,0,.4);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.12);color:#fff;font-family:inherit;font-size:11px;font-weight:600;padding:6px 13px;border-radius:7px;cursor:pointer;display:flex;align-items:center;gap:5px;transition:background .15s}
+.tbtn:hover{background:var(--g);border-color:var(--g)}
+#hint{position:fixed;top:18px;left:14px;font-size:11px;color:rgba(255,255,255,.25);z-index:9999}
+
+/* ══ SLIDE 1 — TITLE ══ */
+#s1{background:#071a0e}
+#s1 .bgimg{position:absolute;inset:0;background:url('pres-assets/herosld1.png') right center/cover no-repeat;opacity:.18}
+#s1 .grad{position:absolute;inset:0;background:linear-gradient(90deg,#071a0e 50%,rgba(7,26,14,.4) 100%)}
+#s1 .inner{position:relative;z-index:2;display:flex;flex-direction:column;justify-content:center;height:100%;padding:0 80px;gap:28px}
+#s1 .logo-row{display:flex;align-items:center;gap:18px}
+#s1 .logo-row img{width:80px;height:80px;object-fit:contain}
+#s1 .name{font-size:64px;font-weight:900;color:#fff;letter-spacing:-.04em;line-height:1}
+#s1 .name span{color:#4ade80}
+#s1 .sub{font-size:12px;font-weight:600;color:rgba(255,255,255,.35);letter-spacing:.12em;text-transform:uppercase;margin-top:4px}
+#s1 .desc{font-size:19px;color:rgba(255,255,255,.62);line-height:1.6;max-width:560px;font-weight:400}
+#s1 .chips{display:flex;gap:9px;flex-wrap:wrap}
+#s1 .chip{display:inline-flex;align-items:center;gap:6px;padding:7px 16px;border-radius:50px;font-size:13px;font-weight:600;letter-spacing:-.01em}
+#s1 .chip.s{background:var(--g);color:#fff}
+#s1 .chip.o{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);color:rgba(255,255,255,.78)}
+#s1 .chip.g{background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.22);color:#4ade80}
+#s1 .line{width:48px;height:3px;background:var(--g);border-radius:2px}
+
+/* ══ SLIDE 2 — PROBLEM + SOLUTION ══ */
+#s2{background:#fff}
+#s2 .left{position:absolute;left:0;top:0;bottom:0;width:44%;background:#071a0e;display:flex;flex-direction:column;justify-content:center;padding:56px 48px;gap:18px}
+#s2 .left .bgimg{position:absolute;inset:0;background:url('pres-assets/herosld3.png') center/cover no-repeat;opacity:.14}
+#s2 .left .grad{position:absolute;inset:0;background:rgba(7,26,14,.88)}
+#s2 .left .content{position:relative;z-index:2;display:flex;flex-direction:column;gap:18px}
+#s2 .right{position:absolute;left:44%;right:0;top:0;bottom:0;background:#fff;display:flex;flex-direction:column;justify-content:center;padding:52px 52px}
+#s2 .wlbl{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#4ade80}
+#s2 .whead{font-size:34px;font-weight:900;color:#fff;line-height:1.15;letter-spacing:-.02em}
+#s2 .whead em{color:#4ade80;font-style:normal}
+#s2 .prob-list{display:flex;flex-direction:column;gap:10px}
+#s2 .prow{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;background:rgba(255,255,255,.06);border-left:3px solid #f87171;border-radius:0 8px 8px 0}
+#s2 .prow .pt{font-size:13.5px;font-weight:700;color:#fff;margin-bottom:3px}
+#s2 .prow .pd{font-size:11.5px;color:rgba(255,255,255,.5);line-height:1.5}
+#s2 .ric{width:30px;height:30px;border-radius:7px;background:rgba(248,113,113,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#f87171;margin-top:1px}
+#s2 .qbox{padding:13px 16px;background:rgba(245,158,11,.1);border-left:3px solid #f59e0b;font-size:13px;font-style:italic;font-weight:600;color:#fcd34d;line-height:1.5}
+#s2 .rlbl{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--g);margin-bottom:6px}
+#s2 .rhead{font-size:34px;font-weight:900;color:var(--text);line-height:1.15;letter-spacing:-.02em;margin-bottom:24px}
+#s2 .rhead em{color:var(--g);font-style:normal}
+#s2 .pillars{display:flex;gap:12px}
+#s2 .pl{flex:1;padding:18px;background:var(--gl);border:1px solid var(--gm);border-radius:10px;position:relative;overflow:hidden}
+#s2 .pl::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--g)}
+#s2 .pnum{font-size:30px;font-weight:900;color:var(--gm);line-height:1;margin-bottom:8px}
+#s2 .ptit{font-size:15px;font-weight:700;color:var(--text);margin-bottom:6px}
+#s2 .pdesc{font-size:12px;color:var(--muted);line-height:1.55}
+#s2 .badges{display:flex;gap:7px;flex-wrap:wrap;margin-top:20px}
+#s2 .badge{display:inline-flex;align-items:center;gap:4px;background:var(--gl);border:1px solid var(--gm);color:var(--g);font-size:11px;font-weight:700;padding:5px 11px;border-radius:20px}
+
+/* ══ SLIDE 3 — FEATURES + AI ══ */
+#s3{background:#071a0e}
+#s3 .bgimg{position:absolute;inset:0;background:url('pres-assets/fthrdrk.png') center/cover no-repeat;opacity:.1}
+#s3 .inner{position:relative;z-index:2;display:flex;height:100%}
+#s3 .left{width:44%;display:flex;flex-direction:column;padding:36px 36px 32px 48px;border-right:1px solid rgba(255,255,255,.07)}
+#s3 .right{flex:1;display:flex;flex-direction:column;padding:36px 48px 32px 36px}
+.dlbl{font-size:9.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#4ade80;margin-bottom:5px}
+.dhead{font-size:22px;font-weight:800;color:#fff;letter-spacing:-.02em;line-height:1.2;margin-bottom:14px}
+.dhead em{color:#4ade80;font-style:normal}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:7px;flex:1;min-height:0}
+.fitem{display:flex;gap:9px;align-items:flex-start;padding:9px 11px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:8px}
+.fico{width:26px;height:26px;border-radius:6px;background:rgba(28,143,83,.2);border:1px solid rgba(28,143,83,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#4ade80}
+.fico.g{background:rgba(246,180,48,.14);border-color:rgba(246,180,48,.3);color:#fbbf24}
+.fn{font-size:11.5px;font-weight:700;color:#fff}
+.fd{font-size:10px;color:rgba(255,255,255,.42);margin-top:1px;line-height:1.4}
+.scr{border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,.1);flex-shrink:0}
+.scr img{display:block;width:100%;height:100%;object-fit:cover;object-position:top left}
+.sg{background:rgba(28,143,83,.13);border:1px solid rgba(28,143,83,.28);border-radius:8px;padding:10px 14px;margin-top:8px}
+.sgl{font-size:8.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#4ade80;margin-bottom:3px}
+.sgt{font-size:11.5px;color:rgba(255,255,255,.62);line-height:1.5}
+.tcols{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:8px}
+.tch{font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#4ade80;border-bottom:1px solid rgba(255,255,255,.08);padding-bottom:4px;margin-bottom:6px}
+.tr{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:11px}
+.tr .tn{font-weight:600;color:rgba(255,255,255,.82)}
+.tr .td{color:rgba(255,255,255,.3);font-size:10px}
+
+/* ══ SLIDE 4 — ADMIN + TESTS + LIMITS ══ */
+#s4{background:#f9fafb}
+#s4 .bgimg{position:absolute;inset:0;background:url('pres-assets/fthrlig.png') center/cover no-repeat;opacity:.04}
+#s4 .inner{position:relative;z-index:2;display:flex;height:100%}
+#s4 .ca{flex:1.1;display:flex;flex-direction:column;padding:28px 32px 24px 44px;border-right:1px solid var(--border)}
+#s4 .cb{width:290px;flex-shrink:0;display:flex;flex-direction:column;padding:28px 28px 24px 28px;border-right:1px solid var(--border)}
+#s4 .cc{flex:1;display:flex;flex-direction:column;padding:28px 40px 24px 28px}
+.llbl{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--g);margin-bottom:4px}
+.lhead{font-size:20px;font-weight:800;color:var(--text);letter-spacing:-.02em;line-height:1.2;margin-bottom:10px}
+.lhead em{color:var(--g);font-style:normal}
+.agrid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.acard{background:#fff;border:1px solid var(--border);border-radius:8px;padding:9px 11px;position:relative;overflow:hidden}
+.acard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--g)}
+.acard.nw{background:var(--gl);border-color:var(--gm)}
+.an{font-size:8.5px;font-weight:700;color:var(--g);margin-bottom:2px;opacity:.6}
+.acard.nw .an{opacity:1}
+.at{font-size:11.5px;font-weight:700;color:var(--text);margin-bottom:1px}
+.acard.nw .at{color:var(--gd)}
+.ad{font-size:9.5px;color:var(--muted);line-height:1.35}
+.sp{display:flex;gap:6px;flex-shrink:0}
+.ss{border-radius:6px;overflow:hidden;border:1px solid var(--border);flex:1}
+.ss img{display:block;width:100%;height:100%;object-fit:cover;object-position:top left}
+.ttest{display:flex;justify-content:space-between;align-items:center;padding:4.5px 0;border-bottom:1px solid var(--border);font-size:11.5px}
+.ttest .tn{color:var(--text)}
+.pass{color:var(--g);font-weight:700}
+.fix{color:var(--gold);font-weight:600}
+.uc{background:var(--gl);border:1px solid var(--gm);border-radius:7px;padding:9px 12px;margin-bottom:10px}
+.ul{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--g);margin-bottom:2px}
+.uv{font-size:12px;font-weight:700;color:var(--gd)}
+.li{display:flex;gap:9px;align-items:flex-start;padding:7.5px 0;border-bottom:1px solid var(--border)}
+.li:last-child{border-bottom:none}
+.lic{width:26px;height:26px;border-radius:6px;background:var(--redl);border:1px solid #fecaca;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--red);margin-top:1px}
+.lt{font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px}
+.ldc{font-size:10px;color:var(--muted);line-height:1.4}
+.lfix{font-size:10px;font-weight:700;color:var(--g);margin-top:2px}
+
+@media print{
+  body{background:#fff;overflow:visible}
+  #app{display:block;width:auto;height:auto}
+  #nav,#bar,#hint{display:none!important}
+  #stage{width:297mm;height:167mm;transform:none!important;box-shadow:none;border-radius:0;position:static;overflow:visible}
+  .slide{position:static!important;opacity:1!important;transform:none!important;pointer-events:auto!important;width:297mm;height:167mm;page-break-after:always;page-break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div id="hint">← → keys · F = fullscreen</div>
+<div id="bar">
+  <button class="tbtn" id="pptbtn" onclick="downloadPPTX()">
+    <i data-lucide="download" style="width:13px;height:13px"></i> Download PPTX
+  </button>
+  <button class="tbtn" onclick="printPDF()">
+    <i data-lucide="printer" style="width:13px;height:13px"></i> Print / PDF
+  </button>
+  <button class="tbtn" onclick="toggleFS()">
+    <i data-lucide="maximize-2" style="width:13px;height:13px"></i> Fullscreen
+  </button>
+</div>
+<div id="app"><div id="stage">
+
+<!-- SLIDE 1 -->
+<div class="slide" id="s1">
+  <div class="bgimg"></div><div class="grad"></div>
+  <div class="inner">
+    <div class="line"></div>
+    <div class="logo-row">
+      <img src="pres-assets/logo.png" alt="logo">
+      <div>
+        <div class="name">Campus<span>Coin</span></div>
+        <div class="sub">Student Finance Platform</div>
+      </div>
+    </div>
+    <p class="desc">A smart budgeting platform built for students — no bank account or credit card required.</p>
+    <div class="chips">
+      <div class="chip s"><i data-lucide="users" style="width:13px;height:13px"></i> Team Flandek</div>
+      <div class="chip o"><i data-lucide="layers" style="width:13px;height:13px"></i> Full-Stack Web App</div>
+      <div class="chip o"><i data-lucide="globe-2" style="width:13px;height:13px"></i> 8 Currencies</div>
+    </div>
+    <div class="chips">
+      <div class="chip g"><i data-lucide="bot" style="width:12px;height:12px"></i> AI-Powered</div>
+      <div class="chip g"><i data-lucide="gift" style="width:12px;height:12px"></i> 100% Free</div>
+      <div class="chip g"><i data-lucide="shield-check" style="width:12px;height:12px"></i> No Bank Needed</div>
+    </div>
+    <p style="font-size:13px;font-style:italic;color:rgba(255,255,255,.35)">"Smart money, Brighter Future."</p>
+  </div>
+</div>
+
+<!-- SLIDE 2 -->
+<div class="slide" id="s2">
+  <div class="left">
+    <div class="bgimg"></div><div class="grad"></div>
+    <div class="content">
+      <div class="wlbl">The Problem</div>
+      <div class="whead">Students struggle<br>with money.<br><em>Every semester.</em></div>
+      <div class="prob-list">
+        <div class="prow">
+          <div class="ric"><i data-lucide="eye-off" style="width:14px;height:14px"></i></div>
+          <div><div class="pt">No Visibility</div><div class="pd">Allowances, gigs, scholarships — no single place to track it all.</div></div>
+        </div>
+        <div class="prow">
+          <div class="ric"><i data-lucide="ban" style="width:14px;height:14px"></i></div>
+          <div><div class="pt">Wrong Tools</div><div class="pd">Existing apps assume a bank account. Most students have neither.</div></div>
+        </div>
+        <div class="prow">
+          <div class="ric"><i data-lucide="help-circle" style="width:14px;height:14px"></i></div>
+          <div><div class="pt">No Guidance</div><div class="pd">Nobody teaches personal finance. Students overspend and only notice at month-end.</div></div>
+        </div>
+      </div>
+      <div class="qbox">"100% of students handle money. 0% were taught how."</div>
+    </div>
+  </div>
+  <div class="right">
+    <div class="rlbl">Our Answer</div>
+    <div class="rhead">Built for campus life.<br><em>No bank needed.</em></div>
+    <div class="pillars">
+      <div class="pl">
+        <div class="pnum">01</div>
+        <div class="ptit">Track</div>
+        <div class="pdesc">Log income and expenses in seconds with campus-tuned categories — Hostel, Allowance, Data, Transport.</div>
+      </div>
+      <div class="pl">
+        <div class="pnum">02</div>
+        <div class="ptit">Plan</div>
+        <div class="pdesc">Set monthly budgets per category and savings goals with live progress bars and milestone rewards.</div>
+      </div>
+      <div class="pl">
+        <div class="pnum">03</div>
+        <div class="ptit">Improve</div>
+        <div class="pdesc">AI-powered insights and personalised saving tips based on your actual spending history.</div>
+      </div>
+    </div>
+    <div class="badges">
+      <div class="badge"><i data-lucide="globe-2" style="width:10px;height:10px"></i> 8 Currencies</div>
+      <div class="badge"><i data-lucide="shield-check" style="width:10px;height:10px"></i> No Bank Account</div>
+      <div class="badge"><i data-lucide="trophy" style="width:10px;height:10px"></i> Milestone Rewards</div>
+      <div class="badge"><i data-lucide="upload" style="width:10px;height:10px"></i> Import from Excel / CSV</div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 3 -->
+<div class="slide" id="s3">
+  <div class="bgimg"></div>
+  <div class="inner">
+    <div class="left">
+      <div class="dlbl">What We Built</div>
+      <div class="dhead">10 features. <em>All student-first.</em></div>
+      <div class="fgrid">
+        <div class="fitem"><div class="fico"><i data-lucide="layout-dashboard" style="width:13px;height:13px"></i></div><div><div class="fn">Dashboard</div><div class="fd">Balance, income, expenses at a glance</div></div></div>
+        <div class="fitem"><div class="fico"><i data-lucide="credit-card" style="width:13px;height:13px"></i></div><div><div class="fn">Transactions</div><div class="fd">Add, edit, search, filter, delete, restore</div></div></div>
+        <div class="fitem"><div class="fico"><i data-lucide="calendar-range" style="width:13px;height:13px"></i></div><div><div class="fn">Budgets</div><div class="fd">Monthly limits with live progress bars</div></div></div>
+        <div class="fitem"><div class="fico"><i data-lucide="line-chart" style="width:13px;height:13px"></i></div><div><div class="fn">Reports</div><div class="fd">6-month trends, heatmap, 5 export formats</div></div></div>
+        <div class="fitem"><div class="fico g"><i data-lucide="bot" style="width:13px;height:13px"></i></div><div><div class="fn">AI Assistant</div><div class="fd">Proposes entries — you approve before saving</div></div></div>
+        <div class="fitem"><div class="fico g"><i data-lucide="trophy" style="width:13px;height:13px"></i></div><div><div class="fn">Savings Goals</div><div class="fd">Target + deadline + milestone badges</div></div></div>
+        <div class="fitem"><div class="fico"><i data-lucide="repeat" style="width:13px;height:13px"></i></div><div><div class="fn">Recurring</div><div class="fd">Auto-post daily / weekly / monthly</div></div></div>
+        <div class="fitem"><div class="fico"><i data-lucide="upload" style="width:13px;height:13px"></i></div><div><div class="fn">Import & Export</div><div class="fd">7 formats in — 5 formats out</div></div></div>
+        <div class="fitem"><div class="fico"><i data-lucide="lightbulb" style="width:13px;height:13px"></i></div><div><div class="fn">Saving Tips</div><div class="fd">Personalised from real spending data</div></div></div>
+        <div class="fitem"><div class="fico"><i data-lucide="bell" style="width:13px;height:13px"></i></div><div><div class="fn">Notifications</div><div class="fd">Budget alerts and announcements</div></div></div>
+      </div>
+    </div>
+    <div class="right">
+      <div class="dlbl">AI Assistant</div>
+      <div class="dhead">Ask anything. <em>It does the work.</em></div>
+      <div class="scr" style="height:250px">
+        <img src="pres-assets/ai-assistant.webp" alt="AI">
+      </div>
+      <div class="sg">
+        <div class="sgl">Safeguard</div>
+        <div class="sgt">The AI never saves anything without your approval. Every proposed change is shown before anything is stored.</div>
+      </div>
+      <div class="tcols">
+        <div>
+          <div class="tch">Frontend</div>
+          <div class="tr"><span class="tn">React 18 + TypeScript</span><span class="td">UI</span></div>
+          <div class="tr"><span class="tn">Vite 6 + Tailwind</span><span class="td">Build</span></div>
+          <div class="tr"><span class="tn">Framer Motion + Recharts</span><span class="td">Anim / Charts</span></div>
+          <div class="tr"><span class="tn">SheetJS 0.20</span><span class="td">Excel / CSV</span></div>
+        </div>
+        <div>
+          <div class="tch">Backend & Infra</div>
+          <div class="tr"><span class="tn">Node + Express 5</span><span class="td">API</span></div>
+          <div class="tr"><span class="tn">MongoDB Atlas</span><span class="td">Database</span></div>
+          <div class="tr"><span class="tn">JWT + bcrypt</span><span class="td">Auth</span></div>
+          <div class="tr"><span class="tn">pdfkit + nodemailer</span><span class="td">PDF / Email</span></div>
+          <div class="tr"><span class="tn">Vercel Serverless</span><span class="td">Hosting</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 4 -->
+<div class="slide" id="s4">
+  <div class="bgimg"></div>
+  <div class="inner">
+
+    <div class="ca">
+      <div class="llbl">Admin Console</div>
+      <div class="lhead">Full management, <em>built in.</em></div>
+      <div class="sp" style="height:130px;margin-bottom:10px">
+        <div class="ss"><img src="pres-assets/reports.webp" alt="Reports"></div>
+        <div class="ss"><img src="pres-assets/budgets.webp" alt="Budgets"></div>
+      </div>
+      <div class="agrid">
+        <div class="acard"><div class="an">01</div><div class="at">Overview</div><div class="ad">Platform stats and shortcuts</div></div>
+        <div class="acard"><div class="an">02</div><div class="at">Users</div><div class="ad">Create, suspend, reset, change roles</div></div>
+        <div class="acard"><div class="an">03</div><div class="at">Announcements</div><div class="ad">Broadcast messages and saving tips</div></div>
+        <div class="acard"><div class="an">04</div><div class="at">Support Inbox</div><div class="ad">Real-time chat with students</div></div>
+        <div class="acard"><div class="an">05</div><div class="at">Statistics</div><div class="ad">Active users, top categories, spend</div></div>
+        <div class="acard"><div class="an">06</div><div class="at">System</div><div class="ad">Email health check and backups</div></div>
+        <div class="acard"><div class="an">07</div><div class="at">Categories</div><div class="ad">Default category library</div></div>
+        <div class="acard nw"><div class="an">New</div><div class="at">This Build</div><div class="ad">Create accounts — Route guard</div></div>
+      </div>
+    </div>
+
+    <div class="cb">
+      <div class="llbl">Test Results — 1 Nov 2026</div>
+      <div class="lhead">Live, tested,<br><em>production-ready.</em></div>
+      <div class="uc">
+        <div class="ul">Frontend</div>
+        <div class="uv">campuscointw7.vercel.app</div>
+        <div style="height:5px"></div>
+        <div class="ul">API</div>
+        <div class="uv" style="font-size:10.5px">campuscoin-backend.vercel.app/api/v1</div>
+      </div>
+      <div class="ttest"><span class="tn">Registration and login</span><span class="pass">Pass</span></div>
+      <div class="ttest"><span class="tn">17 student pages</span><span class="pass">Pass</span></div>
+      <div class="ttest"><span class="tn">Transactions — full CRUD and restore</span><span class="pass">Pass</span></div>
+      <div class="ttest"><span class="tn">Budgets and savings goals</span><span class="pass">Pass</span></div>
+      <div class="ttest"><span class="tn">Reports and all export formats</span><span class="pass">Pass</span></div>
+      <div class="ttest"><span class="tn">AI chat and insights</span><span class="pass">Pass</span></div>
+      <div class="ttest"><span class="tn">CSV import</span><span class="pass">Pass</span></div>
+      <div class="ttest"><span class="tn">Admin console — all sections</span><span class="pass">Pass</span></div>
+      <div class="ttest"><span class="tn">Responsive 390px to 1440px</span><span class="pass">Pass</span></div>
+      <div class="ttest"><span class="tn">PDF export</span><span class="fix">Fixed</span></div>
+    </div>
+
+    <div class="cc">
+      <div class="llbl">Honest Assessment</div>
+      <div class="lhead">Limitations &amp; <em>what we'd improve.</em></div>
+      <div>
+        <div class="li">
+          <div class="lic"><i data-lucide="smartphone" style="width:13px;height:13px"></i></div>
+          <div><div class="lt">No native mobile app</div><div class="ldc">Web app is fully responsive but a native iOS / Android app would improve on-the-go logging.</div><div class="lfix">Build with React Native and push notifications</div></div>
+        </div>
+        <div class="li">
+          <div class="lic"><i data-lucide="wifi-off" style="width:13px;height:13px"></i></div>
+          <div><div class="lt">No offline mode</div><div class="ldc">Students without data cannot log expenses in the moment.</div><div class="lfix">Add service worker and IndexedDB sync — PWA</div></div>
+        </div>
+        <div class="li">
+          <div class="lic"><i data-lucide="users-2" style="width:13px;height:13px"></i></div>
+          <div><div class="lt">Single-user only</div><div class="ldc">No shared budgets for housemates or groups splitting expenses.</div><div class="lfix">Introduce shared group budgets and expense splitting</div></div>
+        </div>
+        <div class="li">
+          <div class="lic"><i data-lucide="bot" style="width:13px;height:13px"></i></div>
+          <div><div class="lt">AI needs third-party APIs</div><div class="ldc">Groq and Gemini are external — degrades to rule-based when both are down.</div><div class="lfix">Embed a lightweight on-device AI model</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</div></div>
+
+<div id="nav">
+  <button id="bp" onclick="go(cur-1)"><i data-lucide="chevron-left" style="width:16px;height:16px"></i></button>
+  <div class="dots" id="dots"></div>
+  <span id="ctr">1 / 4</span>
+  <button id="bn" onclick="go(cur+1)"><i data-lucide="chevron-right" style="width:16px;height:16px"></i></button>
+</div>
+
+<script>
+lucide.createIcons();
+const slides=Array.from(document.querySelectorAll('.slide')),N=slides.length;let cur=0;
+function scaleStage(){const s=document.getElementById('stage'),sx=(window.innerWidth*.97)/1280,sy=(window.innerHeight*.91)/720;s.style.transform=`scale(${Math.min(sx,sy)})`}
+window.addEventListener('resize',scaleStage);scaleStage();
+const de=document.getElementById('dots');
+slides.forEach((_,i)=>{const d=document.createElement('div');d.className='dot'+(i===0?' on':'');d.onclick=()=>go(i);de.appendChild(d);});
+function go(n){if(n<0||n>=N||n===cur)return;const p=cur;cur=n;slides[p].classList.remove('active');slides[p].classList.add('exit');setTimeout(()=>slides[p].classList.remove('exit'),450);slides[cur].style.transform=`translateX(${n>p?50:-50}px)`;slides[cur].classList.add('active');requestAnimationFrame(()=>{slides[cur].style.transform=''});document.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('on',i===cur));document.getElementById('ctr').textContent=`${cur+1} / ${N}`;document.getElementById('bp').disabled=cur===0;document.getElementById('bn').disabled=cur===N-1;}
+slides[0].classList.add('active');document.getElementById('bp').disabled=true;
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();go(cur+1)}else if(e.key==='ArrowLeft'){e.preventDefault();go(cur-1)}else if(e.key==='f'||e.key==='F')toggleFS();else if(e.key==='Home')go(0);else if(e.key==='End')go(N-1);else if(e.key>='1'&&e.key<='4')go(+e.key-1);});
+let tx=null;document.getElementById('stage').addEventListener('touchstart',e=>{tx=e.touches[0].clientX},{passive:true});document.getElementById('stage').addEventListener('touchend',e=>{if(tx===null)return;const dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>40)dx<0?go(cur+1):go(cur-1);tx=null;},{passive:true});
+function downloadPPTX(){const b=document.getElementById('pptbtn');b.innerHTML='<i data-lucide="loader" style="width:13px;height:13px"></i> Generating...';b.disabled=true;lucide.createIcons();window.location.href='/download-pptx';setTimeout(()=>{b.innerHTML='<i data-lucide="download" style="width:13px;height:13px"></i> Download PPTX';b.disabled=false;lucide.createIcons();},5000);}
+function printPDF(){alert('Print dialog:\nLayout: Landscape\nDestination: Save as PDF\nUncheck Headers and footers');window.print();}
+function toggleFS(){if(!document.fullscreenElement)document.documentElement.requestFullscreen().catch(()=>{});else document.exitFullscreen();}
+</script>
+</body>
+</html>
