@@ -2,6 +2,7 @@
   "buildCommand": "cd Frontend && npm install && npm run build",
   "outputDirectory": "Frontend/dist",
   "installCommand": "echo skip",
+  "framework": null,
   "headers": [
     {
       "source": "/assets/(.*)",
